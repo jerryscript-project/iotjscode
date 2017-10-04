@@ -102,6 +102,10 @@ define(["app/client-parsesource", "app/util", "app/logger"], function(ParseSourc
       this._surface.updateRunPanel(this._surface.RUN_UPDATE_TYPE.ALL, this._debuggerObj, this._session);
     }
 
+    if (this._surface.getPanelProperty("watch.active")) {
+      this._surface.updateWatchPanelButtons(this._debuggerObj);
+    }
+
     this._surface.disableActionButtons(false);
     this._surface.toggleButton(false, "connect-to-button");
   }
@@ -126,6 +130,10 @@ define(["app/client-parsesource", "app/util", "app/logger"], function(ParseSourc
       if (this._chart.containsData()) {
         this._surface.toggleButton(true, "chart-reset-button");
       }
+    }
+
+    if (this._surface.getPanelProperty("chart.active")) {
+      this._surface.updateWatchPanelButtons(this._debuggerObj);
     }
 
     if (this._session.isUploadStarted()) {
@@ -333,6 +341,11 @@ define(["app/client-parsesource", "app/util", "app/logger"], function(ParseSourc
           this._surface.getBacktrace(this._debuggerObj);
         }
 
+        // Updates the watched expression list if the watch panel activated.
+        if (this._surface.getPanelProperty("watch.active")) {
+          this._session.updateWatchExpressions(this._debuggerObj);
+        }
+
         /*Add breakpoint information to chart*/
         for (var i in this._debuggerObj.getActiveBreakpoints()) {
           if(this._debuggerObj.getActiveBreakpoints()[i].line == this._debuggerObj.breakpointToString(breakpoint).split(":")[1].split(" ")[0]
@@ -383,13 +396,27 @@ define(["app/client-parsesource", "app/util", "app/logger"], function(ParseSourc
         var subType = this._evalResult[this._evalResult.length - 1];
         this._evalResult = this._evalResult.slice(0, -1);
         if (subType == this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_EVAL_OK) {
-          this._logger.info(this._debuggerObj.cesu8ToString(this._evalResult));
+          if (this._surface.getPanelProperty("watch.active") && this._session.isWatchInProgress()) {
+            this._session.stopWatchProgress();
+            this._session.addWatchExpressionValue(this._debuggerObj,
+                                                  this._session.getWatchCurrentExpr(),
+                                                  this._debuggerObj.cesu8ToString(this._evalResult));
+          } else {
+            this._logger.info(this._debuggerObj.cesu8ToString(this._evalResult));
+          }
           this._evalResult = null;
           return;
         }
 
         if (subType == this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_EVAL_ERROR) {
-          this._logger.info("Uncaught exception: " + this._debuggerObj.cesu8ToString(this._evalResult));
+          if (this._surface.getPanelProperty("watch.active") && this._session.isWatchInProgress()) {
+            this._session.stopWatchProgress();
+            this._session.addWatchExpressionValue(this._debuggerObj,
+                                                  this._session.getWatchCurrentExpr(),
+                                                  "");
+          } else {
+            this._logger.info("Uncaught exception: " + this._debuggerObj.cesu8ToString(this._evalResult));
+          }
           this._evalResult = null;
           return;
         }

@@ -72,6 +72,16 @@ define(["./util"], function(Util) {
       breakpointLine : null,
       lastMarkedBreakpointLine : null
     };
+    this._watch = {
+      work: {
+        inProgress: false,
+        currentExpr: "",
+        update: false,
+        counter: 0
+      },
+      list: {}
+    };
+
     this._welcomeTab = true;
     this._contextReset = false;
 
@@ -331,6 +341,120 @@ define(["./util"], function(Util) {
    */
   Session.prototype.shiftUploadList = function() {
     this._upload.list.shift();
+  }
+
+  /**
+   * Returns the watch section progress value.
+   *
+   * @return {boolean} True if a watch expression eval is in progress, false otherwise.
+   */
+  Session.prototype.isWatchInProgress = function() {
+    return this._watch.work.inProgress;
+  }
+
+  /**
+   * Change the watch section progress flag to false.
+   */
+  Session.prototype.stopWatchProgress = function() {
+    this._watch.work.inProgress = false;
+  }
+
+  /**
+   * Returns that expression which is under evaluate right at the moment.
+   *
+   * @return {string} Watch Expression.
+   */
+  Session.prototype.getWatchCurrentExpr = function() {
+    return this._watch.work.currentExpr;
+  }
+
+  /**
+   * Creates a new property in the watch list for thw new watch expression.
+   * If the debugger client is connected then it will try to evaluate the expression,
+   * otherwise it will update the watch list.
+   *
+   * @param {object} debuggerObj DebuggerClient module instance.
+   * @param {string} expr Expression which will be added into the list.
+   */
+  Session.prototype.addWatchExpression = function(debuggerObj, expr) {
+    this._watch.list[expr] = "< not available >";
+
+    if (debuggerObj && debuggerObj.isAlive() && !this._surface.isContinueActive()) {
+      this._watch.work.inProgress = true;
+      this._watch.work.currentExpr = expr;
+      debuggerObj.sendEval(expr);
+    } else {
+      this._surface.updateWatchPanelList(this._watch.list);
+      this._surface.updateWatchPanelButtons(debuggerObj);
+    }
+  }
+
+  /**
+   * Add a value to a specific expression.
+   * This function will be called after the debugger engine evaluated the expression.
+   * This is cooperate with the updateWatchExpressions function,
+   * if the watch work counter is not equal with the number of the list elements.
+   *
+   * @param {object} debuggerObj DebuggerClient module instance.
+   * @param {string} expr Expression which was evaluated.
+   * @param {string} value The new value of the expression.
+   */
+  Session.prototype.addWatchExpressionValue = function(debuggerObj, expr, value) {
+    if (this._watch.list[expr]) {
+      if (value != "") {
+        this._watch.list[expr] = value;
+      }
+
+      if (this._watch.work.update && this._watch.work.counter < Object.keys(this._watch.list).length) {
+        this.updateWatchExpressions(debuggerObj);
+      } else {
+        this._watch.work.update = false;
+        this._watch.work.counter = 0;
+      }
+
+      if (!this._watch.work.update) {
+        this._surface.updateWatchPanelList(this._watch.list);
+        this._surface.updateWatchPanelButtons(debuggerObj);
+      }
+    }
+  }
+
+  /**
+   * Updates every expression in the watch list.
+   * This function will grab only one expression from the list
+   * (based on the watch work countter) and send that to the engine.
+   *
+   * @param {object} debuggerObj DebuggerClient module instance.
+   */
+  Session.prototype.updateWatchExpressions = function(debuggerObj) {
+    if (debuggerObj && debuggerObj.isAlive()
+        && !$.isEmptyObject(this._watch.list) && !this._surface.isContinueActive()) {
+      this._watch.work.update = true;
+
+      var expr = Object.keys(this._watch.list)[this._watch.work.counter];
+      this._watch.work.inProgress = true;
+      this._watch.work.currentExpr = expr;
+
+      debuggerObj.sendEval(expr);
+
+      this._watch.work.counter++;
+    }
+  }
+
+  /**
+   * Removes a specific expression from the watch list.
+   *
+   * @param {string} expr Expression which will be removed.
+   */
+  Session.prototype.removeWatchExpression = function(expr) {
+    delete this._watch.list[expr];
+  }
+
+  /**
+   * Removes every expression from the watch list by make the list empty.
+   */
+  Session.prototype.removeAllWatchExpression = function() {
+    this._watch.list = {};
   }
 
   /**

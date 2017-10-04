@@ -71,13 +71,16 @@ define(["./util"], function(Util) {
     };
 
     this._panel = {
-      numberOfInactive: 3,
+      numberOfInactive: 4,
       height: 100,
       backtrace: {
         active: true,
       },
       breakpoints: {
         active: true,
+      },
+      watch: {
+        active: false,
       },
       chart: {
         active: false,
@@ -480,6 +483,61 @@ define(["./util"], function(Util) {
         $("#run-chooser-src").css("opacity", 1);
         $("#run-chooser-dest").css("opacity", 1);
       }
+    }
+  }
+
+  /**
+   * Updates the watch panel list with the provided list.
+   * - First off all make the watch panel empty.
+   * - Then walks trhough the list and creates a new list item for every element.
+   *
+   * @param {array} list The list of the watch expressions.
+   */
+  Surface.prototype.updateWatchPanelList = function(list) {
+    if (list) {
+      $("#watch-list").html("");
+
+      for (var expr in list) {
+        this.appendWatchLi(expr, list[expr]);
+      }
+    }
+  }
+
+  /**
+   * Appends a new list item to the watch panel unordered list.
+   * The new item contains the expression, the expression's value and a remove button at the end of the line.
+   *
+   * @param {string} expr The watched expression.
+   * @param {string} value value of the watched expression.
+   */
+  Surface.prototype.appendWatchLi = function(expr, value) {
+    $("#watch-list").append(
+      $('<li>' +
+          '<span>' + expr + ' : </span>' +
+          '<span>' + value + '</span>' +
+          '<div class="watch-li-remove" data-rid="' + expr + '" title="Remove Expression">' +
+            '<i class="fa fa-minus"></i>' +
+          '</div>' +
+        '</li>')
+    );
+  }
+
+  /**
+   * Updates the watch panel button based on the current state of the panel and the Debugger Client.
+   *
+   * @param {object} debuggerObj The Debugger Client module instance.
+   */
+  Surface.prototype.updateWatchPanelButtons = function(debuggerObj) {
+    if (debuggerObj && debuggerObj.isAlive() && !this.isContinueActive() && !$("#watch-list").is(":empty")) {
+      this.toggleButton(true, "watch-refresh-button");
+    } else {
+      this.toggleButton(false, "watch-refresh-button");
+    }
+
+    if ($("#watch-list").is(":empty")) {
+      this.toggleButton(false, "watch-clear-button");
+    } else {
+      this.toggleButton(true, "watch-clear-button");
     }
   }
 

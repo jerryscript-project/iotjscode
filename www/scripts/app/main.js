@@ -157,6 +157,74 @@ define(
       if (surface.getPanelProperty("run.active")) {
         surface.updateRunPanel(surface.RUN_UPDATE_TYPE.ALL, debuggerObj, session);
       }
+
+      if (surface.getPanelProperty("watch.active")) {
+        surface.updateWatchPanelButtons(debuggerObj);
+      }
+    });
+
+    /**
+     * Watch panel add button.
+     */
+    $("#watch-add-button").on("click", function() {
+      if ($(this).hasClass("disabled")) {
+        return;
+      }
+
+      $("#watch-add-wrapper").show();
+      $("#watch-add-input").focus();
+    });
+
+    /**
+     * Watch panel refresh button.
+     */
+    $("#watch-refresh-button").on("click", function() {
+      if ($(this).hasClass("disabled")) {
+        return;
+      }
+
+      session.updateWatchExpressions(debuggerObj);
+    });
+
+    /**
+     * Watch panel clear button.
+     */
+    $("#watch-clear-button").on("click", function() {
+      if ($(this).hasClass("disabled")) {
+        return;
+      }
+
+      $("#watch-list").html("");
+      session.removeAllWatchExpression();
+      surface.updateWatchPanelButtons(debuggerObj);
+    });
+
+    /**
+     * Watch panel list item delete icons.
+     */
+    $("#watch-list").on("click", ".watch-li-remove i", function() {
+      session.removeWatchExpression($(this).parent().data("rid"));
+      $(this).parent().parent().remove();
+      surface.updateWatchPanelButtons(debuggerObj);
+    });
+
+    /**
+     * Watch panel input field.
+     */
+    $("#watch-add-input").focusout(function() {
+      $(this).val("");
+      $("#watch-add-wrapper").hide();
+    });
+
+    $("#watch-add-input").on("keypress", function(e) {
+      if (e.keyCode == 13) {
+        if ($(this).val() != "") {
+          session.addWatchExpression(debuggerObj, $(this).val());
+        }
+
+        $(this).val("");
+        $("#watch-add-wrapper").hide();
+      }
     });
 
     /**

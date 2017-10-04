@@ -68,6 +68,10 @@
         <i class="fa fa-dot-circle-o" aria-hidden="true"  title="Turn on/off the Breakpoints panel."></i>
         <div>Breakpoints</div>
       </li>
+      <li  class="sidenav-panel-toggle" id="sidenav-toggle-watch" data-pid="watch">
+        <i class="fa fa-eye" aria-hidden="true"  title="Turn on/off the Watch panel."></i>
+        <div>Watch</div>
+      </li>
       <li  class="sidenav-panel-toggle" id="sidenav-toggle-chart" data-pid="chart">
         <i class="fa fa-area-chart" aria-hidden="true"  title="Turn on/off the Memory usage panel."></i>
         <div>Memory chart</div>
@@ -372,6 +376,27 @@
                     <div class="list-col list-col-3">Function</div>
                   </div>
                   <div id="breakpoints-content" class="default-panel-content"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Watch -->
+          <div class="row vertical-resizable hidden-panel" id="watch-wrapper">
+            <div class="col-md-12">
+              <div class="panel panel-default">
+                <div class="panel-heading" name="watch-wrapper">
+                  <span>Watch</span>
+                  <div class="btn btn-xs btn-default watch-btn" id="watch-add-button">Add</div>
+                  <div class="btn btn-xs btn-default watch-btn disabled" id="watch-refresh-button">Refresh</div>
+                  <div class="btn btn-xs btn-default watch-btn disabled" id="watch-clear-button">Clear</div>
+                </div>
+                <div class="panel-body watch-panel">
+                  <div id="watch-content">
+                    <div id="watch-add-wrapper">
+                      <input type="text" class="form-control input-sm" id="watch-add-input" placeholder="Expression">
+                    </div>
+                    <ul id="watch-list"></ul>
+                  </div>
                 </div>
               </div>
             </div>
