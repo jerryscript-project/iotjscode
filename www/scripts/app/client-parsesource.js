@@ -109,7 +109,7 @@ define(function() {
 
       case this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_PARSE_FUNCTION:
       {
-        position = this._debuggerObj.decodeMessage("II", message, 1);
+        var position = this._debuggerObj.decodeMessage("II", message, 1);
 
         this._stack.push({
           is_func: true,
@@ -151,8 +151,8 @@ define(function() {
         var func = this._stack.pop();
         func.byte_code_cp = this._debuggerObj.decodeMessage("C", message, 1)[0];
 
-        lines = {}
-        offsets = {}
+        var lines = {};
+        var offsets = {};
 
         func.firstBreakpointLine = func.lines[0];
         func.firstBreakpointOffset = func.offsets[0];

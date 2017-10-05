@@ -309,7 +309,7 @@ define(["app/client-parsesource", "app/util", "app/logger"], function(ParseSourc
 
               this._session.createNewSession(name, code, 1, true);
               if (this._surface.getPanelProperty("run.active")) {
-                this._surface.updateRunPanel(this._surface.RUN_UPDATE_TYPE.ALL, debuggerObj, session);
+                this._surface.updateRunPanel(this._surface.RUN_UPDATE_TYPE.ALL, this._debuggerObj, this._session);
               }
 
               $("." + groupID).addClass("disabled");
