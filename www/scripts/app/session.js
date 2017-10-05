@@ -811,7 +811,7 @@ define(["./util"], function(Util) {
       this._editor.session.clearBreakpoint(i);
     }
 
-    Util.clearElement($("#breakpoints-content"));
+    Util.clearElement($("#breakpoints-table-body"));
   }
 
   /**
@@ -900,7 +900,7 @@ define(["./util"], function(Util) {
    * Removes the stored data and sets back the variables to the default value.
    */
   Session.prototype.reset = function() {
-    Util.clearElement($("#backtrace-content"));
+    Util.clearElement($("#backtrace-table-body"));
     this.deleteBreakpointsFromEditor();
     this.unhighlightLine();
     this.unhighlightBreakpointLine();

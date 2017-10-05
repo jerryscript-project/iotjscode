@@ -371,7 +371,8 @@ define(["app/client-parsesource", "app/util", "app/logger"], function(ParseSourc
       case this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_BACKTRACE:
       case this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_BACKTRACE_END:
       {
-        Util.clearElement($("#backtrace-content"));
+        Util.clearElement($("#backtrace-table-body"));
+
         for (var i = 1; i < message.byteLength; i += this._debuggerObj.getCPointerSize() + 4) {
           var breakpointData = this._debuggerObj.decodeMessage("CI", message, i);
 

@@ -838,73 +838,39 @@ input[type="number"] {
 
 #info-panels #console-wrapper .panel-body {
   height: calc(100% - 76px);
-}
-
-#info-panels .panel .panel-body .list-header {
-  font-weight: bold;
-  background-color: #f2f2f2;
-  border-bottom: 1px solid #ddd;
-  padding-right: 15px;
-}
-
-#info-panels .panel .panel-body .list-row {
-  word-wrap: break-word;
   width: 100%;
 }
 
-#info-panels .panel .panel-body .list-row:after {
-  content: "";
-  clear: both;
-  display: table;
-}
-
-#info-panels .panel .panel-body .list-row .list-col {
+#info-panels .panel-body .wrapper {
   position: relative;
-  padding: 0 5px 0 5px;
-  float: left;
+  width: inherit;
+  height: calc(100% - 2px);
+  padding: 0;
+  margin: 0;
+  overflow-x: auto;
+  overflow-y: scroll;
 }
 
-/* backtrace list */
-
-#info-panels .backtrace .list-row .list-col-0 {
-  width: 15%;
+#info-panels .panel-body .table thead {
+  background-color: #fff;
 }
 
-#info-panels .backtrace .list-row .list-col-1 {
-  width: 25%;
+#info-panels .panel-body .table thead th,
+#info-panels .panel-body .table tbody td {
+  padding: 2px;
+  padding-left: 2px !important;
+  padding-right: 4px !important;
+  word-wrap: break-word;
 }
 
-#info-panels .backtrace .list-row .list-col-2 {
-  width: 20%;
+#info-panels .panel-body .table thead th:not(:last-child),
+#info-panels .panel-body .table tbody td:not(:last-child) {
+  border-right: 1px solid #ddd;
 }
 
-#info-panels .backtrace .list-row .list-col-3 {
-  width: 40%;
+#info-panels .panel-body .table tbody tr:last-child {
+  border-bottom: 1px solid #ddd;
 }
-
-
-/* Breakpoints list */
-
-#info-panels .breakpoints .list-row .list-col-0 {
-  width: 30%;
-}
-
-#info-panels .breakpoints .list-row .list-col-1 {
-  width: 15%;
-}
-
-#info-panels .breakpoints .list-row .list-col-2 {
-  width: 15%;
-}
-
-#info-panels .breakpoints .list-row .list-col-3 {
-  width: 40%;
-}
-
-#info-panels .single-panel .list-row:nth-child(even) {
-  background-color: #f2f2f2;
-}
-
 
 /*
 * Console

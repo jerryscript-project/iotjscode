@@ -21,6 +21,11 @@ requirejs.config({
         "jquery"
       ]
     },
+    thead: {
+      deps: [
+        "jquery"
+      ]
+    },
     acelanguage: {
       deps: [
         "ace/ace"
@@ -32,6 +37,7 @@ requirejs.config({
     ace: "ace",
     acelanguage: "ace/ext-language_tools",
     bootstrap: "bootstrap.min",
+    thead: "jquery.floatThead.min",
     c3: "c3.min",
     d3: "d3.v3.min",
     filesaver: "filesaver/FileSaver.min",

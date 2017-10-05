@@ -248,6 +248,14 @@ define(["./util"], function(Util) {
       this._panel.numberOfInactive--;
     }
 
+    if (this.getPanelProperty("backtrace.active")) {
+      $("#backtrace-table").floatThead("reflow");
+    }
+
+    if (this.getPanelProperty("breakpoints.active")) {
+      $("#breakpoints-table").floatThead("reflow");
+    }
+
     // If every information panels are hidden then expand the editor.
     // -1 from the length because of the resizable div element.
     if (this._panel.numberOfInactive == this.getPanelsNumber()) {
@@ -663,16 +671,18 @@ define(["./util"], function(Util) {
     var sourceName = info.func.sourceName || info;
     var line = info.line || "-";
 
-    var panel = $("#backtrace-content");
-    panel.append(
-      "<div class='list-row'>" +
-      "<div class='list-col list-col-0'>" + frame + "</div>" +
-      "<div class='list-col list-col-1'>" + sourceName + "</div>" +
-      "<div class='list-col list-col-2'>" + line + "</div>" +
-      "<div class='list-col list-col-3'>" + this.generateFunctionLog(info) + "</div>" +
-      "</div>"
+    var $table = $("#backtrace-table-body");
+
+    $table.append(
+      "<tr>" +
+        "<td>" + frame + "</td>" +
+        "<td>" + sourceName + "</td>" +
+        "<td>" + line + "</td>" +
+        "<td>" + this.generateFunctionLog(info) + "</td>" +
+      "</tr>"
     );
-    Util.scrollDown(panel);
+
+    Util.scrollDown($table);
   };
 
   /**
@@ -681,25 +691,25 @@ define(["./util"], function(Util) {
    * @param {array} activeBreakpoints Currently active (inserted) breakpoints list.
    */
   Surface.prototype.updateBreakpointsPanel = function(activeBreakpoints) {
-    var panel = $("#breakpoints-content");
-    Util.clearElement(panel);
+    var $table = $("#breakpoints-table-body");
+    Util.clearElement($table);
 
     for (var i in activeBreakpoints) {
       var sourceName = activeBreakpoints[i].func.sourceName || "-";
       var line = activeBreakpoints[i].line || "-";
       var id = activeBreakpoints[i].activeIndex || "-";
 
-      panel.append(
-        "<div class='list-row' id='br-" + line + "-" + id + "'>" +
-        "<div class='list-col list-col-0'>" + sourceName + "</div>" +
-        "<div class='list-col list-col-1'>" + line + "</div>" +
-        "<div class='list-col list-col-2'>" + id + "</div>" +
-        "<div class='list-col list-col-3'>" + this.generateFunctionLog(activeBreakpoints[i]) + "</div>" +
-        "</div>"
+      $table.append(
+        "<tr>" +
+          "<td>" + sourceName + "</td>" +
+          "<td>" + line + "</td>" +
+          "<td>" + id + "</td>" +
+          "<td>" + this.generateFunctionLog(activeBreakpoints[i]) + "</td>" +
+        "</tr>"
       );
     }
 
-    Util.scrollDown(panel);
+    Util.scrollDown($table);
   };
 
   /**

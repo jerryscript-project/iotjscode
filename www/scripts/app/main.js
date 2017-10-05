@@ -25,6 +25,7 @@ define(
     "jquery",
     "jqueryui",
     "bootstrap",
+    "thead",
     "acelanguage",
     "ace/ace"
   ], function(Logger, Session, Surface, DebuggerClient, MemoryChart, Completer) {
@@ -224,6 +225,17 @@ define(
 
         $(this).val("");
         $("#watch-add-wrapper").hide();
+      }
+    });
+
+    /**
+     * Init backtrace and breakpoints panels fixed head view.
+     */
+    $(".scroll-table").floatThead({
+      autoReflow: true,
+      position: "fixed",
+      scrollContainer: function($table) {
+        return $table.closest(".wrapper");
       }
     });
 
