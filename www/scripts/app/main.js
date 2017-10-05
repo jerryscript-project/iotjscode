@@ -438,6 +438,7 @@ define(
      */
     $("#new-file-button").on("click", function() {
       surface.toggleSidenavNewFile();
+      $("#new-file-name").focus();
     });
 
     /**
@@ -462,6 +463,10 @@ define(
 
       if (valid) {
         surface.toggleButton(true, "ok-file-name");
+        // If the key was the enter, trigger the ok button.
+        if (e.keyCode === 13) {
+          $("#ok-file-name").click();
+        }
       } else {
         surface.toggleButton(false, "ok-file-name");
       }
