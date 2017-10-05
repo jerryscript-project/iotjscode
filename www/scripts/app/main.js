@@ -927,15 +927,14 @@ define(
       commandInput.val("");
       return true;
     }
+
     if (!args[2]) {
       args[2] = "";
     }
+
     if (args[1] == "help") {
       logger.info("Debugger commands:\n" +
         "  connect <IP address:PORT> - connect to server (default is localhost:5001)\n" +
-        "  break|b <file_name:line>|<function_name> - set breakpoint\n" +
-        "  fbreak <file_name:line>|<function_name> - set breakpoint if not found, add to pending list\n" +
-        "  delete|d <id> - delete breakpoint\n" +
         "  pendingdel <id> - delete pending breakpoint\n" +
         "  list - list breakpoints\n" +
         "  stop|st - stop execution\n" +
@@ -943,12 +942,12 @@ define(
         "  step|s - step-in execution\n" +
         "  next|n - execution until the next breakpoint\n" +
         "  eval|e - evaluate expression\n" +
-        "  backtrace|bt <max-depth> - get backtrace\n" +
-        "  src - print current source code\n" +
+        "  exception <0|1> - turn on/off the exception handler\n" +
         "  dump - dump all breakpoint data");
       commandInput.val("");
       return true;
     }
+
     if (args[1] == "connect") {
       if (debuggerObj && debuggerObj.isAlive()) {
         logger.info("Debugger is connected");
@@ -967,6 +966,11 @@ define(
         PORT = fields[1];
       }
 
+      if (PORT < 0 || PORT > 65535) {
+        logger.error("Adress port must between 0 and 65535.");
+        return true;
+      }
+
       var address = ipAddr + ":" + PORT;
       logger.info("Connect to: " + address);
       debuggerObj = new DebuggerClient(address, session, surface, chart);
@@ -975,69 +979,38 @@ define(
 
       return true;
     }
+
     if (!debuggerObj || !debuggerObj.isAlive()) {
       logger.error("Debugger is NOT connected.");
       commandInput.val("");
       return true;
     }
+
     switch (args[1]) {
-      case "b":
-      case "break":
-        debuggerObj.setBreakpoint(args[2], false);
-        break;
-      case "fbreak":
-        debuggerObj.setBreakpoint(args[2], true);
-        break;
-      case "d":
-      case "delete":
-        debuggerObj.deleteBreakpoint(args[2]);
-        break;
       case "pendingdel":
         debuggerObj.deletePendingBreakpoint(args[2]);
       case "st":
       case "stop":
-        surface.stopCommand();
-        chart.deleteTimeoutLoop();
-        debuggerObj.encodeMessage("B", [debuggerObj.CLIENT_PACKAGE.JERRY_DEBUGGER_STOP]);
+        $("#continue-stop-button").click();
         break;
       case "c":
       case "continue":
-        surface.continueCommand(debuggerObj);
+        $("#continue-stop-button").click();
         break;
       case "s":
       case "step":
-        if (!surface.isContinueActive()) {
-          debuggerObj.encodeMessage("B", [debuggerObj.CLIENT_PACKAGE.JERRY_DEBUGGER_STEP]);
-        }
+        $("#step-button").click();
         break;
       case "n":
       case "next":
-        if (!surface.isContinueActive()) {
-          debuggerObj.encodeMessage("B", [debuggerObj.CLIENT_PACKAGE.JERRY_DEBUGGER_NEXT]);
-        }
+        $("#next-button").click();
         break;
       case "e":
       case "eval":
         debuggerObj.sendEval(args[2]);
         break;
-      case "bt":
-      case "backtrace":
-        max_depth = 0;
-        if (args[2]) {
-          if (/[1-9][0-9]*/.exec(args[2])) {
-            max_depth = parseInt(args[2]);
-          } else {
-            logger.error("Invalid maximum depth argument.");
-            break;
-          }
-        }
-        debuggerObj.sendGetBacktrace(max_depth);
-        break;
       case "exception":
         debuggerObj.sendExceptionConfig(args[2]);
-        break;
-      case "src":
-        debuggerObj.printSource();
         break;
       case "list":
         debuggerObj.listBreakpoints();
