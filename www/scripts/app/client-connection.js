@@ -291,6 +291,7 @@ define(["app/client-parsesource", "app/util", "app/logger"], function(ParseSourc
         this._session.setLastBreakpoint(breakpoint);
         this._surface.setContinueActive(false);
         this._surface.continueStopButtonState(this._surface.CSICON.CONTINUE);
+        this._surface.disableActionButtons(false);
 
         if (breakpoint.func.sourceName != '') {
           if (!this._session.sessionNameCheck(breakpoint.func.sourceName, true)) {
