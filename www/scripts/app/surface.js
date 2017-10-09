@@ -98,30 +98,10 @@ define(["./util"], function(Util) {
       },
     };
 
-    this._continueActive = false;
-
     this.CSICON = CSICON;
     this.COLOR = COLOR;
     this.RUN_UPDATE_TYPE = RUN_UPDATE_TYPE;
   }
-
-  /**
-   * Returns the actual state of the continueActive.
-   *
-   * @return {boolean} True if the continue is active, false otherwise.
-   */
-  Surface.prototype.isContinueActive = function() {
-    return this._continueActive;
-  };
-
-  /**
-   * Sets the actual state of the continueActive.
-   *
-   * @return {boolean} New state of the continueActive.
-   */
-  Surface.prototype.setContinueActive = function(value) {
-    this._continueActive = value;
-  };
 
   /**
    * Returns the actual state of the left side menu.
@@ -462,7 +442,7 @@ define(["./util"], function(Util) {
 
         // Enable the run button if there is a connection and a source in the list.
         if (debuggerObj
-            && debuggerObj.isAlive()
+            && debuggerObj.getEngineMode() == debuggerObj.ENGINE_MODE.CLIENT_SOURCE
             && session.isUploadAndRunAllowed()
             && !session.isUploadStarted()
             && !$("#run-chooser-dest").is(":empty")) {
@@ -536,7 +516,9 @@ define(["./util"], function(Util) {
    * @param {object} debuggerObj The Debugger Client module instance.
    */
   Surface.prototype.updateWatchPanelButtons = function(debuggerObj) {
-    if (debuggerObj && debuggerObj.isAlive() && !this.isContinueActive() && !$("#watch-list").is(":empty")) {
+    if (debuggerObj
+        && debuggerObj.getEngineMode() == debuggerObj.ENGINE_MODE.BREAKPOINT
+        && !$("#watch-list").is(":empty")) {
       this.toggleButton(true, "watch-refresh-button");
     } else {
       this.toggleButton(false, "watch-refresh-button");
@@ -583,13 +565,8 @@ define(["./util"], function(Util) {
     this.continueStopButtonState(CSICON.STOP);
     $("#step-button").addClass("disabled");
     $("#next-button").addClass("disabled");
-    this._continueActive = true;
 
-    if (this._panel.chart.active && !this._continueActive) {
-      debuggerObj.sendResumeExec(debuggerObj.CLIENT_PACKAGE.JERRY_DEBUGGER_NEXT);
-    } else {
-      debuggerObj.sendResumeExec(debuggerObj.CLIENT_PACKAGE.JERRY_DEBUGGER_CONTINUE);
-    }
+    debuggerObj.sendResumeExec(debuggerObj.CLIENT_PACKAGE.JERRY_DEBUGGER_CONTINUE);
   };
 
   /**
@@ -599,7 +576,6 @@ define(["./util"], function(Util) {
     this.continueStopButtonState(CSICON.CONTINUE);
     $("#step-button").removeClass("disabled");
     $("#next-button").removeClass("disabled");
-    this._continueActive = false;
   };
 
   /**
@@ -754,7 +730,11 @@ define(["./util"], function(Util) {
       }
     }
 
-    debuggerObj.encodeMessage("BI", [debuggerObj.CLIENT_PACKAGE.JERRY_DEBUGGER_GET_BACKTRACE, max_depth]);
+    if (debuggerObj.getEngineMode() == debuggerObj.ENGINE_MODE.BREAKPOINT) {
+      debuggerObj.encodeMessage("BI", [debuggerObj.CLIENT_PACKAGE.JERRY_DEBUGGER_GET_BACKTRACE, max_depth]);
+    } else {
+      logger.error("Backtrace is allowed only if JavaScript execution is stopped at a breakpoint.");
+    }
   };
 
   /**
@@ -762,7 +742,6 @@ define(["./util"], function(Util) {
    */
   Surface.prototype.reset = function() {
     this.toggleButton(false, "run-context-reset-button");
-    this.setContinueActive(false);
   }
 
   return Surface;

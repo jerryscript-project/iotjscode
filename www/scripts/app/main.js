@@ -151,7 +151,9 @@ define(
     $(".sidenav-panel-toggle").on("click", function(e) {
       surface.togglePanel($(e.currentTarget).data("pid"), chart);
 
-      if (surface.getPanelProperty("chart.active") && debuggerObj && debuggerObj.isAlive()) {
+      if (surface.getPanelProperty("chart.active")
+          && debuggerObj
+          && debuggerObj.getEngineMode() != debuggerObj.ENGINE_MODE.DISCONNECTED) {
         surface.toggleButton(true, "chart-record-button");
       }
 
@@ -184,7 +186,9 @@ define(
         return;
       }
 
-      session.updateWatchExpressions(debuggerObj);
+      if (debuggerObj && debuggerObj.getEngineMode() == debuggerObj.ENGINE_MODE.BREAKPOINT) {
+        session.updateWatchExpressions(debuggerObj);
+      }
     });
 
     /**
@@ -627,7 +631,7 @@ define(
         return true;
       }
 
-      if (debuggerObj && debuggerObj.isAlive()) {
+      if (debuggerObj && debuggerObj.getEngineMode() != debuggerObj.ENGINE_MODE.DISCONNECTED) {
         logger.info("Debugger is connected.");
         return true;
       }
@@ -659,13 +663,13 @@ define(
      */
     env.editor.on("change", function(e) {
       $("#tab-" + session.getActiveID()).addClass("unsaved");
-      if (debuggerObj && debuggerObj.isAlive()) {
+      if (debuggerObj && debuggerObj.getEngineMode() != debuggerObj.ENGINE_MODE.DISCONNECTED) {
         session.markBreakpointLines(debuggerObj);
       }
     });
 
     env.editor.on("changeSession", function(e) {
-      if (debuggerObj && debuggerObj.isAlive()) {
+      if (debuggerObj && debuggerObj.getEngineMode() != debuggerObj.ENGINE_MODE.DISCONNECTED) {
         session.markBreakpointLines(debuggerObj);
       }
     });
@@ -674,7 +678,7 @@ define(
      * Debugger action button events.
      */
     $("#delete-all-button").on("click", function() {
-      if (debuggerObj && debuggerObj.isAlive()) {
+      if (debuggerObj && debuggerObj.getEngineMode() != debuggerObj.ENGINE_MODE.DISCONNECTED) {
         var found = false;
 
         for (var i in debuggerObj.getActiveBreakpoints()) {
@@ -694,11 +698,15 @@ define(
         return true;
       }
 
-      if (!surface.isContinueActive()) {
+      if (debuggerObj.getEngineMode() == debuggerObj.ENGINE_MODE.BREAKPOINT) {
         surface.continueCommand(debuggerObj);
       } else {
         surface.stopCommand();
-        chart.deleteTimeoutLoop();
+
+        if (surface.getPanelProperty("chart.active")) {
+          chart.deleteTimeoutLoop();
+        }
+
         debuggerObj.encodeMessage("B", [debuggerObj.CLIENT_PACKAGE.JERRY_DEBUGGER_STOP]);
       }
     });
@@ -707,18 +715,26 @@ define(
       if ($(this).hasClass("disabled")) {
         return true;
       }
-      if (!surface.isContinueActive()) {
-        debuggerObj.encodeMessage("B", [debuggerObj.CLIENT_PACKAGE.JERRY_DEBUGGER_STEP]);
+
+      if (debuggerObj.getEngineMode() != debuggerObj.ENGINE_MODE.BREAKPOINT) {
+        logger.error("This action only available in breakpoint mode.", true);
+        return true;
       }
+
+      debuggerObj.encodeMessage("B", [debuggerObj.CLIENT_PACKAGE.JERRY_DEBUGGER_STEP]);
     });
 
     $("#next-button").on("click", function() {
       if ($(this).hasClass("disabled")) {
         return true;
       }
-      if (!surface.isContinueActive()) {
-        debuggerObj.encodeMessage("B", [debuggerObj.CLIENT_PACKAGE.JERRY_DEBUGGER_NEXT]);
+
+      if (debuggerObj.getEngineMode() != debuggerObj.ENGINE_MODE.BREAKPOINT) {
+        logger.error("This action only available in breakpoint mode.", true);
+        return true;
       }
+
+      debuggerObj.encodeMessage("B", [debuggerObj.CLIENT_PACKAGE.JERRY_DEBUGGER_NEXT]);
     });
 
     /**
@@ -764,7 +780,7 @@ define(
      * Editor mouse click, breakpoint add/delete.
      */
     env.editor.on("guttermousedown", function(e) {
-      if (debuggerObj && debuggerObj.isAlive()) {
+      if (debuggerObj && debuggerObj.getEngineMode() != debuggerObj.ENGINE_MODE.DISCONNECTED) {
         var target = e.domEvent.target;
         if (target.className.indexOf("ace_gutter-cell") == -1) {
           return;
@@ -927,6 +943,7 @@ define(
     session.addCommandToList(command);
     session.setCommandCounter(session.getCommandList().length);
     args = /^([a-zA-Z]+)(?:\s+([^\s].*)|)$/.exec(command);
+
     if (!args) {
       logger.error("Invalid command.");
       commandInput.val("");
@@ -954,7 +971,7 @@ define(
     }
 
     if (args[1] == "connect") {
-      if (debuggerObj && debuggerObj.isAlive()) {
+      if (debuggerObj && debuggerObj.getEngineMode() != debuggerObj.ENGINE_MODE.DISCONNECTED) {
         logger.info("Debugger is connected");
         return true;
       }
@@ -985,7 +1002,7 @@ define(
       return true;
     }
 
-    if (!debuggerObj || !debuggerObj.isAlive()) {
+    if (!debuggerObj || debuggerObj.getEngineMode() == debuggerObj.ENGINE_MODE.DISCONNECTED) {
       logger.error("Debugger is NOT connected.");
       commandInput.val("");
       return true;

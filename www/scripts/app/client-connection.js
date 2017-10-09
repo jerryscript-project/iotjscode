@@ -56,8 +56,6 @@ define(["app/client-parsesource", "app/util", "app/logger"], function(ParseSourc
     this._socket.close();
     this._socket = null;
     this._parseObj = null;
-
-    this._debuggerObj.setAlive(false);
   }
 
   /**
@@ -81,6 +79,12 @@ define(["app/client-parsesource", "app/util", "app/logger"], function(ParseSourc
    */
   Connection.prototype.send = function(message) {
     this._socket.send(message);
+
+    if (message[0] === this._debuggerObj.CLIENT_PACKAGE.JERRY_DEBUGGER_CONTINUE
+        || message[0] === this._debuggerObj.CLIENT_PACKAGE.JERRY_DEBUGGER_STEP
+        || message[0] === this._debuggerObj.CLIENT_PACKAGE.JERRY_DEBUGGER_NEXT) {
+      this._debuggerObj.setEngineMode(this._debuggerObj.ENGINE_MODE.RUN);
+    }
   }
 
   /**
@@ -92,9 +96,9 @@ define(["app/client-parsesource", "app/util", "app/logger"], function(ParseSourc
   function onopen(event) {
     this._logger.info("Connection created.");
 
-    this._debuggerObj.setAlive(true);
+    this._debuggerObj.setEngineMode(this._debuggerObj.ENGINE_MODE.RUN);
 
-    if (this._debuggerObj && this._debuggerObj.isAlive() && this._surface.getPanelProperty("chart.active")) {
+    if (this._surface.getPanelProperty("chart.active")) {
       this._surface.toggleButton(true, "chart-record-button");
     }
 
@@ -121,9 +125,9 @@ define(["app/client-parsesource", "app/util", "app/logger"], function(ParseSourc
     if (this._socket) {
       this._socket = null;
       this._logger.info("Connection closed.");
-
-      this._debuggerObj.setAlive(false);
     }
+
+    this._debuggerObj.setEngineMode(this._debuggerObj.ENGINE_MODE.DISCONNECTED);
 
     if (this._surface.getPanelProperty("chart.active")) {
       this._chart.disableChartButtons();
@@ -242,7 +246,7 @@ define(["app/client-parsesource", "app/util", "app/logger"], function(ParseSourc
 
         if(this._session.getBreakpointInfoToChart() && this._chart.isChartActive()) {
           var breakpointLineToChart = "ln: " + this._session.getBreakpointInfoToChart().split(":")[1].split(" ")[0];
-          if (this._surface.isContinueActive()) {
+          if (this._debuggerObj.getEngineMode() == this._debuggerObj.ENGINE_MODE.BREAKPOINT) {
             this._chart.addNewDataPoints(messagedata, "#" +
                                    this._session.getBreakpointInfoToChart().split(":")[1].split(" ")[0] + ": " +
                                    new Date().toISOString().slice(14, 21));
@@ -263,6 +267,8 @@ define(["app/client-parsesource", "app/util", "app/logger"], function(ParseSourc
       case this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_BREAKPOINT_HIT:
       case this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_EXCEPTION_HIT:
       {
+        this._debuggerObj.setEngineMode(this._debuggerObj.ENGINE_MODE.BREAKPOINT);
+
         var breakpointData = this._debuggerObj.decodeMessage("CI", message, 1);
         var breakpointRef = this._debuggerObj.getBreakpoint(breakpointData);
         var breakpoint = breakpointRef.breakpoint;
@@ -289,7 +295,6 @@ define(["app/client-parsesource", "app/util", "app/logger"], function(ParseSourc
 
         /* EXTENDED CODE */
         this._session.setLastBreakpoint(breakpoint);
-        this._surface.setContinueActive(false);
         this._surface.continueStopButtonState(this._surface.CSICON.CONTINUE);
         this._surface.disableActionButtons(false);
 
@@ -347,17 +352,19 @@ define(["app/client-parsesource", "app/util", "app/logger"], function(ParseSourc
           this._session.updateWatchExpressions(this._debuggerObj);
         }
 
-        /*Add breakpoint information to chart*/
-        for (var i in this._debuggerObj.getActiveBreakpoints()) {
-          if(this._debuggerObj.getActiveBreakpoints()[i].line == this._debuggerObj.breakpointToString(breakpoint).split(":")[1].split(" ")[0]
-             && this._surface.isContinueActive()) {
-            this._surface.stopCommand();
-            return;
+        // Add breakpoint information to chart
+        if (this._surface.getPanelProperty("chart.active")) {
+          for (var i in this._debuggerObj.getActiveBreakpoints()) {
+            if (this._debuggerObj.getActiveBreakpoints()[i].line
+                == this._debuggerObj.breakpointToString(breakpoint).split(":")[1].split(" ")[0]) {
+              this._surface.stopCommand();
+              return;
+            }
           }
-        }
 
-        this._debuggerObj.encodeMessage("B", [ this._debuggerObj.CLIENT_PACKAGE.JERRY_DEBUGGER_MEMSTATS ]);
-        this._session.setBreakpointInfoToChart(this._debuggerObj.breakpointToString(breakpoint));
+          this._debuggerObj.encodeMessage("B", [ this._debuggerObj.CLIENT_PACKAGE.JERRY_DEBUGGER_MEMSTATS ]);
+          this._session.setBreakpointInfoToChart(this._debuggerObj.breakpointToString(breakpoint));
+        }
         /* EXTENDED CODE */
         return;
       }
@@ -455,6 +462,8 @@ define(["app/client-parsesource", "app/util", "app/logger"], function(ParseSourc
 
       case this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_WAIT_FOR_SOURCE:
       {
+        this._debuggerObj.setEngineMode(this._debuggerObj.ENGINE_MODE.CLIENT_SOURCE);
+
         this._surface.disableActionButtons(true);
         this._session.allowUploadAndRun(true);
 

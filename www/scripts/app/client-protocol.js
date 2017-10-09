@@ -75,6 +75,17 @@ define(["app/client-multimap", "app/client-connection", "app/util", "app/logger"
   };
 
   /**
+   * States of the JerryScript engine.
+   * The available actions in the client are depends on these modes.
+   */
+  const ENGINE_MODE = {
+    DISCONNECTED : 0,
+    RUN : 1,
+    BREAKPOINT : 2,
+    CLIENT_SOURCE : 3
+  };
+
+  /**
    * Contructor.
    *
    * @param {string} address Connection address (ip and port).
@@ -103,9 +114,14 @@ define(["app/client-multimap", "app/client-connection", "app/util", "app/logger"
     this._backtraceFrame = 0;
 
     this._alive = false;
+    this._mode = {
+      current: ENGINE_MODE.DISCONNECTED,
+      last: null
+    };
 
     this.SERVER_PACKAGE = SERVER_PACKAGE;
     this.CLIENT_PACKAGE = CLIENT_PACKAGE;
+    this.ENGINE_MODE = ENGINE_MODE;
 
     this._connection = new Connection(this, address, this._surface, this._session, chart);
   }
@@ -174,12 +190,13 @@ define(["app/client-multimap", "app/client-connection", "app/util", "app/logger"
     this._lineList.insert(key, value);
   }
 
-  DebuggerClient.prototype.isAlive = function() {
-    return this._alive;
+  DebuggerClient.prototype.getEngineMode = function() {
+    return this._mode.current;
   }
 
-  DebuggerClient.prototype.setAlive = function(value) {
-    this._alive = value;
+  DebuggerClient.prototype.setEngineMode = function(mode) {
+    this._mode.last = this._mode.current;
+    this._mode.current = mode;
   }
 
   /**
@@ -578,8 +595,8 @@ define(["app/client-multimap", "app/client-connection", "app/util", "app/logger"
    * @param {CLIENT_PACKAGE} command The execution resume package command.s
    */
   DebuggerClient.prototype.sendResumeExec = function(command) {
-    if (!this._lastBreakpointHit) {
-      this._logger.info("This command is allowed only if JavaScript execution is stopped at a breakpoint.");
+    if (this._mode.current != ENGINE_MODE.BREAKPOINT) {
+      this._logger.error("This command is allowed only if JavaScript execution is stopped at a breakpoint.");
       return;
     }
 
@@ -594,7 +611,7 @@ define(["app/client-multimap", "app/client-connection", "app/util", "app/logger"
    * @param {integer} depth Depth of the backtrace frames.
    */
   DebuggerClient.prototype.sendGetBacktrace = function(depth) {
-    if (!this._lastBreakpointHit) {
+    if (this._mode.current != ENGINE_MODE.BREAKPOINT) {
       this._logger.error("This command is allowed only if JavaScript execution is stopped at a breakpoint.", true);
       return;
     }
@@ -612,7 +629,7 @@ define(["app/client-multimap", "app/client-connection", "app/util", "app/logger"
    * @param {string} str The eval code string.
    */
   DebuggerClient.prototype.sendEval = function(str) {
-    if (!this._lastBreakpointHit) {
+    if (this._mode.current != ENGINE_MODE.BREAKPOINT) {
       this._logger.error("This command is allowed only if JavaScript execution is stopped at a breakpoint.", true);
       return;
     }
@@ -647,10 +664,17 @@ define(["app/client-multimap", "app/client-connection", "app/util", "app/logger"
    * and sends that into pieces to the engine.
    */
   DebuggerClient.prototype.sendClientSource = function() {
+    if (this._mode.current != ENGINE_MODE.CLIENT_SOURCE) {
+      this._logger.error("This command is allowed only if the engine is waiting for a source.", true);
+      return;
+    }
+
     if (!this._session.getUploadList().length || !this._session.isUploadStarted()) {
       this._logger.info("The engine is waiting for a source.", true);
       return;
     }
+
+    this.setEngineMode(ENGINE_MODE.RUN);
 
     var sid = this._session.getUploadList()[0];
     if (sid == 0) {

@@ -379,7 +379,7 @@ define(["./util"], function(Util) {
   Session.prototype.addWatchExpression = function(debuggerObj, expr) {
     this._watch.list[expr] = "< not available >";
 
-    if (debuggerObj && debuggerObj.isAlive() && !this._surface.isContinueActive()) {
+    if (debuggerObj && debuggerObj.getEngineMode() == debuggerObj.ENGINE_MODE.BREAKPOINT) {
       this._watch.work.inProgress = true;
       this._watch.work.currentExpr = expr;
       debuggerObj.sendEval(expr);
@@ -427,8 +427,9 @@ define(["./util"], function(Util) {
    * @param {object} debuggerObj DebuggerClient module instance.
    */
   Session.prototype.updateWatchExpressions = function(debuggerObj) {
-    if (debuggerObj && debuggerObj.isAlive()
-        && !$.isEmptyObject(this._watch.list) && !this._surface.isContinueActive()) {
+    if (debuggerObj
+        && debuggerObj.getEngineMode() == debuggerObj.ENGINE_MODE.BREAKPOINT
+        && !$.isEmptyObject(this._watch.list)) {
       this._watch.work.update = true;
 
       var expr = Object.keys(this._watch.list)[this._watch.work.counter];
@@ -707,7 +708,7 @@ define(["./util"], function(Util) {
    * @param {object} debuggerObj Jerry client object.
    */
   Session.prototype.markBreakpointLines = function(debuggerObj) {
-    if (debuggerObj && debuggerObj.isAlive()) {
+    if (debuggerObj && debuggerObj.getEngineMode() != debuggerObj.ENGINE_MODE.DISCONNECTED) {
       var lines = this.getLinesFromRawData(debuggerObj.getBreakpointLines());
 
       if (lines.length != 0) {
