@@ -689,7 +689,7 @@ define(["app/client-multimap", "app/client-connection", "app/util", "app/logger"
     // Turn on the action buttons and turn off run button.
     this._surface.disableActionButtons(false);
 
-    var array = this.stringToCesu8(this._session.getSessionNameById(sid) + "\0" + this._session.getSessionById(sid));
+    var array = this.stringToCesu8(this._session.getFileNameById(sid) + "\0" + this._session.getFileSessionById(sid));
     var byteLength = array.byteLength;
 
     array[0] = CLIENT_PACKAGE.JERRY_DEBUGGER_CLIENT_SOURCE;

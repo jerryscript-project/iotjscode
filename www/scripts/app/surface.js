@@ -392,7 +392,7 @@ define(["./util"], function(Util) {
 
       if (list.length) {
         for (var i in list) {
-          var ss = session.getDataById(list[i]);
+          var ss = session.getFileDataById(list[i]);
 
           if (list[i] == 0) {
             this.appendChooserLi($("#run-chooser-dest"), "", "hidden", "run-context-reset-sid", 0, "Context Reset");

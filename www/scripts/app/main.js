@@ -129,7 +129,7 @@ define(
     env.editor.$blockScrolling = Infinity;
 
     // Init the blocked welcome session.
-    session.setWelcomeSession();
+    session.setWelcomeFile();
 
     /**
      * Sidenav toggle button click.
@@ -256,7 +256,7 @@ define(
       axis: "y",
       update: function(event, ui) {
         var sid = parseInt($(ui.item[0]).data("sid"));
-        if (session.getDataById(sid).scheduled) {
+        if (session.getFileDataById(sid).scheduled) {
           session.moveFileInUploadList(session.getUploadList().indexOf(sid), $(ui.item[0]).index());
         }
       }
@@ -276,7 +276,7 @@ define(
 
         var sid = parseInt($(this).data("sid"));
 
-        if (!session.getDataById(sid).scheduled) {
+        if (!session.getFileDataById(sid).scheduled) {
           session.addFileToUploadList(sid, $(this).index());
         }
       });
@@ -298,7 +298,7 @@ define(
 
         var sid = parseInt($(this).data("sid"));
 
-        if (session.getDataById(sid).scheduled) {
+        if (session.getFileDataById(sid).scheduled) {
           session.removeFileFromUploadList(sid);
         }
       });
@@ -403,7 +403,7 @@ define(
           processed = 0;
 
       for (var i = 0; i < files.length; i++) {
-        if (session.sessionNameCheck(files[i].name)) {
+        if (session.fileNameCheck(files[i].name)) {
           logger.error(files[i].name + " is already loaded.", true);
           valid--;
           continue;
@@ -413,7 +413,7 @@ define(
           var reader = new FileReader();
 
           reader.onload = function(evt) {
-            session.createNewSession(file.name, evt.target.result, 1, true);
+            session.createNewFile(file.name, evt.target.result, 1, true);
 
             if (surface.getPanelProperty("run.active")) {
               surface.updateRunPanel(surface.RUN_UPDATE_TYPE.ALL, debuggerObj, session);
@@ -460,7 +460,7 @@ define(
         valid = false;
       }
 
-      if (session.isNameTaken(filename)) {
+      if (session.isFileNameTaken(filename)) {
         info.append("<p>This filename is already taken.</p>");
         valid = false;
       }
@@ -494,7 +494,7 @@ define(
         return;
       }
 
-      session.createNewSession($("#new-file-name").val().trim(), "", session.TABTYPE.WORK, false);
+      session.createNewFile($("#new-file-name").val().trim(), "", session.TABTYPE.WORK, false);
 
       if (surface.getPanelProperty("run.active")) {
         surface.updateRunPanel(surface.RUN_UPDATE_TYPE.ALL, debuggerObj, session);
@@ -515,7 +515,7 @@ define(
       }
 
       var blob = new Blob([env.editor.session.getValue()]);
-      saveAs(blob, session.getSessionNameById(session.getActiveID()));
+      saveAs(blob, session.getFileNameById(session.getActiveID()));
       $("#tab-" + session.getActiveID()).removeClass("unsaved");
       surface.toggleSidenavExtra("file-sidenav");
     });
@@ -802,7 +802,7 @@ define(
           if (typeof breakpoints[row] === typeof undefined) {
             env.editor.session.setBreakpoint(row);
             session.addBreakpointID(row, debuggerObj.getNextBreakpointIndex());
-            debuggerObj.setBreakpoint(session.getSessionNameById(session.getActiveID()) + ":" + parseInt(row + 1));
+            debuggerObj.setBreakpoint(session.getFileNameById(session.getActiveID()) + ":" + parseInt(row + 1));
           } else {
             debuggerObj.deleteBreakpoint(session.getBreakpointID(row));
             env.editor.session.clearBreakpoint(row);

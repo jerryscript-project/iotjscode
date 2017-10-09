@@ -299,7 +299,7 @@ define(["app/client-parsesource", "app/util", "app/logger"], function(ParseSourc
         this._surface.disableActionButtons(false);
 
         if (breakpoint.func.sourceName != '') {
-          if (!this._session.sessionNameCheck(breakpoint.func.sourceName, true)) {
+          if (!this._session.fileNameCheck(breakpoint.func.sourceName, true)) {
             var name = breakpoint.func.sourceName.split("/");
             name = name[name.length - 1];
             var groupID = name.split(".")[0] + name.length;
@@ -313,7 +313,7 @@ define(["app/client-parsesource", "app/util", "app/logger"], function(ParseSourc
               this._session.unhighlightBreakpointLine();
               var code = breakpoint.func.source;
 
-              this._session.createNewSession(name, code, 1, true);
+              this._session.createNewFile(name, code, 1, true);
               if (this._surface.getPanelProperty("run.active")) {
                 this._surface.updateRunPanel(this._surface.RUN_UPDATE_TYPE.ALL, this._debuggerObj, this._session);
               }
@@ -326,14 +326,14 @@ define(["app/client-parsesource", "app/util", "app/logger"], function(ParseSourc
         }
 
         // Go the the right session.
-        var sID = this._session.getSessionIdbyName(breakpoint.func.sourceName);
+        var sID = this._session.getFileIdByName(breakpoint.func.sourceName);
         if (sID != null && sID != this._session.getActiveID()) {
           // Remove the highlite from the current session.
           this._session.unhighlightLine();
           this._session.unhighlightBreakpointLine();
 
           // Change the session.
-          this._session.switchSession(sID);
+          this._session.switchFile(sID);
 
         }
 

@@ -38,8 +38,10 @@ define(["./util"], function(Util) {
     this._surface = surface;
     this._editor = env.editor;
 
-    this._nextID = 0;
-    this._activeID = 0;
+    this._id = {
+      next: 0,
+      active: 0
+    };
 
     /**
      * data = {
@@ -94,7 +96,7 @@ define(["./util"], function(Util) {
    * @return {integer}
    */
   Session.prototype.getNextID = function() {
-    return this._nextID;
+    return this._id.next;
   };
 
   /**
@@ -103,7 +105,7 @@ define(["./util"], function(Util) {
    * @return {integer}
    */
   Session.prototype.getActiveID = function() {
-    return this._activeID;
+    return this._id.active;
   };
 
   /**
@@ -266,7 +268,7 @@ define(["./util"], function(Util) {
    * @param {integer} index Position of the session in the list.
    */
   Session.prototype.addFileToUploadList = function(id, index) {
-    this.getDataById(id).scheduled = true;
+    this.getFileDataById(id).scheduled = true;
     this._upload.list.splice(index, 0, id);
 
     // Store the changes in the backup list.
@@ -292,8 +294,8 @@ define(["./util"], function(Util) {
    * @param {integer} id Identifier of the selected session.
    */
   Session.prototype.removeFileFromUploadList = function(id) {
-    if (this.getDataById(id)) {
-      this.getDataById(id).scheduled = false;
+    if (this.getFileDataById(id)) {
+      this.getFileDataById(id).scheduled = false;
     }
     this._upload.list.splice(this._upload.list.indexOf(id), 1);
 
@@ -466,7 +468,7 @@ define(["./util"], function(Util) {
    * @param {integer} tab The tab type.
    * @param {boolean} saved The file saved status.
    */
-  Session.prototype.createNewSession = function(name, cont, tab, saved) {
+  Session.prototype.createNewFile = function(name, cont, tab, saved) {
     var saved = saved || true;
     var tab = tab || TABTYPE.WORK;
     // Create a new document for the editor from the trimmed content.
@@ -474,31 +476,31 @@ define(["./util"], function(Util) {
     // Create a new javascript mode session from the document.
     var eSession = new this._enviroment.EditSession(doc, "ace/mode/javascript");
 
-    // Store the edit session.
+    // Store the e-session.
     this._data.push({
-      id: ++this._nextID,
+      id: ++this._id.next,
       saved: saved,
       scheduled: false,
       name: name,
       editSession: eSession
     });
 
-    this.updateTabs(this._nextID, name, tab);
-    this.switchSession(this._nextID);
+    this.updateTabs(this._id.next, name, tab);
+    this.switchFile(this._id.next);
 
     // Enable the save button.
     this._surface.toggleButton(true, "save-file-button");
   }
 
   /**
-   * Sets a simple starting session into the editor.
-   * This session can not be closed or modified.
+   * Sets a simple starting file into the editor.
+   * This file can not be closed or modified.
    */
-  Session.prototype.setWelcomeSession = function() {
+  Session.prototype.setWelcomeFile = function() {
     this._welcomeTab = true;
 
     // If this is a fresh start.
-    if (this.getSessionById(0) == null) {
+    if (this.getFileSessionById(0) == null) {
       var welcome = "/**\n" +
                     " * IoT.js Code\n" +
                     " * Browser based IDE including debugger for IoT.js.\n" +
@@ -515,7 +517,7 @@ define(["./util"], function(Util) {
     }
 
     this.updateTabs(0, "welcome.js", TABTYPE.WELCOME);
-    this.switchSession(0);
+    this.switchFile(0);
 
     // Enable the read only mode in the editor.
     this._editor.setReadOnly(true);
@@ -524,21 +526,21 @@ define(["./util"], function(Util) {
   /**
    * Switches the editor session.
    *
-   * @param {integer} id The id of the desired session.
+   * @param {integer} id The id of the desired file.
    */
-  Session.prototype.switchSession = function(id) {
+  Session.prototype.switchFile = function(id) {
     // Select the right tab on the tabs panel.
     this.selectTab(id);
 
-    // Marked the selected session as an active session.
-    this._activeID = id;
-    // Change the currently session through the editor's API.
-    this._editor.setSession(this.getSessionById(id));
+    // Marked the selected file as an active.
+    this._id.active = id;
+    // Change the currently e-session through the editor's API.
+    this._editor.setSession(this.getFileSessionById(id));
 
     // Refresh the available breakpoint lines in the editor
-    // based on the new sesison.
+    // based on the new file/e-session.
     if (this._breakpoint.last != null &&
-      this._breakpoint.last.func.sourceName.endsWith(this.getSessionNameById(id))) {
+      this._breakpoint.last.func.sourceName.endsWith(this.getFileNameById(id))) {
       this.highlightCurrentLine(this._breakpoint.last.line);
     }
 
@@ -553,12 +555,12 @@ define(["./util"], function(Util) {
   }
 
   /**
-   * Returns a session name based on the given ID.
+   * Returns a file name based on the given ID.
    *
-   * @param {integer} id The searched session ID.
-   * @return {mixed} Returns the session name as string if exists, null otherwise.
+   * @param {integer} id The searched file ID.
+   * @return {mixed} Returns the file name as string if exists, null otherwise.
    */
-  Session.prototype.getSessionNameById = function(id) {
+  Session.prototype.getFileNameById = function(id) {
     for (var i in this._data) {
       if (this._data[i].id == id) {
         return this._data[i].name;
@@ -569,12 +571,12 @@ define(["./util"], function(Util) {
   }
 
   /**
-   * Returns a id based on the given name.
+   * Returns a file id based on the given name.
    *
-   * @param {string} name The searched session file name.
-   * @return {mixed} Returns the session id if exists, null otherwise.
+   * @param {string} name The searched file name.
+   * @return {mixed} Returns the file id if exists, null otherwise.
    */
-  Session.prototype.getSessionIdbyName = function(name) {
+  Session.prototype.getFileIdByName = function(name) {
     for (var i in this._data) {
       if (name.endsWith(this._data[i].name)) {
         return this._data[i].id;
@@ -585,12 +587,12 @@ define(["./util"], function(Util) {
   }
 
   /**
-   * Checks the given name is already taken or not.
+   * Checks the given file name is already taken or not.
    *
-   * @param {string} name The new name of a session.
+   * @param {string} name The new name of a file.
    * @return {boolean} True if the name is taken, false otherwise.
    */
-  Session.prototype.isNameTaken = function(name) {
+  Session.prototype.isFileNameTaken = function(name) {
     for (var i in this._data) {
       if (name.localeCompare(this._data[i].name) == 0) {
         return true;
@@ -601,12 +603,12 @@ define(["./util"], function(Util) {
   }
 
   /**
-   * Returns an edit session based on the given id.
+   * Returns a file edit session based on the given id.
    *
-   * @param {integer} id The searched session ID.
-   * @return {mixed} Returns the session if exists, null otherwise.
+   * @param {integer} id The searched file ID.
+   * @return {mixed} Returns the file editSesison if exists, null otherwise.
    */
-  Session.prototype.getSessionById = function(id) {
+  Session.prototype.getFileSessionById = function(id) {
     for (var i in this._data) {
       if (this._data[i].id == id) {
         return this._data[i].editSession;
@@ -617,13 +619,13 @@ define(["./util"], function(Util) {
   }
 
   /**
-   * Removes a session from tha inner array,
+   * Removes a file from the inner array,
    * based on a given attribute identifier and a value pair.
    *
    * @param {string} attr The name of the attribute.
    * @param {mixed} value The value of the attribute.
    */
-  Session.prototype.deleteSessionByAttr = function(attr, value) {
+  Session.prototype.deleteFileByAttr = function(attr, value) {
     var i = this._data.length;
     while (i--) {
       if (this._data[i] &&
@@ -640,14 +642,14 @@ define(["./util"], function(Util) {
   }
 
   /**
-   * Returns the left or the right neighbour of a session.
-   * This is possible, because we store the sessions "in a straight line".
-   * The 0 session is the welcome session.
+   * Returns the left or the right neighbour of a file.
+   * This is possible, because we store the files "in a straight line".
+   * The 0. file is the welcome file.
    *
-   * @param {integer} id The base session id.
+   * @param {integer} id The base file id.
    * @return {integer} Return the neighbour id if exists one, 0 otherwise.
    */
-  Session.prototype.getSessionNeighbourById = function(id) {
+  Session.prototype.getFileNeighbourById = function(id) {
     for (var i = 1; i < this._data.length; i++) {
       if (this._data[i].id === parseInt(id)) {
         if (this._data[i - 1] !== undefined && this._data[i - 1].id !== 0) {
@@ -665,10 +667,10 @@ define(["./util"], function(Util) {
   /**
    * Returns every stored information about one data.
    *
-   * @param {integer} id The selected session's id.
+   * @param {integer} id The selected file id.
    * @return {mixed} Returns the data if exists, null otherwise.
    */
-  Session.prototype.getDataById = function(id) {
+  Session.prototype.getFileDataById = function(id) {
     for (var i in this._data) {
       if (this._data[i].id == id) {
         return this._data[i];
@@ -679,7 +681,7 @@ define(["./util"], function(Util) {
   }
 
   /**
-   * Returns every stored session data with every stored information.
+   * Returns every stored file data with every stored information.
    *
    * @return {object} Returns the data array.
    */
@@ -688,14 +690,14 @@ define(["./util"], function(Util) {
   }
 
   /**
-   * Searches the given name in the stored sessions.
+   * Searches the given name in the stored files.
    *
-   * @param {string} name Searched session name.
+   * @param {string} name Searched file name.
    * @return {boolean} Returns true if the given name is exists, false otherwise.
    */
-  Session.prototype.sessionNameCheck = function(name) {
+  Session.prototype.fileNameCheck = function(name) {
     var log = log || false;
-    if (this.getSessionIdbyName(name) === null) {
+    if (this.getFileIdByName(name) === null) {
       return false;
     }
 
@@ -703,7 +705,7 @@ define(["./util"], function(Util) {
   }
 
   /**
-   * Marks every valid, available breakpoint line in the current session file.
+   * Marks every valid, available breakpoint line in the current opened file.
    *
    * @param {object} debuggerObj Jerry client object.
    */
@@ -736,14 +738,14 @@ define(["./util"], function(Util) {
   }
 
   /**
-   * Returns every valid, available line in the currently active session.
+   * Returns every valid, available line in the currently active file.
    *
    * @param {object} raw Line informtion from the debuggerObj.
    * @return {array} Array of the file lines.
    */
   Session.prototype.getLinesFromRawData = function(raw) {
     var lines = [];
-    var sessionName = this.getSessionNameById(this._activeID);
+    var sessionName = this.getFileNameById(this._id.active);
 
     for (var i in raw) {
       if (raw[i].sourceName.endsWith(sessionName)) {
@@ -823,8 +825,9 @@ define(["./util"], function(Util) {
    * @param {integer} type New tab type.
    */
   Session.prototype.updateTabs = function(id, name, type) {
+    var $tabs = $(".session-tabs");
     if (this._welcomeTab && type === TABTYPE.WORK) {
-      $(".session-tabs").empty();
+      $tabs.empty();
       this._welcomeTab = false;
     }
 
@@ -836,10 +839,10 @@ define(["./util"], function(Util) {
     }
     tab += "</a>";
 
-    $(".session-tabs").append(tab);
+    $tabs.append(tab);
 
     $("#tab-" + id).on("click", $.proxy(function() {
-      this.switchSession(id);
+      this.switchFile(id);
     }, this));
 
     $("#tab-" + id + " i").on("click", $.proxy(function() {
@@ -864,7 +867,7 @@ define(["./util"], function(Util) {
   }
 
   /**
-   * Closes the selected tab and deletes that from the sessions.
+   * Closes the selected tab and deletes the file from the data.
    *
    * @param {integer} id Selected tab ID.
    */
@@ -872,21 +875,21 @@ define(["./util"], function(Util) {
     // Remove the sesison tab from the session bar.
     $("#tab-" + id).remove();
 
-    // If the selected session is the current session
-    // let's switch to an other existing session.
-    if (id == this._activeID) {
-      var nID = this.getSessionNeighbourById(id);
+    // If the selected session is the current file
+    // let's switch to an other existing file.
+    if (id == this._id.active) {
+      var nID = this.getFileNeighbourById(id);
       if (nID != 0) {
-        this.switchSession(nID);
+        this.switchFile(nID);
       } else {
-        this.setWelcomeSession();
+        this.setWelcomeFile();
       }
     }
 
-    // Delete the selected sesison.
-    this.deleteSessionByAttr("id", id);
+    // Delete the selected file.
+    this.deleteFileByAttr("id", id);
 
-    // Remove the session from upload list if it was selected.
+    // Remove the file from upload list if it was selected.
     if (this.isFileInUploadList(id)) {
       this.removeFileFromUploadList(id);
     }
