@@ -1,11 +1,16 @@
-language: javascript
+language: node_js
+
+node_js: 8
 
 os: linux
 
 install: true
 
-script: "tools/precommit.py $OPTS"
-
-env:
-  matrix:
-    - OPTS="--test=signed-off"
+jobs:
+  include:
+    - stage: Check
+      script: ./tools/check_signed_off.sh
+    - stage: Build
+      script:
+        - npm install
+        - npm run build
