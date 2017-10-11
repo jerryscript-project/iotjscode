@@ -177,7 +177,7 @@ function onmessage(event) {
   }
 
   if (this._debuggerObj.getCPointerSize() == 0) {
-    if (message[0] != this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_CONFIGURATION 
+    if (message[0] != this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_CONFIGURATION
       || message.byteLength != 4) {
       this._socket.abortConnection("the first message must be configuration.");
     }
@@ -270,14 +270,6 @@ function onmessage(event) {
         var breakpointRef = this._debuggerObj.getBreakpoint(breakpointData);
         var breakpoint = breakpointRef.breakpoint;
 
-        if (message[0] == this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_EXCEPTION_HIT) {
-          this._logger.info("Exception throw detected (to disable automatic stop type exception 0)");
-          if (this._exceptionData) {
-            this._logger.info("Exception hint: " + this._debuggerObj.cesu8ToString(this._exceptionData));
-            this._exceptionData = null;
-          }
-        }
-
         this._debuggerObj.setLastBreakpointHit(breakpoint);
 
         var breakpointInfo = "";
@@ -286,11 +278,10 @@ function onmessage(event) {
         }
 
         this._logger.info("Stopped "
-                    + (breakpoint.at ? "at " : "around ")
-                    + breakpointInfo
-                    + this._debuggerObj.breakpointToString(breakpoint));
+                          + (breakpoint.at ? "at " : "around ")
+                          + breakpointInfo
+                          + this._debuggerObj.breakpointToString(breakpoint));
 
-        /* EXTENDED CODE */
         this._session.setLastBreakpoint(breakpoint);
         this._surface.continueStopButtonState(this._surface.CSICON.CONTINUE);
         this._surface.disableActionButtons(false);
@@ -306,37 +297,48 @@ function onmessage(event) {
               true
             );
             $(".load-from-jerry").on("click", function(e) {
-                this._session.unhighlightLine();
-                this._session.unhighlightBreakpointLine();
-                var code = breakpoint.func.source;
+              var code = breakpoint.func.source;
 
-                this._session.createNewFile(name, code, 1, true);
-                if (this._surface.getPanelProperty("run.active")) {
-                  this._surface.updateRunPanel(this._surface.RUN_UPDATE_TYPE.ALL, this._debuggerObj, this._session);
-                }
+              this._session.createNewFile(name, code, 1, true);
+              if (this._surface.getPanelProperty("run.active")) {
+                this._surface.updateRunPanel(this._surface.RUN_UPDATE_TYPE.ALL, this._debuggerObj, this._session);
+              }
 
-                $("." + groupID).addClass("disabled");
-                $("." + groupID).unbind("click");
-                e.stopImmediatePropagation();
-              }.bind(this));
+              $("." + groupID).addClass("disabled");
+              $("." + groupID).unbind("click");
+              e.stopImmediatePropagation();
+            }.bind(this));
           }
         }
 
-        // Go the the right session.
+        // Switch to the the right session.
         var sID = this._session.getFileIdByName(breakpoint.func.sourceName);
         if (sID != null && sID != this._session.getActiveID()) {
-          // Remove the highlite from the current session.
-          this._session.unhighlightLine();
-          this._session.unhighlightBreakpointLine();
+          this._session.removeBreakpointGutters(this._debuggerObj);
 
           // Change the session.
           this._session.switchFile(sID);
 
         }
 
-        if (sID == this._session.getActiveID()) {
-          this._session.highlightCurrentLine(breakpoint.line);
-          this._session.markBreakpointLines(this._debuggerObj);
+        // Remove the old highlights from the session.
+        this._session.unhighlightLine(this._session.HIGHLIGHT_TYPE.EXECUTE);
+        this._session.unhighlightLine(this._session.HIGHLIGHT_TYPE.EXCEPTION);
+
+        // After we switched to the decent file/sesison show the exception hint (if exists).
+        if (message[0] == this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_EXCEPTION_HIT) {
+          this._session.highlightLine(this._session.HIGHLIGHT_TYPE.EXCEPTION, breakpoint.line - 1);
+          this._logger.error("Exception throw detected!");
+          if (this._exceptionData) {
+            this._logger.error("Exception hint: " + this._debuggerObj.cesu8ToString(this._exceptionData), true);
+            this._exceptionData = null;
+          }
+        } else {
+          // Hightlight the execute line in the correct session.
+          if (sID == this._session.getActiveID()) {
+            this._session.highlightLine(this._session.HIGHLIGHT_TYPE.EXECUTE, breakpoint.line - 1);
+            this._session.markBreakpointGutters(this._debuggerObj);
+          }
         }
 
         // Show the backtrace on the panel.
@@ -352,18 +354,17 @@ function onmessage(event) {
         // Add breakpoint information to chart
         if (this._surface.getPanelProperty("chart.active")) {
           for (var i in this._debuggerObj.getActiveBreakpoints()) {
-            if (this._debuggerObj.getActiveBreakpoints()[i].line ==
-              this._debuggerObj.breakpointToString(breakpoint)
-              .split(":")[1].split(" ")[0]) {
+            if (this._debuggerObj.getActiveBreakpoints()[i].line
+                == this._debuggerObj.breakpointToString(breakpoint).split(":")[1].split(" ")[0]) {
               this._surface.stopCommand();
               return;
             }
           }
 
-          this._debuggerObj.encodeMessage("B", [this._debuggerObj.CLIENT_PACKAGE.JERRY_DEBUGGER_MEMSTATS]);
+          this._debuggerObj.encodeMessage("B", [ this._debuggerObj.CLIENT_PACKAGE.JERRY_DEBUGGER_MEMSTATS ]);
           this._session.setBreakpointInfoToChart(this._debuggerObj.breakpointToString(breakpoint));
         }
-        /* EXTENDED CODE */
+
         return;
       }
 

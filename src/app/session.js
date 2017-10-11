@@ -23,6 +23,14 @@ const TABTYPE = {
 };
 
 /**
+ * Types of the line hightlight in the editor sesison.
+ */
+const HIGHLIGHT_TYPE = {
+  EXECUTE : "execute",
+  EXCEPTION : "exception"
+};
+
+/**
  * Contructor.
  *
  * @param {object} env The core enviroment object.
@@ -68,10 +76,16 @@ function Session(env, surface) {
     started: false
   };
   this._marker = {
-    executed: null,
-    lastMarked: null,
-    breakpointLine: null,
-    lastMarkedBreakpointLine: null
+    execute : {
+      obj : null,
+      line : null,
+      active : false
+    },
+    exception : {
+      obj : null,
+      line : null,
+      active : false
+    }
   };
   this._watch = {
     work: {
@@ -87,6 +101,7 @@ function Session(env, surface) {
   this._contextReset = false;
 
   this.TABTYPE = TABTYPE;
+  this.HIGHLIGHT_TYPE = HIGHLIGHT_TYPE;
 }
 
 /**
@@ -540,11 +555,11 @@ Session.prototype.switchFile = function(id) {
   // based on the new file/e-session.
   if (this._breakpoint.last != null &&
     this._breakpoint.last.func.sourceName.endsWith(this.getFileNameById(id))) {
-    this.highlightCurrentLine(this._breakpoint.last.line);
+    this.highlightLine(HIGHLIGHT_TYPE.EXECUTE, this._breakpoint.last.line - 1);
   }
 
   if (this._breakpoint.last == null) {
-    this.removeBreakpointLines();
+    this.removeBreakpointGutters();
   }
 
   // Disable the read only in the editor.
@@ -708,7 +723,7 @@ Session.prototype.fileNameCheck = function(name) {
  *
  * @param {object} debuggerObj Jerry client object.
  */
-Session.prototype.markBreakpointLines = function(debuggerObj) {
+Session.prototype.markBreakpointGutters = function(debuggerObj) {
   if (debuggerObj && debuggerObj.getEngineMode() != debuggerObj.ENGINE_MODE.DISCONNECTED) {
     var lines = this.getLinesFromRawData(debuggerObj.getBreakpointLines());
 
@@ -730,7 +745,7 @@ Session.prototype.markBreakpointLines = function(debuggerObj) {
 /**
  * Removes the invalid gutter cell css class from the editor session.
  */
-Session.prototype.removeBreakpointLines = function() {
+Session.prototype.removeBreakpointGutters = function() {
   for (var i = this._editor.session.getLength(); i > 0; i--) {
     this._editor.session.removeGutterDecoration(i - 1, "invalid-gutter-cell");
   }
@@ -756,51 +771,38 @@ Session.prototype.getLinesFromRawData = function(raw) {
 }
 
 /**
- * Highlights the current progress line in the editor session with a border.
+ * Highlights a single line in the editor session.
  *
- * @param {integer} lineNumber Selected line.
+ * @param {integer} type Type of the hightlight from the HIGHLIGHT_TYPE.
+ * @param {integer} line Selected line.
  */
-Session.prototype.highlightCurrentLine = function(lineNumber) {
-  lineNumber--;
-  this.unhighlightLine();
+Session.prototype.highlightLine = function(type, line) {
   var Range = ace.require("ace/range").Range;
-  this._marker.executed = this._editor.session.addMarker(new Range(lineNumber, 0, lineNumber, 1), "execute-marker", "fullLine");
+  var options = {
+    lineName: type + "-marker",
+    gutterName: type + "-gutter-cell-marker"
+  };
 
-  this._editor.session.addGutterDecoration(lineNumber, "execute-gutter-cell-marker");
-  this._editor.scrollToLine(lineNumber, true, true, function() {});
-  this._marker.lastMarked = lineNumber;
+  this.unhighlightLine(type);
+  this._marker[type].obj = this._editor.session.addMarker(new Range(line, 0, line, 1), options.lineName, "fullLine");
+
+  this._editor.session.addGutterDecoration(line, options.gutterName);
+  this._editor.scrollToLine(line, true, true, function() {});
+  this._marker[type].line = line;
+  this._marker[type].active = true;
 }
 
 /**
  * Removes the highlight (border) from the last highlighted line.
- */
-Session.prototype.unhighlightLine = function() {
-  this._editor.getSession().removeMarker(this._marker.executed);
-  this._editor.session.removeGutterDecoration(this._marker.lastMarked, "execute-gutter-cell-marker");
-}
-
-/**
- * Highlights the current breakpoint line in the editor session with a border.
  *
- * @param {integer} lineNumber Selected line.
+ * @param {integer} type Type of the hightlight from the HIGHLIGHT_TYPE.
  */
-Session.prototype.highlightBreakPointLine = function(lineNumber) {
-  lineNumber--;
-  this.unhighlightBreakpointLine();
-  var Range = ace.require("ace/range").Range;
-  this._marker.breakpointLine = this._editor.session.addMarker(new Range(lineNumber, 0, lineNumber, 1), "breakpoint-marker", "fullLine");
-
-  this._editor.session.addGutterDecoration(lineNumber, "breakpoint-gutter-cell-marker");
-  this._editor.scrollToLine(lineNumber, true, true, function() {});
-  this._marker.lastMarkedBreakpointLine = lineNumber;
-}
-
-/**
- * Removes the highlight (border) from the last highlighted breakpoint line.
- */
-Session.prototype.unhighlightBreakpointLine = function() {
-  this._editor.getSession().removeMarker(this._marker.breakpointLine);
-  this._editor.session.removeGutterDecoration(this._marker.lastMarkedBreakpointLine, "breakpoint-gutter-cell-marker");
+Session.prototype.unhighlightLine = function(type) {
+  if (this._marker[type].active) {
+    this._marker[type].active = false;
+    this._editor.getSession().removeMarker(this._marker[type].obj);
+    this._editor.session.removeGutterDecoration(this._marker[type].line, type + "-gutter-cell-marker");
+  }
 }
 
 /**
@@ -913,9 +915,9 @@ Session.prototype.closeTab = function(id) {
 Session.prototype.reset = function() {
   Util.clearElement($("#backtrace-table-body"));
   this.deleteBreakpointsFromEditor();
-  this.unhighlightLine();
-  this.unhighlightBreakpointLine();
-  this.removeBreakpointLines();
+  this.unhighlightLine(HIGHLIGHT_TYPE.EXECUTE);
+  this.unhighlightLine(HIGHLIGHT_TYPE.EXCEPTION);
+  this.removeBreakpointGutters();
 
   this._breakpoint.informationToChart = null;
   this._breakpoint.IDs = [];
@@ -925,10 +927,11 @@ Session.prototype.reset = function() {
   this._upload.allowed = false;
 
 
-  this._marker.executed = null;
-  this._marker.lastMarked = null;
-  this._marker.breakpointLine = null;
-  this._marker.lastMarkedBreakpointLine = null;
+  this._marker.execute = this._marker.exception = {
+    obj : null,
+    line : null,
+    active : false
+  }
 
   if (this.isFileInUploadList(0)) {
     this.removeFileFromUploadList(0);

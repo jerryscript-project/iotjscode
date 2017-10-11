@@ -539,10 +539,12 @@ input[type="number"] {
   border-left: 1px solid rgba(0, 0, 0, 0.25);
 }
 
-#editor-wrapper #editor .breakpoint-gutter-cell-marker {
-  border-top: 1px solid #eb0f0b;
-  border-bottom: 1px solid #eb0f0b;
-  border-left: 1px solid #eb0f0b;
+#editor-wrapper #editor .exception-gutter-cell-marker {
+  border-top: 1px solid #a94442;
+  border-bottom: 1px solid #a94442;
+  border-left: 1px solid #a94442;
+  background-color: #f2dede;
+  filter: none;
 }
 
 #editor-wrapper #editor .execute-marker {
@@ -553,10 +555,12 @@ input[type="number"] {
   z-index: 500;
 }
 
-#editor-wrapper #editor .breakpoint-marker {
+#editor-wrapper #editor .exception-marker {
   position: absolute;
-  border-top: 1px solid #eb0f0b;
-  border-bottom: 1px solid #eb0f0b;
+  border-top: 1px solid #a94442;
+  border-bottom: 1px solid #a94442;
+  border-right: 1px solid #a94442;
+  background-color: #f2dede;
   z-index: 500;
 }
 /**

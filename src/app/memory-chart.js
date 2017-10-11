@@ -254,7 +254,6 @@ MemoryChart.prototype.resetChart = function() {
   this._surface.toggleButton(true, "chart-record-button");
   $("#chart-record-button").css("background-color", "");
 
-  this._session.unhighlightBreakpointLine();
   this.initChart();
 }
 
@@ -512,8 +511,6 @@ function markSelectedLine(session, logger) {
   this._logger.info("String bytes: " + string_bytes[d.x + minimumXIndex] + " B");
   this._logger.info("Object bytes: " + object_bytes[d.x + minimumXIndex] + " B");
   this._logger.info("Property bytes: " + property_bytes[d.x + minimumXIndex] + " B");
-
-  this._session.highlightBreakPointLine(lineNumber);
 }
 
 /**

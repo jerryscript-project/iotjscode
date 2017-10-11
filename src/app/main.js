@@ -670,13 +670,13 @@ export default function App() {
     env.editor.on("change", function(e) {
       $("#tab-" + session.getActiveID()).addClass("unsaved");
       if (debuggerObj && debuggerObj.getEngineMode() != debuggerObj.ENGINE_MODE.DISCONNECTED) {
-        session.markBreakpointLines(debuggerObj);
+        session.markBreakpointGutters(debuggerObj);
       }
     });
 
     env.editor.on("changeSession", function(e) {
       if (debuggerObj && debuggerObj.getEngineMode() != debuggerObj.ENGINE_MODE.DISCONNECTED) {
-        session.markBreakpointLines(debuggerObj);
+        session.markBreakpointGutters(debuggerObj);
       }
     });
 
