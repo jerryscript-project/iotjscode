@@ -267,7 +267,7 @@ MemoryChart.prototype.resetChart = function() {
 MemoryChart.prototype.resizeChart = function(height, width) {
   chart.resize({
     height: (height - 45),
-    width: (width - 40)
+    width: (width - 10)
   });
 }
 

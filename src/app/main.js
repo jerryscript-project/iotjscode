@@ -141,7 +141,7 @@ export default function App() {
      * Sidenav toggle button click.
      */
     $("#sidenav-toggle-button").on("click", function() {
-      surface.toggleSidenav();
+      surface.toggleSidenav(chart);
     });
 
     /**
@@ -921,8 +921,8 @@ export default function App() {
         }
 
         var tmpHeight = Math.max(surface.getPanelProperty("height"), this.startHeight - diffH)
-        this.other.height((tmpHeight < surface.getPanelProperty("height")) 
-                          ? surface.getPanelProperty("height") 
+        this.other.height((tmpHeight < surface.getPanelProperty("height"))
+                          ? surface.getPanelProperty("height")
                           : tmpHeight);
 
         if ((ui.originalElement[0].id == "chart-wrapper" || this.other[0].id == "chart-wrapper") &&

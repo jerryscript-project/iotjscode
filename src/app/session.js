@@ -428,8 +428,8 @@ Session.prototype.addWatchExpressionValue = function(debuggerObj, expr, value) {
  * @param {object} debuggerObj DebuggerClient module instance.
  */
 Session.prototype.updateWatchExpressions = function(debuggerObj) {
-  if (debuggerObj 
-      && debuggerObj.getEngineMode() == debuggerObj.ENGINE_MODE.BREAKPOINT 
+  if (debuggerObj
+      && debuggerObj.getEngineMode() == debuggerObj.ENGINE_MODE.BREAKPOINT
       && !$.isEmptyObject(this._watch.list)) {
     this._watch.work.update = true;
 
@@ -824,7 +824,7 @@ Session.prototype.deleteBreakpointsFromEditor = function() {
  * @param {integer} type New tab type.
  */
 Session.prototype.updateTabs = function(id, name, type) {
-  var $tabs = $(".session-tabs");
+  var $tabs = $("#file-tabs");
   if (this._welcomeTab && type === TABTYPE.WORK) {
     $tabs.empty();
     this._welcomeTab = false;
@@ -832,13 +832,18 @@ Session.prototype.updateTabs = function(id, name, type) {
 
   var tab = "";
 
-  tab += "<a href='javascript:void(0)' class='tablinks' id='tab-" + id + "'> " + name;
+  tab += "<div class='tablinks' id='tab-" + id + "' title='" + name + "'> " + name;
   if (type == TABTYPE.WORK) {
     tab += "<i class='fa fa-times' aria-hidden='true'></i>";
   }
-  tab += "</a>";
+  tab += "</div>";
 
   $tabs.append(tab);
+
+  // Update the editor height based on the new header height.
+  if (id !== 0) {
+    this._surface.updateEditorHeight();
+  }
 
   $("#tab-" + id).on("click", $.proxy(function() {
     this.switchFile(id);
@@ -888,7 +893,10 @@ Session.prototype.closeTab = function(id) {
   // Delete the selected file.
   this.deleteFileByAttr("id", id);
 
-  // Remove the file from upload list if it was selected.
+  // Update the editor height based on the new header height.
+  this._surface.updateEditorHeight();
+
+  // Remove the session from upload list if it was selected.
   if (this.isFileInUploadList(id)) {
     this.removeFileFromUploadList(id);
   }

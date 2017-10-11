@@ -115,7 +115,7 @@ Surface.prototype.isSidenavOpened = function() {
 /**
  * Closes or opens the left side menu.
  */
-Surface.prototype.toggleSidenav = function() {
+Surface.prototype.toggleSidenav = function(chart) {
   if (this._sidenav.opened) {
     this._sidenav.opened = false;
     $("#left-sidenav").css("width", this._sidenav.closedWidth + "px");
@@ -124,6 +124,20 @@ Surface.prototype.toggleSidenav = function() {
     this._sidenav.opened = true;
     $("#left-sidenav").css("width", this._sidenav.openedWidth + "px");
     $("#main-wrapper").css("margin-left", this._sidenav.openedWidth + "px");
+  }
+
+  if (this.getPanelProperty("chart.active")) {
+    this._panel.chart.height = $("#chart-wrapper").height();
+    this._panel.chart.width = $("#chart-wrapper").width();
+    chart.resizeChart(this._panel.chart.height, this._panel.chart.width);
+  }
+
+  if (this.getPanelProperty("backtrace.active")) {
+    $("#backtrace-table").floatThead("reflow");
+  }
+
+  if (this.getPanelProperty("breakpoints.active")) {
+    $("#breakpoints-table").floatThead("reflow");
   }
 };
 
@@ -736,6 +750,13 @@ Surface.prototype.getBacktrace = function(debuggerObj) {
     logger.error("Backtrace is allowed only if JavaScript execution is stopped at a breakpoint.");
   }
 };
+
+/**
+ * Updates the ace editor height based on the height of the wrapper and the file tabs header.
+ */
+Surface.prototype.updateEditorHeight = function() {
+  $("#editor").height($("#editor-wrapper").height() - $("#file-tabs").height() - 3);
+}
 
 /**
  * Sets back every action to the default state.

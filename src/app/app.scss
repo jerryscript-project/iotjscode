@@ -17,7 +17,6 @@
 /**
 *  Globals
 */
-
 html {
   height: 100%;
 }
@@ -31,7 +30,7 @@ h1,
 h2,
 h3,
 h4 {
-  margin: 0 0 5px 0;
+  margin: 0 0 5px;
 }
 
 .hidden {
@@ -52,14 +51,13 @@ h4 {
 }
 
 .separated {
-  margin: 0 20px 0 20px;
+  margin: 0 20px;
 }
 
 .wrapper {
-  padding: 5px 10px 0 10px;
+  padding: 5px 10px 0;
   height: 100%;
   margin-left: 40px;
-  transition: margin-left .5s;
 }
 
 .data {
@@ -94,13 +92,9 @@ input[type="number"] {
 .bg-danger {
   background-color: #dc3545;
 }
-
-
 /**
 * Menu
 */
-
-
 /**
 * Colors:
 * Text: #818181
@@ -111,20 +105,16 @@ input[type="number"] {
 * Blue: #81a2be
 * Border: #373b41
 */
-
-
 /* The side navigation menu */
-
 .sidenav {
   height: 100%;
   width: 40px;
   position: fixed;
-  z-index: 1000;
+  z-index: 1200;
   top: 0;
   left: 0;
   background-color: #1d1f21;
   overflow-x: hidden;
-  transition: 0.5s;
   color: #818181;
 }
 
@@ -198,14 +188,14 @@ input[type="number"] {
 #sidenav-extra-modal {
   display: none;
   position: fixed;
-  z-index: 800;
+  z-index: 1100;
   left: 0;
   top: 0;
   width: 100%;
   height: 100%;
   overflow: auto;
-  background-color: rgb(0, 0, 0);
-  background-color: rgba(0, 0, 0, 0.4);
+  background-color: rgb(0,0,0);
+  background-color: rgba(0,0,0,0.4);
 }
 
 .sidenav-extra {
@@ -214,7 +204,7 @@ input[type="number"] {
   position: absolute;
   top: 0;
   margin-left: -10px;
-  z-index: 1000;
+  z-index: 1200;
   background-color: #1d1f21;
   overflow-x: hidden;
   border-left: 2px solid #373b41;
@@ -267,7 +257,7 @@ input[type="number"] {
 .sidenav-extra div ul .available-li {
   list-style-type: none;
   text-decoration: none;
-  padding: 10px 5px 10px 5px;
+  padding: 10px 5px;
   border-top: 1px solid #373b41;
   cursor: pointer;
   transition: 0.3s;
@@ -336,12 +326,9 @@ input[type="number"] {
 .sidenav-extra #settings-sidenav .control-block .control-item #show_vscroll {
   margin-left: 20px;
 }
-
-
 /**
 * Popup windows
 */
-
 #main-wrapper #popup-wrapper {
   position: absolute;
   right: 0;
@@ -365,14 +352,11 @@ input[type="number"] {
   left: 15px;
   font-size: 30px;
 }
-
-
 /**
 * Main buttons
 */
-
 .main-buttons {
-  margin: 0 0 5px 0;
+  margin: 0;
 }
 
 .main-buttons .col-md-12 {
@@ -384,12 +368,8 @@ input[type="number"] {
   margin-right: 20px;
 }
 
-.main-buttons .connection-inputs .btn {
-  margin-bottom: 2px;
-}
-
 .main-buttons .connection-inputs #host-ip {
-  width: 120px;
+  width: 220px;
 }
 
 .main-buttons .connection-inputs #host-port {
@@ -399,13 +379,9 @@ input[type="number"] {
 .main-buttons .debugger-buttons .btn {
   width: 40px;
 }
-
-
-
 /**
 * Workspace -> Global
 */
-
 #workspace-wrapper {
   position: relative;
   height: 100%;
@@ -421,7 +397,7 @@ input[type="number"] {
   margin: 0;
   padding: 0;
   width: 100%;
-  height: calc(100% - 60px);
+  height: calc(100% - 50px);
   min-height: 400px;
 }
 
@@ -434,16 +410,8 @@ input[type="number"] {
   position: absolute;
   top: 0;
   right: 0;
-  height: calc(100% - 31px);
+  height: 100%;
   padding-left: 10px;
-}
-
-#workspace-wrapper .resizable-columns #editor-wrapper .row {
-  margin: 0;
-}
-
-#workspace-wrapper .resizable-columns #editor-wrapper .row .col-md-12 {
-  padding: 0;
 }
 
 #workspace-wrapper .resizable-columns #info-panels {
@@ -515,37 +483,40 @@ input[type="number"] {
   background: #ddd;
   box-shadow: 0 10px 0 #ddd, 0 20px 0 #ddd;
 }
-
 @media(max-width: 992px) {
   #workspace-wrapper .ui-resizable-e {
     display: none !important;
   }
+
   #workspace-wrapper #editor-wrapper {
     margin-top: 10px;
   }
+
   #editor {
     margin-bottom: 10px;
   }
 }
-
-
-
 /*
 *  Workspace -> Editor
 */
-
-#editor-wrapper {
+#editor-wrapper,
+#editor-wrapper .row,
+#editor-wrapper .row .col-md-12,
+#editor-wrapper .row .col-md-12 .panel,
+#editor-wrapper .row .col-md-12 .panel {
   position: relative;
+  height: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 #editor-wrapper #editor {
   position: relative;
   width: 100%;
   min-width: 100%;
-  height: 100%;
-  border: 1px solid #d9d9d9;
-  border-bottom-left-radius: 5px;
-  border-bottom-right-radius: 5px;
+  height: calc(100% - 34px);
+  margin: 0;
+  padding: 0;
 }
 
 #editor-wrapper #editor .ace_gutter-cell {
@@ -588,69 +559,55 @@ input[type="number"] {
   border-bottom: 1px solid #eb0f0b;
   z-index: 500;
 }
-
-
-
 /**
 * File tabs
 */
-
-#editor-wrapper div.session-tabs {
-  overflow: hidden;
-  border-top: 1px solid #ccc;
-  border-right: 1px solid #ccc;
-  border-left: 1px solid #ccc;
-  border-top-left-radius: 5px;
-  border-top-right-radius: 5px;
-  background-color: #f5f5f5;
-  min-height: 30px;
+#editor-wrapper div#file-tabs {
+  padding: 0;
+  margin-bottom: 0;
 }
 
-
-
-/* Style the links inside the tab */
-
-#editor-wrapper div.session-tabs a {
+#editor-wrapper div#file-tabs .tablinks {
   position: relative;
-  float: left;
-  display: inline-block;
   color: #000;
   text-align: center;
   padding: 5px 25px 5px 5px;
+  margin-bottom: -5px;
   text-decoration: none;
   transition: 0.3s;
+  width: 120px;
+  height: 33px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow-x: hidden;
+  display: inline-block;
 }
 
-#editor-wrapper div.session-tabs a.active {
+#editor-wrapper div#file-tabs .active {
   background-color: #ddd;
 }
-
-
-
 /* Change background color of links on hover */
-
-#editor-wrapper div.session-tabs a:hover {
+#editor-wrapper div#file-tabs .tablinks:hover {
   background-color: #ddd;
+  cursor: pointer;
 }
-
-
-
 /* Create an active/current tablink class */
-
-#editor-wrapper div.session-tabs a:focus {
+#editor-wrapper div#file-tabs .tablinks:focus {
   background-color: #ddd;
 }
 
-#editor-wrapper div.session-tabs a i {
+#editor-wrapper div#file-tabs .tablinks i {
   position: absolute;
   width: 15px;
   height: 15px;
   top: 2px;
   right: 5px;
   z-index: 100;
+  opacity: 0.3;
 }
 
-#editor-wrapper div.session-tabs a i:hover {
+#editor-wrapper div#file-tabs .tablinks i:hover {
+  opacity: 1;
   -ms-transform: scale(1.5, 1.5);
   /* IE 9 */
   -webkit-transform: scale(1.5, 1.5);
@@ -658,23 +615,21 @@ input[type="number"] {
   transform: scale(1.5, 1.5);
 }
 
-#editor-wrapper div.session-tabs a.unsaved {
+#editor-wrapper div#file-tabs .tablinks.unsaved {
   text-decoration: underline;
 }
-
-
-
 /**
 *  Workspace -> Info panels
 */
-
 #info-panels .panel .panel-heading {
   padding: 5px;
+  min-height: 33px;
 }
 
 #info-panels .panel .panel-body {
   position: relative;
   padding: 0;
+  height: calc(100% - 33px);
 }
 
 #info-panels .panel .panel-footer {
@@ -682,26 +637,10 @@ input[type="number"] {
   padding: 5px;
 }
 
+.panel,
 .vertical-resizable,
-.vertical-resizable .col-md-12,
-.panel {
+.vertical-resizable .col-md-12 {
   height: 100%;
-}
-
-.panel-body {
-  height: calc(100% - 31px);
-}
-
-#info-panels .panel .panel-body .default-panel-content {
-  position: relative;
-  width: 100%;
-  height: calc(100% - 21px);
-  display: block;
-  overflow-y: scroll;
-}
-
-#info-panels .panel .panel-body .default-panel-content#breakpoints-content {
-  height: calc(100% - 23px);
 }
 
 #info-panels .hidden-panel {
@@ -710,7 +649,7 @@ input[type="number"] {
 
 #info-panels #watch-content {
   position: relative;
-  height: calc(100% - 2px);
+  height: 100%;
   overflow-y: scroll;
 }
 
@@ -777,7 +716,7 @@ input[type="number"] {
 #info-panels #run-panel {
   position: relative;
   width: 100%;
-  height: calc(100% - 2px);
+  height: 100%;
 }
 
 #info-panels #run-panel .run-div {
@@ -798,10 +737,10 @@ input[type="number"] {
 #info-panels #run-panel .run-div:nth-child(odd) .selectable {
   border: 1px solid #ddd;
   border-radius: 5px;
-  height: calc(100% - 20px);
+  height: calc(100% - 24px);
   margin: 0;
   padding: 5px;
-  overflow-y: scroll;
+  overflow-y: auto;
 }
 
 #info-panels #run-panel .run-div:nth-child(odd) .selectable .ui-selecting {
@@ -848,27 +787,30 @@ input[type="number"] {
 
 #info-panels #run-panel .run-div:nth-child(2) {
   width: 32px;
+  display: flex;
+  align-items: center;
 }
 
-#info-panels #run-panel .run-div:nth-child(2) .btn {
-  width: 22px;
+#info-panels #run-panel .run-div:nth-child(2) div {
+  text-align: center;
+}
+
+#info-panels #run-panel .run-div:nth-child(2) div .btn:nth-child(2) {
   margin-top: 5px;
-  position: relative;
-  top: calc(50% - 30px);
 }
 
 #info-panels #console-wrapper .panel-body {
-  height: calc(100% - 76px);
+  height: calc(100% - 78px);
   width: 100%;
 }
 
 #info-panels .panel-body .wrapper {
   position: relative;
   width: inherit;
-  height: calc(100% - 2px);
+  height: 100%;
   padding: 0;
   margin: 0;
-  overflow-x: auto;
+  overflow-x: hidden;
   overflow-y: scroll;
 }
 
@@ -876,16 +818,14 @@ input[type="number"] {
   background-color: #fff;
 }
 
-#info-panels .panel-body .table thead th,
-#info-panels .panel-body .table tbody td {
-  padding: 2px;
-  padding-left: 2px !important;
-  padding-right: 4px !important;
+#info-panels .panel-body .table tbody td,
+#info-panels .panel-body .table thead th {
+  padding: 2px 4px 2px 2px !important;
   word-wrap: break-word;
 }
 
-#info-panels .panel-body .table thead th:not(:last-child),
-#info-panels .panel-body .table tbody td:not(:last-child) {
+#info-panels .panel-body .table tbody td:not(:last-child),
+#info-panels .panel-body .table thead th:not(:last-child) {
   border-right: 1px solid #ddd;
 }
 
@@ -893,17 +833,8 @@ input[type="number"] {
   border-bottom: 1px solid #ddd;
 }
 
-
-/*
-* Console
-*/
-
 #info-panels #command-line-input {
   width: 100%;
-}
-
-#info-panels .console .default-panel-content {
-  padding: 5px;
 }
 
 #info-panels .logger-panel {
@@ -912,7 +843,7 @@ input[type="number"] {
   height: 100%;
   display: block;
   overflow-y: scroll;
-  padding: 0 5px 0 5px;
+  padding: 0 5px;
 }
 
 #info-panels .logger-panel span {

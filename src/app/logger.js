@@ -162,7 +162,7 @@ function createPopup(type, strong, message) {
   // Wait 30 sec then close the alert window.
   setTimeout(function() {
     lrt.alert("close");
-  }, 30000);
+  }, 10000);
 
   return lrt;
 }
