@@ -1,16 +1,25 @@
 language: node_js
-
 node_js: 8
-
 os: linux
-
-install: true
-
+install: true  
+cache:
+  directories:
+    - node_modules
 jobs:
   include:
-    - stage: Check
-      script: ./tools/check_signed_off.sh
-    - stage: Build
-      script:
-        - npm install
-        - npm run build
+  - stage: Check
+    script: ./tools/check_signed_off.sh
+  - stage: Build
+    script:
+    - npm install
+    - npm run build
+  - stage: Deploy
+    deploy:
+      provider: pages
+      skip_cleanup: true
+      github_token: $GITHUB_TOKEN
+      local_dir: dist
+      on:
+        branch: master
+    script:
+    - "if ! test -d dist; then npm install && npm run build; fi"
