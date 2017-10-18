@@ -948,7 +948,7 @@ export default function App() {
 
     session.addCommandToList(command);
     session.setCommandCounter(session.getCommandList().length);
-    args = /^([a-zA-Z]+)(?:\s+([^\s].*)|)$/.exec(command);
+    var args = /^([a-zA-Z]+)(?:\s+([^\s].*)|)$/.exec(command);
 
     if (!args) {
       logger.error("Invalid command.");
