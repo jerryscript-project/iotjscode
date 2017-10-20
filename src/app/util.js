@@ -13,43 +13,37 @@
  * limitations under the License.
  */
 
-/**
- * Constructor.
- */
-function Util() {
-  if (!(this instanceof Util)) {
-    throw new TypeError("Util constructor cannot be called as a function.");
+export default class Util {
+
+  constructor() {}
+
+  /**
+   * Basic assertion function.
+   * Throws an error if the assertion failed.
+   *
+   * @param {mixed} expr The expression.
+   */
+  static assert(expr) {
+    if (!expr) {
+      throw new Error('Assertion failed.');
+    }
+  }
+
+  /**
+   * Clears the given html element content.
+   *
+   * @param {object} element A valid DOM object.
+   */
+  static clearElement(element) {
+    element.empty();
+  }
+
+  /**
+   * Scrolls down to the bottom of the given element.
+   *
+   * @param {object} element A valid DOM object.
+   */
+  static scrollDown(element) {
+    element.scrollTop(element.prop('scrollHeight'));
   }
 }
-
-/**
- * Basic assertion function.
- * Throws an error if the assertion failed.
- *
- * @param {mixed} expr The expression.
- */
-Util.assert = function(expr) {
-  if (!expr) {
-    throw new Error("Assertion failed.");
-  }
-}
-
-/**
- * Clears the given html element content.
- *
- * @param {object} element A valid DOM object.
- */
-Util.clearElement = function(element) {
-  element.empty();
-}
-
-/**
- * Scrolls down to the bottom of the given element.
- *
- * @param {object} element A valid DOM object.
- */
-Util.scrollDown = function(element) {
-  element.scrollTop(element.prop("scrollHeight"));
-}
-
-export default Util;
