@@ -49,9 +49,11 @@ var stylistic_issues = {
   'no-new-object': 2,
   'no-tabs': 2,
   'no-trailing-spaces': 2,
+  'operator-linebreak': 2,  
   'quotes': [2, 'single'],
   'semi-spacing': 2,
   'space-before-blocks': 2,
+  'starred-block': 2,
   'space-before-function-paren': [2, {
     'anonymous': 'never',
     'named': 'never',
