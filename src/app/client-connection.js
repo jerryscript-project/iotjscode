@@ -84,9 +84,9 @@ export default class Connection {
   send(message) {
     this._socket.send(message);
 
-    if (message[0] === this._debuggerObj.CLIENT_PACKAGE.JERRY_DEBUGGER_CONTINUE
-        || message[0] === this._debuggerObj.CLIENT_PACKAGE.JERRY_DEBUGGER_STEP
-        || message[0] === this._debuggerObj.CLIENT_PACKAGE.JERRY_DEBUGGER_NEXT) {
+    if (message[0] === this._debuggerObj.CLIENT_PACKAGE.JERRY_DEBUGGER_CONTINUE ||
+        message[0] === this._debuggerObj.CLIENT_PACKAGE.JERRY_DEBUGGER_STEP ||
+        message[0] === this._debuggerObj.CLIENT_PACKAGE.JERRY_DEBUGGER_NEXT) {
       this._debuggerObj.setEngineMode(this._debuggerObj.ENGINE_MODE.RUN);
     }
   }
@@ -176,8 +176,8 @@ function onmessage(event) {
   }
 
   if (this._debuggerObj.getCPointerSize() === 0) {
-    if (message[0] !== this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_CONFIGURATION
-        || message.byteLength !== 4) {
+    if (message[0] !== this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_CONFIGURATION ||
+        message.byteLength !== 4) {
       this._socket.abortConnection('the first message must be configuration.');
     }
 
@@ -356,8 +356,8 @@ function onmessage(event) {
       // Add breakpoint information to chart
       if (this._surface.getPanelProperty('chart.active')) {
         for (let i in this._debuggerObj.getActiveBreakpoints()) {
-          if (this._debuggerObj.getActiveBreakpoints()[i].line
-              === this._debuggerObj.breakpointToString(breakpoint).split(':')[1].split(' ')[0]) {
+          if (this._debuggerObj.getActiveBreakpoints()[i].line ===
+              this._debuggerObj.breakpointToString(breakpoint).split(':')[1].split(' ')[0]) {
             this._surface.stopCommand();
             return;
           }
