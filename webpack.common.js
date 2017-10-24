@@ -8,6 +8,8 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const source_path = path.resolve(__dirname, 'src');
 const build_path = path.resolve(__dirname, 'dist');
 const module_path = path.resolve(__dirname, 'node_modules');
+
+const html_title = 'IoT.JS Code';
 const ace_editor_path = 'ace-builds/src-min-noconflict';
 
 const resolve = {
@@ -25,8 +27,8 @@ const resolve = {
 
 const plugins = [
   new HtmlWebpackPlugin({
-    template: `${source_path}/index.html`,
-    title: 'IoT.JS Code',
+    template: `${source_path}/index.ejs`,
+    title: html_title,
   }),
   new webpack.ProvidePlugin({
     $: 'jquery',
@@ -59,7 +61,11 @@ const rules = [
         presets: ['env'],
       },
     },
-  }
+  },
+  {
+    test: /\.ejs$/,
+    loader: 'ejs-render-loader'
+  },
 ];
 
 const config = {

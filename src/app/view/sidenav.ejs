@@ -1,0 +1,213 @@
+<!-- Sidenav extra -->
+<div class="sidenav-extra">
+  <!-- File menu -->
+  <div id="file-sidenav" class="sidenav-hidden">
+    <h3>File</h3>
+    <div class="sidenav-extra-close">
+      <i class="fa fa-times extra-sidenav-toggle" aria-hidden="true" data-eid="file-sidenav"></i>
+    </div>
+    <ul>
+      <li id="open-file-button" class="available-li">
+        <div>Open File...</div>
+        <div>Open files from the local drive.</div>
+      </li>
+      <li id="new-file-button" class="available-li">
+        <div>New File</div>
+        <div>Create a new file session in the editor.</div>
+      </li>
+      <div id="hidden-new-file">
+        <input class="hidden" id="hidden-file-input" type="file" multiple />
+        <ul>
+          <li>Allowed characters: a-z, A-Z, 0-9, _, -</li>
+          <li>The file name must be unique.</li>
+          <li>The file name must be at lest 1 (one) character long.</li>
+        </ul>
+        <input type="text" id="new-file-name" class="form-control" autofocus />
+        <div id="hidden-new-file-info"></div>
+        <div id="hidden-new-file-buttons" class="sidenav-cancel-ok-buttons">
+          <div class="btn btn-danger" id="cancel-file-name"><i class="fa fa-ban" aria-hidden="true"></i> Cancel</div>
+          <div class="btn btn-success disabled" id="ok-file-name"><i class="fa fa-check" aria-hidden="true"></i> OK</div>
+        </div>
+      </div>
+      <li id="save-file-button" class="available-li disabled">
+        <div>Save</div>
+        <div>Save the currently opened session.</div>
+      </li>
+    </ul>
+  </div>
+  <!-- /File menu -->
+
+  <!-- Settings menu -->
+  <div id="settings-sidenav" class="sidenav-hidden">
+    <h3>Settings</h3>
+    <div class="sidenav-extra-close">
+      <i class="fa fa-times extra-sidenav-toggle" aria-hidden="true" data-eid="settings-sidenav"></i>
+    </div>
+
+    <div class="control-block" id="editor-control-block">
+      <h4>Editor</h4>
+      <div class="control-item">
+        <label for="theme">Theme</label>
+        <select id="theme" class="form-control input-sm">
+          <optgroup label="Bright">
+            <option value="ace/theme/chrome">Chrome</option>
+            <option value="ace/theme/clouds">Clouds</option>
+            <option value="ace/theme/crimson_editor">Crimson Editor</option>
+            <option value="ace/theme/dawn">Dawn</option>
+            <option value="ace/theme/dreamweaver">Dreamweaver</option>
+            <option value="ace/theme/eclipse">Eclipse</option>
+            <option value="ace/theme/github">GitHub</option>
+            <option value="ace/theme/iplastic">IPlastic</option>
+            <option value="ace/theme/solarized_light">Solarized Light</option>
+            <option value="ace/theme/textmate">TextMate</option>
+            <option value="ace/theme/tomorrow">Tomorrow</option>
+            <option value="ace/theme/xcode">XCode</option>
+            <option value="ace/theme/kuroir">Kuroir</option>
+            <option value="ace/theme/katzenmilch">KatzenMilch</option>
+            <option value="ace/theme/sqlserver">SQL Server</option>
+          </optgroup>
+          <optgroup label="Dark">
+            <option value="ace/theme/ambiance">Ambiance</option>
+            <option value="ace/theme/chaos">Chaos</option>
+            <option value="ace/theme/clouds_midnight">Clouds Midnight</option>
+            <option value="ace/theme/cobalt">Cobalt</option>
+            <option value="ace/theme/gruvbox">Gruvbox</option>
+            <option value="ace/theme/idle_fingers">idle Fingers</option>
+            <option value="ace/theme/kr_theme">krTheme</option>
+            <option value="ace/theme/merbivore">Merbivore</option>
+            <option value="ace/theme/merbivore_soft">Merbivore Soft</option>
+            <option value="ace/theme/mono_industrial">Mono Industrial</option>
+            <option value="ace/theme/monokai">Monokai</option>
+            <option value="ace/theme/pastel_on_dark">Pastel on dark</option>
+            <option value="ace/theme/solarized_dark">Solarized Dark</option>
+            <option value="ace/theme/terminal">Terminal</option>
+            <option value="ace/theme/tomorrow_night">Tomorrow Night</option>
+            <option value="ace/theme/tomorrow_night_blue">Tomorrow Night Blue</option>
+            <option value="ace/theme/tomorrow_night_bright">Tomorrow Night Bright</option>
+            <option value="ace/theme/tomorrow_night_eighties">Tomorrow Night 80s</option>
+            <option value="ace/theme/twilight">Twilight</option>
+            <option value="ace/theme/vibrant_ink">Vibrant Ink</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="control-item">
+        <label for="fontsize">Font Size</label>
+        <select id="fontsize" class="form-control input-sm">
+          <option value="10px">10px</option>
+          <option value="11px">11px</option>
+          <option value="12px" selected="selected">12px</option>
+          <option value="13px">13px</option>
+          <option value="14px">14px</option>
+          <option value="16px">16px</option>
+          <option value="18px">18px</option>
+          <option value="20px">20px</option>
+          <option value="24px">24px</option>
+        </select>
+      </div>
+      <div class="control-item">
+        <label for="folding">Code Folding</label>
+        <select id="folding" class="form-control input-sm">
+          <option value="manual">manual</option>
+          <option value="markbegin" selected="selected">mark begin</option>
+          <option value="markbeginend">mark begin and end</option>
+        </select>
+      </div>
+      <div class="control-item">
+        <label for="keybinding">Key Binding</label>
+        <select id="keybinding" class="form-control input-sm">
+          <option value="ace">Ace</option>
+          <option value="vim">Vim</option>
+          <option value="emacs">Emacs</option>
+        </select>
+      </div>
+      <div class="control-item">
+        <label for="soft_wrap">Soft Wrap</label>
+        <select id="soft_wrap" class="form-control input-sm">
+          <option value="off">Off</option>
+          <option value="40">40 Chars</option>
+          <option value="80">80 Chars</option>
+          <option value="free">Free</option>
+        </select>
+      </div>
+      <div class="control-item">
+        <input type="checkbox" name="select_style" id="select_style" checked>
+        <label for="select_style">Full Line Selection</label>
+      </div>
+      <div class="control-item">
+        <input type="checkbox" name="highlight_active" id="highlight_active" checked>
+        <label for="highlight_active">Highlight Active Line</label>
+      </div>
+      <div class="control-item">
+        <input type="checkbox" name="show_hidden" id="show_hidden">
+        <label for="show_hidden">Show Invisibles</label>
+      </div>
+      <div class="control-item">
+        <input type="checkbox" name="display_indent_guides" id="display_indent_guides" checked>
+        <label for="display_indent_guides">Show Indent Guides</label>
+      </div>
+      <div class="control-item">
+        <input type="checkbox" name="show_hscroll" id="show_hscroll">
+        <label for="show_hscroll">Persistent HScroll</label>
+        <input type="checkbox" name="show_vscroll" id="show_vscroll">
+        <label for="show_vscroll" id="vscroll-label">VScroll</label>
+      </div>
+      <div class="control-item">
+        <input type="checkbox" name="animate_scroll" id="animate_scroll">
+        <label for="animate_scroll">Animate scrolling</label>
+      </div>
+      <div class="control-item">
+        <input type="checkbox" id="show_gutter" checked>
+        <label for="show_gutter">Show Gutter</label>
+      </div>
+      <div class="control-item">
+        <input type="checkbox" id="show_print_margin" checked>
+        <label for="show_print_margin">Show Print Margin</label>
+      </div>
+      <div class="control-item">
+        <input type="checkbox" id="soft_tab" checked>
+        <label for="soft_tab">Use Soft Tab</label>
+      </div>
+      <div class="control-item">
+        <input type="checkbox" id="highlight_selected_word" checked>
+        <label for="highlight_selected_word">Highlight selected word</label>
+      </div>
+      <div class="control-item">
+        <input type="checkbox" id="enable_behaviours">
+        <label for="enable_behaviours">Enable Behaviours</label>
+      </div>
+      <div class="control-item">
+        <input type="checkbox" id="fade_fold_widgets">
+        <label for="fade_fold_widgets">Fade Fold Widgets</label>
+      </div>
+      <div class="control-item">
+        <input type="checkbox" id="scrollPastEnd" checked>
+        <label for="scrollPastEnd">Scroll Past End</label>
+      </div>
+    </div>
+
+    <div class="control-block">
+      <h4>Debugger</h4>
+      <div class="control-item">
+        <label for="backtrace-depth">Backtrace depth</label>
+        <input type="number" name="backtrace-depth" id="backtrace-depth" class="form-control input-sm" title="Maximum depth of backtrace. 0 by default." min="0" value="0">
+      </div>
+    </div>
+  </div>
+  <!-- /Settings menu -->
+
+  <!-- Download menu -->
+  <div id="download-sidenav" class="sidenav-hidden">
+    <h3>Download</h3>
+    <div class="sidenav-extra-close">
+      <i class="fa fa-times extra-sidenav-toggle" aria-hidden="true" data-eid="download-sidenav"></i>
+    </div>
+    <ul>
+      <li id="export-chart-button" class="available-li disabled">
+        <div>Memory usage</div>
+        <div>Export measured memory usage data to a .csv file.</div>
+      </li>
+    </ul>
+  </div>
+  <!-- /Download menu -->
+</div>
+<!-- /Sidenav extra -->
