@@ -320,7 +320,7 @@ function onmessage(event) {
 
       // Switch to the the right session.
       let sID = this._session.getFileIdByName(breakpoint.func.sourceName);
-      if (sID !== null && sID !== this._session.getActiveID()) {
+      if (sID !== undefined && sID !== this._session.getActiveID()) {
         this._session.removeBreakpointGutters(this._debuggerObj);
 
         // Change the session.
@@ -338,7 +338,7 @@ function onmessage(event) {
         }
       } else {
         // Hightlight the execute line in the correct session.
-        if (sID === this._session.getActiveID()) {
+        if (sID !== undefined && sID === this._session.getActiveID()) {
           this._session.highlightLine(this._session.HIGHLIGHT_TYPE.EXECUTE, breakpoint.line - 1);
           this._session.markBreakpointGutters(this._debuggerObj);
         }

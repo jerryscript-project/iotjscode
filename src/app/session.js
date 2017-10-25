@@ -821,7 +821,7 @@ export default class Session {
     }
 
     // Set the current tab active.
-    $(`#tab-${id}`)[0].className += ' active';
+    $(`#tab-${id}`).addClass('active');
   }
 
   /**
