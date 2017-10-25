@@ -24,7 +24,7 @@ import Session from './session';
 import Surface from './surface';
 import DebuggerClient from './client-protocol';
 import MemoryChart from './memory-chart';
-import Completer from './completer';
+import Completer, { IOTJS_FUNCTIONS } from './completer';
 
 import 'filesaver';
 import 'jqueryui';
@@ -116,9 +116,11 @@ export default function App() {
           return;
         }
 
-        var wordList = completer.getCompleterWordList(completer.iotjsFunctions,
+        var wordList = completer.getCompleterWordList(
+          IOTJS_FUNCTIONS,
           prefix,
-          completer.lookingForModules(env.editor.session.getValue()));
+          completer.lookingForModules(env.editor.session.getValue())
+        );
 
         callback(null, wordList.map(function(ea) {
           return {
