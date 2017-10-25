@@ -273,16 +273,16 @@ export default function App() {
     /**
      * Right arrow button in the source selecting panel.
      */
-    $("#run-right-button").on("click", function() {
-      if ($(this).hasClass("disabled")) {
+    $('#run-right-button').on('click', function() {
+      if ($(this).hasClass('disabled')) {
         return;
       }
 
-      $("#run-chooser-src .ui-selected").each(function() {
-        $(this).detach().appendTo("#run-chooser-dest").removeClass("ui-selected").addClass("sortable")
-          .children().removeClass("hidden");
+      $('#run-chooser-src .ui-selected').each(function() {
+        $(this).detach().appendTo('#run-chooser-dest').removeClass('ui-selected').addClass('sortable')
+          .children('div').removeClass('hidden');
 
-        var sid = parseInt($(this).data("sid"));
+        var sid = parseInt($(this).data('sid'));
 
         if (!session.getFileDataById(sid).scheduled) {
           session.addFileToUploadList(sid, $(this).index());
@@ -302,7 +302,7 @@ export default function App() {
 
       $("#run-chooser-dest .ui-selected").each(function() {
         $(this).detach().appendTo("#run-chooser-src").removeClass("sortable").removeClass("ui-selected")
-          .children().addClass("hidden");
+          .children('div').addClass("hidden");
 
         var sid = parseInt($(this).data("sid"));
 
