@@ -33,7 +33,7 @@
     "copy-webpack-plugin": "^4.1.0",
     "css-loader": "^0.28.7",
     "ejs-render-loader": "^1.0.0",
-    "eslint": "^4.8.0",
+    "eslint": "^4.9.0",
     "extract-text-webpack-plugin": "^3.0.0",
     "file-loader": "^0.11.2",
     "html-webpack-plugin": "^2.30.1",

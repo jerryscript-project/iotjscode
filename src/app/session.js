@@ -1,4 +1,5 @@
-/* Copyright 2017 Samsung Electronics Co., Ltd. and other contributors
+/*
+ * Copyright 2017 Samsung Electronics Co., Ltd. and other contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -438,9 +439,9 @@ export default class Session {
    * @param {object} debuggerObj DebuggerClient module instance.
    */
   updateWatchExpressions(debuggerObj) {
-    if (debuggerObj
-        && debuggerObj.getEngineMode() === debuggerObj.ENGINE_MODE.BREAKPOINT
-        && !$.isEmptyObject(this._watch.list)) {
+    if (debuggerObj &&
+        debuggerObj.getEngineMode() === debuggerObj.ENGINE_MODE.BREAKPOINT &&
+        !$.isEmptyObject(this._watch.list)) {
       this._watch.work.update = true;
 
       let expr = Object.keys(this._watch.list)[this._watch.work.counter];
@@ -538,10 +539,9 @@ export default class Session {
     // Change the currently e-session through the editor's API.
     this._editor.setSession(this.getFileSessionById(id));
 
-    // Refresh the available breakpoint lines in the editor
-    // based on the new file/e-session.
-    if (this._breakpoint.last !== null
-        && this._breakpoint.last.func.sourceName.endsWith(this.getFileNameById(id))) {
+    // Refresh the available breakpoint lines in the editor based on the new file/e-session.
+    if (this._breakpoint.last !== null &&
+        this._breakpoint.last.func.sourceName.endsWith(this.getFileNameById(id))) {
       this.highlightLine(this.HIGHLIGHT_TYPE.EXECUTE, this._breakpoint.last.line - 1);
     }
 
@@ -833,8 +833,7 @@ export default class Session {
     // Remove the sesison tab from the session bar.
     $(`#tab-${id}`).remove();
 
-    // If the selected session is the current file
-    // let's switch to an other existing file.
+    // If the selected session is the current file let's switch to an other existing file.
     if (id === this._id.active) {
       let nID = this.getFileNeighbourById(id);
 
