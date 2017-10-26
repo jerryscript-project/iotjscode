@@ -22,7 +22,7 @@ import './app.scss';
 import Logger from './logger';
 import Session from './session';
 import Surface from './surface';
-import DebuggerClient from './client-protocol';
+import DebuggerClient, { PROTOCOL, ENGINE_MODE } from './client-debugger';
 import MemoryChart from './memory-chart';
 import Completer, { IOTJS_FUNCTIONS } from './completer';
 
@@ -161,7 +161,7 @@ export default function App() {
 
       if (surface.getPanelProperty("chart.active") &&
         debuggerObj &&
-        debuggerObj.getEngineMode() != debuggerObj.ENGINE_MODE.DISCONNECTED) {
+        debuggerObj.getEngineMode() != ENGINE_MODE.DISCONNECTED) {
         surface.toggleButton(true, "chart-record-button");
       }
 
@@ -194,7 +194,7 @@ export default function App() {
         return;
       }
 
-      if (debuggerObj && debuggerObj.getEngineMode() == debuggerObj.ENGINE_MODE.BREAKPOINT) {
+      if (debuggerObj && debuggerObj.getEngineMode() == ENGINE_MODE.BREAKPOINT) {
         session.updateWatchExpressions(debuggerObj);
       }
     });
@@ -639,7 +639,7 @@ export default function App() {
         return true;
       }
 
-      if (debuggerObj && debuggerObj.getEngineMode() != debuggerObj.ENGINE_MODE.DISCONNECTED) {
+      if (debuggerObj && debuggerObj.getEngineMode() != ENGINE_MODE.DISCONNECTED) {
         logger.info("Debugger is connected.");
         return true;
       }
@@ -671,13 +671,13 @@ export default function App() {
      */
     env.editor.on("change", function(e) {
       $("#tab-" + session.getActiveID()).addClass("unsaved");
-      if (debuggerObj && debuggerObj.getEngineMode() != debuggerObj.ENGINE_MODE.DISCONNECTED) {
+      if (debuggerObj && debuggerObj.getEngineMode() != ENGINE_MODE.DISCONNECTED) {
         session.markBreakpointGutters(debuggerObj);
       }
     });
 
     env.editor.on("changeSession", function(e) {
-      if (debuggerObj && debuggerObj.getEngineMode() != debuggerObj.ENGINE_MODE.DISCONNECTED) {
+      if (debuggerObj && debuggerObj.getEngineMode() != ENGINE_MODE.DISCONNECTED) {
         session.markBreakpointGutters(debuggerObj);
       }
     });
@@ -686,7 +686,7 @@ export default function App() {
      * Debugger action button events.
      */
     $("#delete-all-button").on("click", function() {
-      if (debuggerObj && debuggerObj.getEngineMode() != debuggerObj.ENGINE_MODE.DISCONNECTED) {
+      if (debuggerObj && debuggerObj.getEngineMode() != ENGINE_MODE.DISCONNECTED) {
         var found = false;
 
         for (var i in debuggerObj.getActiveBreakpoints()) {
@@ -706,8 +706,9 @@ export default function App() {
         return true;
       }
 
-      if (debuggerObj.getEngineMode() == debuggerObj.ENGINE_MODE.BREAKPOINT) {
-        surface.continueCommand(debuggerObj);
+      if (debuggerObj.getEngineMode() == ENGINE_MODE.BREAKPOINT) {
+        surface.continueCommand();
+        debuggerObj.sendResumeExec(PROTOCOL.CLIENT.JERRY_DEBUGGER_CONTINUE);
       } else {
         surface.stopCommand();
 
@@ -715,7 +716,7 @@ export default function App() {
           chart.deleteTimeoutLoop();
         }
 
-        debuggerObj.encodeMessage("B", [debuggerObj.CLIENT_PACKAGE.JERRY_DEBUGGER_STOP]);
+        debuggerObj.encodeMessage("B", [PROTOCOL.CLIENT.JERRY_DEBUGGER_STOP]);
       }
     });
 
@@ -724,12 +725,12 @@ export default function App() {
         return true;
       }
 
-      if (debuggerObj.getEngineMode() != debuggerObj.ENGINE_MODE.BREAKPOINT) {
+      if (debuggerObj.getEngineMode() != ENGINE_MODE.BREAKPOINT) {
         logger.error("This action only available in breakpoint mode.", true);
         return true;
       }
 
-      debuggerObj.encodeMessage("B", [debuggerObj.CLIENT_PACKAGE.JERRY_DEBUGGER_STEP]);
+      debuggerObj.encodeMessage("B", [PROTOCOL.CLIENT.JERRY_DEBUGGER_STEP]);
     });
 
     $("#next-button").on("click", function() {
@@ -737,12 +738,12 @@ export default function App() {
         return true;
       }
 
-      if (debuggerObj.getEngineMode() != debuggerObj.ENGINE_MODE.BREAKPOINT) {
+      if (debuggerObj.getEngineMode() != ENGINE_MODE.BREAKPOINT) {
         logger.error("This action only available in breakpoint mode.", true);
         return true;
       }
 
-      debuggerObj.encodeMessage("B", [debuggerObj.CLIENT_PACKAGE.JERRY_DEBUGGER_NEXT]);
+      debuggerObj.encodeMessage("B", [PROTOCOL.CLIENT.JERRY_DEBUGGER_NEXT]);
     });
 
     /**
@@ -753,7 +754,10 @@ export default function App() {
         return true;
       }
 
-      chart.startChartWithButton(debuggerObj);
+      chart.startChartWithButton();
+      if (debuggerObj) {
+        debuggerObj.encodeMessage('B', [PROTOCOL.CLIENT.JERRY_DEBUGGER_MEMSTATS]);
+      }
     });
 
     $("#chart-stop-button").on("click", function() {
@@ -788,7 +792,7 @@ export default function App() {
      * Editor mouse click, breakpoint add/delete.
      */
     env.editor.on("guttermousedown", function(e) {
-      if (debuggerObj && debuggerObj.getEngineMode() != debuggerObj.ENGINE_MODE.DISCONNECTED) {
+      if (debuggerObj && debuggerObj.getEngineMode() != ENGINE_MODE.DISCONNECTED) {
         var target = e.domEvent.target;
         if (target.className.indexOf("ace_gutter-cell") == -1) {
           return;
@@ -979,7 +983,7 @@ export default function App() {
     }
 
     if (args[1] == "connect") {
-      if (debuggerObj && debuggerObj.getEngineMode() != debuggerObj.ENGINE_MODE.DISCONNECTED) {
+      if (debuggerObj && debuggerObj.getEngineMode() != ENGINE_MODE.DISCONNECTED) {
         logger.info("Debugger is connected");
         return true;
       }
@@ -1010,7 +1014,7 @@ export default function App() {
       return true;
     }
 
-    if (!debuggerObj || debuggerObj.getEngineMode() == debuggerObj.ENGINE_MODE.DISCONNECTED) {
+    if (!debuggerObj || debuggerObj.getEngineMode() == ENGINE_MODE.DISCONNECTED) {
       logger.error("Debugger is NOT connected.");
       commandInput.val("");
       return true;

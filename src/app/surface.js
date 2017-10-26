@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { ENGINE_MODE } from './client-debugger';
 import Util from './util';
 
 export default class Surface {
@@ -461,7 +462,7 @@ export default class Surface {
 
         // Enable the run button if there is a connection and a source in the list.
         if (debuggerObj &&
-            debuggerObj.getEngineMode() === debuggerObj.ENGINE_MODE.CLIENT_SOURCE &&
+            debuggerObj.getEngineMode() === ENGINE_MODE.CLIENT_SOURCE &&
             session.isUploadAndRunAllowed() &&
             !session.isUploadStarted() &&
             !$dest.is(':empty')) {
@@ -538,7 +539,7 @@ export default class Surface {
    */
   updateWatchPanelButtons(debuggerObj) {
     if (debuggerObj &&
-        debuggerObj.getEngineMode() === debuggerObj.ENGINE_MODE.BREAKPOINT &&
+        debuggerObj.getEngineMode() === ENGINE_MODE.BREAKPOINT &&
         !$('#watch-list').is(':empty')) {
       this.toggleButton(true, 'watch-refresh-button');
     } else {
@@ -578,16 +579,12 @@ export default class Surface {
   }
 
   /**
-   * Continue execution dependency.
-   *
-   * @param {object} debuggerObj The Jerry client object.
+   * Continue execution releated buttons changes.
    */
-  continueCommand(debuggerObj) {
+  continueCommand() {
     this.continueStopButtonState(this.CSICON.STOP);
     $('#step-button').addClass('disabled');
     $('#next-button').addClass('disabled');
-
-    debuggerObj.sendResumeExec(debuggerObj.CLIENT_PACKAGE.JERRY_DEBUGGER_CONTINUE);
   }
 
   /**
@@ -734,26 +731,6 @@ export default class Surface {
    */
   getPanelsDivisor() {
     return this.getPanelsNumber() - this._panel.numberOfInactive;
-  }
-
-  /**
-   * Gets the backtrace depth options from the settings page and send that to the debugger.
-   *
-   * @param {object} debuggerObj The Jerry client object.
-   */
-  getBacktrace(debuggerObj) {
-    let max_depth = 0;
-    let user_depth = $('#backtrace-depth').val();
-
-    if (user_depth !== 0) {
-      if (/[1-9][0-9]*/.test(user_depth)) {
-        max_depth = parseInt(user_depth);
-      }
-    }
-
-    if (debuggerObj.getEngineMode() === debuggerObj.ENGINE_MODE.BREAKPOINT) {
-      debuggerObj.encodeMessage('BI', [debuggerObj.CLIENT_PACKAGE.JERRY_DEBUGGER_GET_BACKTRACE, max_depth]);
-    }
   }
 
   /**

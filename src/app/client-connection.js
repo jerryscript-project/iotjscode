@@ -15,6 +15,7 @@
  */
 
 import ParseSource from './client-parsesource';
+import { PROTOCOL, ENGINE_MODE } from './client-debugger';
 import Util from './util';
 import Logger from './logger';
 
@@ -85,10 +86,10 @@ export default class Connection {
   send(message) {
     this._socket.send(message);
 
-    if (message[0] === this._debuggerObj.CLIENT_PACKAGE.JERRY_DEBUGGER_CONTINUE ||
-        message[0] === this._debuggerObj.CLIENT_PACKAGE.JERRY_DEBUGGER_STEP ||
-        message[0] === this._debuggerObj.CLIENT_PACKAGE.JERRY_DEBUGGER_NEXT) {
-      this._debuggerObj.setEngineMode(this._debuggerObj.ENGINE_MODE.RUN);
+    if (message[0] === PROTOCOL.CLIENT.JERRY_DEBUGGER_CONTINUE ||
+        message[0] === PROTOCOL.CLIENT.JERRY_DEBUGGER_STEP ||
+        message[0] === PROTOCOL.CLIENT.JERRY_DEBUGGER_NEXT) {
+      this._debuggerObj.setEngineMode(ENGINE_MODE.RUN);
     }
   }
 }
@@ -100,7 +101,7 @@ export default class Connection {
 function onopen() {
   this._logger.info('Connection created.');
 
-  this._debuggerObj.setEngineMode(this._debuggerObj.ENGINE_MODE.RUN);
+  this._debuggerObj.setEngineMode(ENGINE_MODE.RUN);
 
   if (this._surface.getPanelProperty('chart.active')) {
     this._surface.toggleButton(true, 'chart-record-button');
@@ -129,7 +130,7 @@ function onerror() {
     this._logger.info('Connection closed.');
   }
 
-  this._debuggerObj.setEngineMode(this._debuggerObj.ENGINE_MODE.DISCONNECTED);
+  this._debuggerObj.setEngineMode(ENGINE_MODE.DISCONNECTED);
 
   if (this._surface.getPanelProperty('chart.active')) {
     this._chart.disableChartButtons();
@@ -177,7 +178,7 @@ function onmessage(event) {
   }
 
   if (this._debuggerObj.getCPointerSize() === 0) {
-    if (message[0] !== this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_CONFIGURATION ||
+    if (message[0] !== PROTOCOL.SERVER.JERRY_DEBUGGER_CONFIGURATION ||
         message.byteLength !== 4) {
       this._socket.abortConnection('the first message must be configuration.');
     }
@@ -202,16 +203,16 @@ function onmessage(event) {
   }
 
   switch (message[0]) {
-    case this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_PARSE_ERROR:
-    case this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_BYTE_CODE_CP:
-    case this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_PARSE_FUNCTION:
-    case this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_BREAKPOINT_LIST:
-    case this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_SOURCE_CODE:
-    case this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_SOURCE_CODE_END:
-    case this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_SOURCE_CODE_NAME:
-    case this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_SOURCE_CODE_NAME_END:
-    case this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_FUNCTION_NAME:
-    case this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_FUNCTION_NAME_END: {
+    case PROTOCOL.SERVER.JERRY_DEBUGGER_PARSE_ERROR:
+    case PROTOCOL.SERVER.JERRY_DEBUGGER_BYTE_CODE_CP:
+    case PROTOCOL.SERVER.JERRY_DEBUGGER_PARSE_FUNCTION:
+    case PROTOCOL.SERVER.JERRY_DEBUGGER_BREAKPOINT_LIST:
+    case PROTOCOL.SERVER.JERRY_DEBUGGER_SOURCE_CODE:
+    case PROTOCOL.SERVER.JERRY_DEBUGGER_SOURCE_CODE_END:
+    case PROTOCOL.SERVER.JERRY_DEBUGGER_SOURCE_CODE_NAME:
+    case PROTOCOL.SERVER.JERRY_DEBUGGER_SOURCE_CODE_NAME_END:
+    case PROTOCOL.SERVER.JERRY_DEBUGGER_FUNCTION_NAME:
+    case PROTOCOL.SERVER.JERRY_DEBUGGER_FUNCTION_NAME_END: {
       this._parseObj = new ParseSource(this._debuggerObj);
       this._parseObj.receive(message);
       if (!this._parseObj.isAlive()) {
@@ -220,12 +221,12 @@ function onmessage(event) {
       return;
     }
 
-    case this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_RELEASE_BYTE_CODE_CP: {
+    case PROTOCOL.SERVER.JERRY_DEBUGGER_RELEASE_BYTE_CODE_CP: {
       this._debuggerObj.releaseFunction(message);
       return;
     }
 
-    case this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_MEMSTATS_RECEIVE: {
+    case PROTOCOL.SERVER.JERRY_DEBUGGER_MEMSTATS_RECEIVE: {
       let messagedata = this._debuggerObj.decodeMessage('IIIII', message, 1);
 
       if (this._chart.isRecordStarted()) {
@@ -241,17 +242,13 @@ function onmessage(event) {
       if (this._session.getBreakpointInfoToChart() && this._chart.isChartActive()) {
         let breakpointLineToChart = 'ln: ' + this._session.getBreakpointInfoToChart().split(':')[1].split(' ')[0];
 
-        if (this._debuggerObj.getEngineMode() === this._debuggerObj.ENGINE_MODE.BREAKPOINT) {
+        if (this._debuggerObj.getEngineMode() === ENGINE_MODE.BREAKPOINT) {
           this._chart.addNewDataPoints(
             messagedata,
             '#' +
             this._session.getBreakpointInfoToChart().split(':')[1].split(' ')[0] + ': ' +
             new Date().toISOString().slice(14, 21)
           );
-
-          this._chart.createTimeoutLoop(() => {
-            this._debuggerObj.sendResumeExec(this._debuggerObj.CLIENT_PACKAGE.JERRY_DEBUGGER_NEXT);
-          });
         } else {
           this._chart.addNewDataPoints(messagedata, breakpointLineToChart);
         }
@@ -260,9 +257,9 @@ function onmessage(event) {
       return;
     }
 
-    case this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_BREAKPOINT_HIT:
-    case this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_EXCEPTION_HIT: {
-      this._debuggerObj.setEngineMode(this._debuggerObj.ENGINE_MODE.BREAKPOINT);
+    case PROTOCOL.SERVER.JERRY_DEBUGGER_BREAKPOINT_HIT:
+    case PROTOCOL.SERVER.JERRY_DEBUGGER_EXCEPTION_HIT: {
+      this._debuggerObj.setEngineMode(ENGINE_MODE.BREAKPOINT);
 
       let breakpointData = this._debuggerObj.decodeMessage('CI', message, 1);
       let breakpointRef = this._debuggerObj.getBreakpoint(breakpointData);
@@ -328,7 +325,7 @@ function onmessage(event) {
       }
 
       // After we switched to the decent file/sesison show the exception hint (if exists).
-      if (message[0] === this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_EXCEPTION_HIT) {
+      if (message[0] === PROTOCOL.SERVER.JERRY_DEBUGGER_EXCEPTION_HIT) {
         this._session.highlightLine(this._session.HIGHLIGHT_TYPE.EXCEPTION, breakpoint.line - 1);
         this._logger.error('Exception throw detected!');
 
@@ -346,7 +343,7 @@ function onmessage(event) {
 
       // Show the backtrace on the panel.
       if (this._surface.getPanelProperty('backtrace.active')) {
-        this._surface.getBacktrace(this._debuggerObj);
+        this._debuggerObj.getBacktrace(this._debuggerObj);
       }
 
       // Updates the watched expression list if the watch panel activated.
@@ -364,21 +361,21 @@ function onmessage(event) {
           }
         }
 
-        this._debuggerObj.encodeMessage('B', [this._debuggerObj.CLIENT_PACKAGE.JERRY_DEBUGGER_MEMSTATS]);
+        this._debuggerObj.encodeMessage('B', [PROTOCOL.CLIENT.JERRY_DEBUGGER_MEMSTATS]);
         this._session.setBreakpointInfoToChart(this._debuggerObj.breakpointToString(breakpoint));
       }
 
       return;
     }
 
-    case this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_EXCEPTION_STR:
-    case this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_EXCEPTION_STR_END: {
+    case PROTOCOL.SERVER.JERRY_DEBUGGER_EXCEPTION_STR:
+    case PROTOCOL.SERVER.JERRY_DEBUGGER_EXCEPTION_STR_END: {
       this._exceptionData = this._debuggerObj.concatUint8Arrays(this._exceptionData, message);
       return;
     }
 
-    case this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_BACKTRACE:
-    case this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_BACKTRACE_END: {
+    case PROTOCOL.SERVER.JERRY_DEBUGGER_BACKTRACE:
+    case PROTOCOL.SERVER.JERRY_DEBUGGER_BACKTRACE_END: {
       Util.clearElement($('#backtrace-table-body'));
 
       for (let i = 1; i < message.byteLength; i += this._debuggerObj.getCPointerSize() + 4) {
@@ -392,22 +389,22 @@ function onmessage(event) {
         this._debuggerObj.setBacktraceFrame(this._debuggerObj.getBacktraceFrame() + 1);
       }
 
-      if (message[0] === this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_BACKTRACE_END) {
+      if (message[0] === PROTOCOL.SERVER.JERRY_DEBUGGER_BACKTRACE_END) {
         this._debuggerObj.setBacktraceFrame(0);
       }
 
       return;
     }
 
-    case this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_EVAL_RESULT:
-    case this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_EVAL_RESULT_END: {
+    case PROTOCOL.SERVER.JERRY_DEBUGGER_EVAL_RESULT:
+    case PROTOCOL.SERVER.JERRY_DEBUGGER_EVAL_RESULT_END: {
       this._evalResult = this._debuggerObj.concatUint8Arrays(this._evalResult, message);
 
       let subType = this._evalResult[this._evalResult.length - 1];
 
       this._evalResult = this._evalResult.slice(0, -1);
 
-      if (subType === this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_EVAL_OK) {
+      if (subType === PROTOCOL.SERVER.JERRY_DEBUGGER_EVAL_OK) {
         if (this._surface.getPanelProperty('watch.active') && this._session.isWatchInProgress()) {
           this._session.stopWatchProgress();
           this._session.addWatchExpressionValue(
@@ -424,7 +421,7 @@ function onmessage(event) {
         return;
       }
 
-      if (subType === this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_EVAL_ERROR) {
+      if (subType === PROTOCOL.SERVER.JERRY_DEBUGGER_EVAL_ERROR) {
         if (this._surface.getPanelProperty('watch.active') && this._session.isWatchInProgress()) {
           this._session.stopWatchProgress();
           this._session.addWatchExpressionValue(
@@ -444,23 +441,23 @@ function onmessage(event) {
       return;
     }
 
-    case this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_OUTPUT_RESULT:
-    case this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_OUTPUT_RESULT_END: {
+    case PROTOCOL.SERVER.JERRY_DEBUGGER_OUTPUT_RESULT:
+    case PROTOCOL.SERVER.JERRY_DEBUGGER_OUTPUT_RESULT_END: {
       this._outputResult = this._debuggerObj.concatUint8Arrays(this._outputResult, message);
 
-      if (message[0] === this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_OUTPUT_RESULT_END) {
+      if (message[0] === PROTOCOL.SERVER.JERRY_DEBUGGER_OUTPUT_RESULT_END) {
         let subType = this._outputResult[this._outputResult.length - 1];
 
         this._outputResult = this._outputResult.slice(0, -1);
 
         switch (subType) {
-          case this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_OUTPUT_OK:
+          case PROTOCOL.SERVER.JERRY_DEBUGGER_OUTPUT_OK:
             this._output.info(this._debuggerObj.cesu8ToString(this._outputResult));
             break;
-          case this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_OUTPUT_WARNING:
+          case PROTOCOL.SERVER.JERRY_DEBUGGER_OUTPUT_WARNING:
             this._output.warning(this._debuggerObj.cesu8ToString(this._outputResult));
             break;
-          case this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_OUTPUT_ERROR:
+          case PROTOCOL.SERVER.JERRY_DEBUGGER_OUTPUT_ERROR:
             this._output.error(this._debuggerObj.cesu8ToString(this._outputResult));
             break;
         }
@@ -471,8 +468,8 @@ function onmessage(event) {
       return;
     }
 
-    case this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_WAIT_FOR_SOURCE: {
-      this._debuggerObj.setEngineMode(this._debuggerObj.ENGINE_MODE.CLIENT_SOURCE);
+    case PROTOCOL.SERVER.JERRY_DEBUGGER_WAIT_FOR_SOURCE: {
+      this._debuggerObj.setEngineMode(ENGINE_MODE.CLIENT_SOURCE);
 
       this._surface.disableActionButtons(true);
       this._session.allowUploadAndRun(true);

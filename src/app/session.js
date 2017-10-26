@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { ENGINE_MODE } from './client-debugger';
 import Util from './util';
 
 export default class Session {
@@ -391,7 +392,7 @@ export default class Session {
   addWatchExpression(debuggerObj, expr) {
     this._watch.list[expr] = '< not available >';
 
-    if (debuggerObj && debuggerObj.getEngineMode() === debuggerObj.ENGINE_MODE.BREAKPOINT) {
+    if (debuggerObj && debuggerObj.getEngineMode() === ENGINE_MODE.BREAKPOINT) {
       this._watch.work.inProgress = true;
       this._watch.work.currentExpr = expr;
       debuggerObj.sendEval(expr);
@@ -440,7 +441,7 @@ export default class Session {
    */
   updateWatchExpressions(debuggerObj) {
     if (debuggerObj &&
-        debuggerObj.getEngineMode() === debuggerObj.ENGINE_MODE.BREAKPOINT &&
+        debuggerObj.getEngineMode() === ENGINE_MODE.BREAKPOINT &&
         !$.isEmptyObject(this._watch.list)) {
       this._watch.work.update = true;
 
@@ -671,7 +672,7 @@ export default class Session {
    * @param {object} debuggerObj Jerry client object.
    */
   markBreakpointGutters(debuggerObj) {
-    if (debuggerObj && debuggerObj.getEngineMode() !== debuggerObj.ENGINE_MODE.DISCONNECTED) {
+    if (debuggerObj && debuggerObj.getEngineMode() !== ENGINE_MODE.DISCONNECTED) {
       let lines = this.getLinesFromRawData(debuggerObj.getBreakpointLines());
 
       if (lines.length !== 0) {
@@ -760,7 +761,7 @@ export default class Session {
     this.setLastBreakpoint(null);
 
     for (let i in this._breakpoint.IDs) {
-      if (this._breakpoint.IDs.hasownProperty(i)) {
+      if (this._breakpoint.IDs.hasOwnProperty(i)) {
         this._editor.session.clearBreakpoint(i);
       }
     }

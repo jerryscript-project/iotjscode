@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import { PROTOCOL } from './client-debugger';
+
 export default class ParseSource {
 
   /**
@@ -68,39 +70,39 @@ export default class ParseSource {
    */
   receive(message) {
     switch (message[0]) {
-      case this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_PARSE_ERROR: {
+      case PROTOCOL.SERVER.JERRY_DEBUGGER_PARSE_ERROR: {
         /* Parse error occured in JerryScript. */
         this._alive = false;
         return;
       }
 
-      case this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_SOURCE_CODE:
-      case this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_SOURCE_CODE_END: {
+      case PROTOCOL.SERVER.JERRY_DEBUGGER_SOURCE_CODE:
+      case PROTOCOL.SERVER.JERRY_DEBUGGER_SOURCE_CODE_END: {
         this._sourceData = this._debuggerObj.concatUint8Arrays(this._sourceData, message);
 
-        if (message[0] === this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_SOURCE_CODE_END) {
+        if (message[0] === PROTOCOL.SERVER.JERRY_DEBUGGER_SOURCE_CODE_END) {
           this._source = this._debuggerObj.cesu8ToString(this._sourceData);
         }
         return;
       }
 
-      case this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_SOURCE_CODE_NAME:
-      case this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_SOURCE_CODE_NAME_END: {
+      case PROTOCOL.SERVER.JERRY_DEBUGGER_SOURCE_CODE_NAME:
+      case PROTOCOL.SERVER.JERRY_DEBUGGER_SOURCE_CODE_NAME_END: {
         this._sourceNameData = this._debuggerObj.concatUint8Arrays(this._sourceNameData, message);
 
-        if (message[0] === this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_SOURCE_CODE_NAME_END) {
+        if (message[0] === PROTOCOL.SERVER.JERRY_DEBUGGER_SOURCE_CODE_NAME_END) {
           this._sourceName = this._debuggerObj.cesu8ToString(this._sourceNameData);
         }
         return;
       }
 
-      case this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_FUNCTION_NAME:
-      case this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_FUNCTION_NAME_END: {
+      case PROTOCOL.SERVER.JERRY_DEBUGGER_FUNCTION_NAME:
+      case PROTOCOL.SERVER.JERRY_DEBUGGER_FUNCTION_NAME_END: {
         this._functionName = this._debuggerObj.concatUint8Arrays(this._functionName, message);
         return;
       }
 
-      case this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_PARSE_FUNCTION: {
+      case PROTOCOL.SERVER.JERRY_DEBUGGER_PARSE_FUNCTION: {
         let position = this._debuggerObj.decodeMessage('II', message, 1);
 
         this._stack.push({
@@ -117,15 +119,15 @@ export default class ParseSource {
         return;
       }
 
-      case this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_BREAKPOINT_LIST:
-      case this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_BREAKPOINT_OFFSET_LIST: {
+      case PROTOCOL.SERVER.JERRY_DEBUGGER_BREAKPOINT_LIST:
+      case PROTOCOL.SERVER.JERRY_DEBUGGER_BREAKPOINT_OFFSET_LIST: {
         let array;
 
         if (message.byteLength < 1 + 4) {
           this._debuggerObj.abortConnection('message too short.');
         }
 
-        if (message[0] === this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_BREAKPOINT_LIST) {
+        if (message[0] === PROTOCOL.SERVER.JERRY_DEBUGGER_BREAKPOINT_LIST) {
           array = this._stack[this._stack.length - 1].lines;
         } else {
           array = this._stack[this._stack.length - 1].offsets;
@@ -137,7 +139,7 @@ export default class ParseSource {
         return;
       }
 
-      case this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_BYTE_CODE_CP: {
+      case PROTOCOL.SERVER.JERRY_DEBUGGER_BYTE_CODE_CP: {
         let func = this._stack.pop();
         func.byte_code_cp = this._debuggerObj.decodeMessage('C', message, 1)[0];
 
@@ -168,7 +170,7 @@ export default class ParseSource {
         break;
       }
 
-      case this._debuggerObj.SERVER_PACKAGE.JERRY_DEBUGGER_RELEASE_BYTE_CODE_CP: {
+      case PROTOCOL.SERVER.JERRY_DEBUGGER_RELEASE_BYTE_CODE_CP: {
         let byte_code_cp = this._debuggerObj.decodeMessage('C', message, 1)[0];
 
         if (byte_code_cp in this._newFunctions) {

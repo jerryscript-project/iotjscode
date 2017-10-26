@@ -231,20 +231,14 @@ export default class MemoryChart {
 
   /**
    * Starts the chart work and sets the actions buttons to work state.
-   *
-   * @param {object} debuggerObj The DebuggerClient object to send the memstats package.
    */
-  startChartWithButton(debuggerObj) {
+  startChartWithButton() {
     this._startRecord = true;
     this._activeChart = true;
 
     this._surface.toggleButton(false, 'chart-reset-button');
     this._surface.toggleButton(true, 'chart-stop-button');
     this._surface.toggleButton(false, 'chart-record-button');
-
-    if (debuggerObj) {
-      debuggerObj.encodeMessage('B', [debuggerObj.CLIENT_PACKAGE.JERRY_DEBUGGER_MEMSTATS]);
-    }
   }
 
   /**
