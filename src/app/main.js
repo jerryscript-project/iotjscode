@@ -339,7 +339,7 @@ export default function App() {
         $('#tab-' + session.getActiveID()).removeClass('unsaved');
         surface.toggleSidenavExtra('file-sidenav');
       });
-    });
+    })();
 
 
     /**
