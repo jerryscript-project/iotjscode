@@ -1,4 +1,5 @@
-/* Copyright 2017 Samsung Electronics Co., Ltd. and other contributors
+/*
+ * Copyright 2017 Samsung Electronics Co., Ltd. and other contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +27,7 @@ import DebuggerClient, { PROTOCOL, ENGINE_MODE } from './client-debugger';
 import MemoryChart from './memory-chart';
 import Completer, { IOTJS_FUNCTIONS } from './completer';
 
-import 'filesaver';
+import FileSaver from 'file-saver';
 import 'jqueryui';
 import 'thead';
 import 'bootstrap';
@@ -39,98 +40,115 @@ export default function App() {
   /**
    * Object for the DebuggerClient.
    */
-  var debuggerObj = null;
+  let debuggerObj = null;
 
   /**
    * Core enviroment variables.
    */
-  var env = {
-    editor: ace.edit("editor"),
-    basePath: "ace",
+  let env = {
+    editor: window.ace.edit('editor'),
+    basePath: 'ace',
     langTools: null,
     config: null,
     iotjsCompleter: null,
     EditSession: null,
-    Document: null
+    Document: null,
   };
 
   /**
    * Costum keybindings.
    */
-  var keybindings = {
+  let keybindings = {
     ace: null,
-    vim: "ace/keyboard/vim",
-    emacs: "ace/keyboard/emacs",
+    vim: 'ace/keyboard/vim',
+    emacs: 'ace/keyboard/emacs',
     custom: null, // Create own bindings here.
   };
 
   /**
-   * Keycodes
+   * Keycodes.
    */
-  var keys = {
+  let keys = {
+    backspace: 8,
+    tab: 9,
+    enter: 13,
+    esc: 27,
+    end: 35,
+    leftArrow: 37,
     upArrow: 38,
-    downArrow: 40
+    rightArrow: 39,
+    downArrow: 40,
+    delete: 46,
+    zero: 48,
+    nine: 57,
+    a: 65,
+    c: 67,
+    x: 88,
+    numZero: 96,
+    numNine: 105,
+    decPoint: 110,
   };
 
   /**
    * Modul objects.
    */
-  var logger = new Logger($("#console-panel"));
-  var surface = new Surface();
-  var session = new Session(env, surface);
-  var chart = new MemoryChart(session, surface);
-  var completer = new Completer();
+  let logger = new Logger($('#console-panel'));
+  let surface = new Surface();
+  let session = new Session(env, surface);
+  let chart = new MemoryChart(session, surface);
+  let completer = new Completer();
+
 
   /**
    * Document ready.
    */
-  $(document).ready(function() {
+  $(() => {
     // Init the ACE editor.
-    env.langTools = ace.require("ace/ext/language_tools");
-    env.config = ace.require("ace/config");
-    env.config.set("packaged", true);
-    env.config.set("basePath", env.basePath);
-    env.config.set("workerPath", env.basePath);
-    env.config.set("modePath", env.basePath);
-    env.config.set("themePath", env.basePath);
+    env.langTools = window.ace.require('ace/ext/language_tools');
+    env.config = window.ace.require('ace/config');
+    env.config.set('packaged', true);
+    env.config.set('basePath', env.basePath);
+    env.config.set('workerPath', env.basePath);
+    env.config.set('modePath', env.basePath);
+    env.config.set('themePath', env.basePath);
 
     env.editor.resize();
-    env.editor.setTheme("ace/theme/chrome");
-    env.EditSession = ace.require("ace/edit_session").EditSession;
-    env.Document = ace.require("ace/document").Document;
-    env.editor.session.setMode("ace/mode/javascript");
+    env.editor.setTheme('ace/theme/chrome');
+    env.EditSession = window.ace.require('ace/edit_session').EditSession;
+    env.Document = window.ace.require('ace/document').Document;
+    env.editor.session.setMode('ace/mode/javascript');
     env.editor.setShowInvisibles(false);
 
     // Enable the autocomplete and snippets.
     env.editor.setOptions({
       enableBasicAutocompletion: true,
       enableSnippets: true,
-      enableLiveAutocompletion: true
+      enableLiveAutocompletion: true,
     });
 
     // Add the IoT.js completer to the editor language tools.
     env.langTools.addCompleter({
-      getCompletions: function(editor, session, pos, prefix, callback) {
+      getCompletions: (editor, session, pos, prefix, callback) => {
         if (prefix.length === 0) {
           callback(null, []);
           return;
         }
 
-        var wordList = completer.getCompleterWordList(
+        let wordList = completer.getCompleterWordList(
           IOTJS_FUNCTIONS,
           prefix,
           completer.lookingForModules(env.editor.session.getValue())
         );
 
-        callback(null, wordList.map(function(ea) {
+        callback(null, wordList.map((ea) => {
           return {
             name: ea.word,
             value: ea.word,
             score: ea.score,
-            meta: "IoT.js " + ea.meta
-          }
+            meta: 'IoT.js ' + ea.meta,
+          };
         }));
-      }
+      },
     });
 
     // Workaround for scrolling problem.
@@ -139,925 +157,983 @@ export default function App() {
     // Init the blocked welcome session.
     session.setWelcomeFile();
 
+
     /**
-     * Sidenav toggle button click.
+     * Sidenav events.
      */
-    $("#sidenav-toggle-button").on("click", function() {
-      surface.toggleSidenav(chart);
+    (() => {
+      /**
+       * Toggle button click.
+       */
+      $('#sidenav-toggle-button').on('click', () => {
+        surface.toggleSidenav(chart);
+      });
+
+      /**
+       * Extra panel toggles
+       */
+      $('.extra-sidenav-toggle').on('click', (e) => {
+        surface.toggleSidenavExtra($(e.currentTarget).data('eid'));
+      });
+
+      /**
+       * Panel swithcers.
+       */
+      $('.sidenav-panel-toggle').on('click', (e) => {
+        surface.togglePanel($(e.currentTarget).data('pid'), chart);
+
+        if (surface.getPanelProperty('chart.active') &&
+            debuggerObj &&
+            debuggerObj.getEngineMode() !== ENGINE_MODE.DISCONNECTED) {
+          surface.toggleButton(true, 'chart-record-button');
+        }
+
+        if (surface.getPanelProperty('run.active')) {
+          surface.updateRunPanel(surface.RUN_UPDATE_TYPE.ALL, debuggerObj, session);
+        }
+
+        if (surface.getPanelProperty('watch.active')) {
+          surface.updateWatchPanelButtons(debuggerObj);
+        }
+      });
+    })();
+
+
+    /**
+     * File menu events.
+     */
+    (() => {
+      /*
+       * File open button.
+       */
+      $('#open-file-button').on('click', () => {
+        // Check for the various File API support.
+        if (window.File && window.FileReader && window.FileList && window.Blob) {
+          // Great success! All the File APIs are supported. Open the file browser.
+          $('#hidden-file-input').trigger('click');
+        } else {
+          logger.error('The File APIs are not fully supported in this browser.', true);
+        }
+      });
+
+      /*
+       * Manage the file input change.
+       */
+      $('#hidden-file-input').change((evt) => {
+        // FileList object
+        let files = evt.target.files;
+
+        for (let f of files) {
+          if (session.fileNameCheck(f.name)) {
+            logger.error(f.name + ' is already loaded.', true);
+            continue;
+          }
+
+          ((file) => {
+            let reader = new FileReader();
+
+            reader.onload = (evt) => {
+              session.createNewFile(file.name, evt.target.result, 1, true);
+
+              if (surface.getPanelProperty('run.active')) {
+                surface.updateRunPanel(surface.RUN_UPDATE_TYPE.ALL, debuggerObj, session);
+              }
+            },
+
+            reader.onerror = (evt) => {
+              if (evt.target.name.error === 'NotReadableError') {
+                logger.error(file.name + ' file could not be read.', true);
+              }
+            },
+
+            reader.readAsText(file, 'utf-8');
+          })(f);
+        }
+
+        // Reset the file input field.
+        $(evt.target).val('');
+
+        // Close the extra sidenav windows after the open finished.
+        surface.toggleSidenavExtra('file-sidenav');
+      });
+
+      /**
+       * New file name field toggle event.
+       */
+      $('#new-file-button').on('click', () => {
+        surface.toggleSidenavNewFile();
+        $('#new-file-name').focus();
+      });
+
+      /**
+       * New file name on-the-fly validation.
+       */
+      $('#new-file-name').keyup((e) => {
+        let info = $('#hidden-new-file-info');
+        let filename = $('#new-file-name').val().trim();
+        let valid = true;
+        let regex = /^([a-zA-Z0-9_-]{1,}.*)$/;
+
+        info.empty();
+        if (!regex.test(filename)) {
+          info.append('<p>The filename must be at least 1 (one) character long.</p>');
+          valid = false;
+        }
+
+        if (session.isFileNameTaken(filename)) {
+          info.append('<p>This filename is already taken.</p>');
+          valid = false;
+        }
+
+        if (valid) {
+          surface.toggleButton(true, 'ok-file-name');
+          // If the key was the enter, trigger the ok button.
+          if (e.keyCode === keys.enter) {
+            $('#ok-file-name').click();
+          }
+        } else {
+          surface.toggleButton(false, 'ok-file-name');
+        }
+      });
+
+      /**
+       * New file name cancel button events.
+       */
+      $('#cancel-file-name').on('click', () => {
+        $('#new-file-name').val('');
+        $('#hidden-new-file-info').empty();
+        surface.toggleButton(false, 'ok-file-name');
+        surface.toggleSidenavNewFile();
+      });
+
+      /**
+       * New file name ok button events.
+       */
+      $('#ok-file-name').on('click', (e) => {
+        if ($(e.target).hasClass('disabled')) {
+          return;
+        }
+
+        session.createNewFile($('#new-file-name').val().trim(), '', session.TABTYPE.WORK, false);
+
+        if (surface.getPanelProperty('run.active')) {
+          surface.updateRunPanel(surface.RUN_UPDATE_TYPE.ALL, debuggerObj, session);
+        }
+
+        $('#new-file-name').val('');
+        surface.toggleButton(false, 'ok-file-name');
+        surface.toggleSidenavNewFile();
+        surface.toggleSidenavExtra('file-sidenav');
+      });
+
+      /**
+       * Save button event.
+       */
+      $('#save-file-button').on('click', (e) => {
+        if ($(e.target).hasClass('disabled')) {
+          return;
+        }
+
+        let blob = new Blob([env.editor.session.getValue()]);
+        FileSaver.saveAs(blob, session.getFileNameById(session.getActiveID()));
+        $('#tab-' + session.getActiveID()).removeClass('unsaved');
+        surface.toggleSidenavExtra('file-sidenav');
+      });
     });
 
-    /**
-     * Sidenav extra toggles
-     */
-    $(".extra-sidenav-toggle").on("click", function(e) {
-      surface.toggleSidenavExtra($(e.currentTarget).data("eid"));
-    });
 
     /**
-     * Panel switch event from the sidenav.
+     * Settings menu events.
      */
-    $(".sidenav-panel-toggle").on("click", function(e) {
-      surface.togglePanel($(e.currentTarget).data("pid"), chart);
+    (() => {
+      /**
+       * Editor.
+       */
+      $('#theme').on('change', (e) => {
+        env.editor.setTheme(e.target.value);
+      });
 
-      if (surface.getPanelProperty("chart.active") &&
-        debuggerObj &&
-        debuggerObj.getEngineMode() != ENGINE_MODE.DISCONNECTED) {
-        surface.toggleButton(true, "chart-record-button");
-      }
+      $('#fontsize').on('change', (e) => {
+        env.editor.setFontSize(e.target.value);
+      });
 
-      if (surface.getPanelProperty("run.active")) {
-        surface.updateRunPanel(surface.RUN_UPDATE_TYPE.ALL, debuggerObj, session);
-      }
+      $('#folding').on('change', (e) => {
+        env.editor.session.setFoldStyle(e.target.value);
+      });
 
-      if (surface.getPanelProperty("watch.active")) {
+      $('#keybinding').on('change', (e) => {
+        env.editor.setKeyboardHandler(keybindings[e.target.value]);
+      });
+
+      $('#soft_wrap').on('change', (e) => {
+        env.editor.setOption('wrap', e.target.value);
+      });
+
+      $('#select_style').on('change', (e) => {
+        env.editor.setOption('selectionStyle', e.target.checked ? 'line' : 'text');
+      });
+
+      $('#highlight_active').on('change', (e) => {
+        env.editor.setHighlightActiveLine(e.target.checked);
+      });
+
+      $('#display_indent_guides').on('change', (e) => {
+        env.editor.setDisplayIndentGuides(e.target.checked);
+      });
+
+      $('#show_hidden').on('change', (e) => {
+        env.editor.setShowInvisibles(e.target.checked);
+      });
+
+      $('#show_hscroll').on('change', (e) => {
+        env.editor.setOption('hScrollBarAlwaysVisible', e.target.checked);
+      });
+
+      $('#show_vscroll').on('change', (e) => {
+        env.editor.setOption('vScrollBarAlwaysVisible', e.target.checked);
+      });
+
+      $('#animate_scroll').on('change', (e) => {
+        env.editor.setAnimatedScroll(e.target.checked);
+      });
+
+      $('#show_gutter').on('change', (e) => {
+        env.editor.renderer.setShowGutter(e.target.checked);
+      });
+
+      $('#show_print_margin').on('change', (e) => {
+        env.editor.renderer.setShowPrintMargin(e.target.checked);
+      });
+
+      $('#soft_tab').on('change', (e) => {
+        env.editor.session.setUseSoftTabs(e.target.checked);
+      });
+
+      $('#highlight_selected_word').on('change', (e) => {
+        env.editor.setHighlightSelectedWord(e.target.checked);
+      });
+
+      $('#enable_behaviours').on('change', (e) => {
+        env.editor.setBehavioursEnabled(e.target.checked);
+      });
+
+      $('#fade_fold_widgets').on('change', (e) => {
+        env.editor.setFadeFoldWidgets(e.target.checked);
+      });
+
+      $('#scrollPastEnd').on('change', (e) => {
+        env.editor.setOption('scrollPastEnd', e.target.checked);
+      });
+    })();
+
+
+    /**
+     * Download menu events.
+     */
+    (() => {
+      /**
+       * Export chart button.
+       */
+      $('#export-chart-button').on('click', (e) => {
+        if ($(e.target).hasClass('disabled')) {
+          return;
+        }
+
+        chart.exportChartData();
+      });
+    })();
+
+
+    /**
+     * Action buttons events.
+     */
+    (() => {
+      /**
+       * Address port check.
+       */
+      $('#host-port').keydown((e) => {
+        // Allow: backspace, delete, tab, escape, enter.
+        if ($.inArray(e.keyCode, [keys.delete, keys.backspace, keys.tab, keys.esc, keys.enter, keys.decPoint]) !== -1 ||
+            // Allow: Ctrl/cmd+A.
+            (e.keyCode === keys.a && (e.ctrlKey === true || e.metaKey === true)) ||
+            // Allow: Ctrl/cmd+C.
+            (e.keyCode === keys.c && (e.ctrlKey === true || e.metaKey === true)) ||
+            // Allow: Ctrl/cmd+X.
+            (e.keyCode === keys.x && (e.ctrlKey === true || e.metaKey === true)) ||
+            // Allow: home, end, left, right.
+            (e.keyCode >= keys.end && e.keyCode <= keys.rightArrow)) {
+          // let it happen, don't do anything.
+          return;
+        }
+
+        // Ensure that it is a number and stop the keypress.
+        if ((e.shiftKey || (e.keyCode < keys.zero || e.keyCode > keys.nine)) &&
+            (e.keyCode < keys.numZero || e.keyCode > keys.numNine)) {
+          e.preventDefault();
+        }
+      });
+
+      $('#connect-to-button').on('click', (e) => {
+        if ($(e.target).hasClass('disabled')) {
+          return true;
+        }
+
+        if (debuggerObj && debuggerObj.getEngineMode() !== ENGINE_MODE.DISCONNECTED) {
+          logger.info('Debugger is connected.');
+          return true;
+        }
+
+        if ($('#host-ip').val() === '') {
+          logger.error('IP address expected.', true);
+          return true;
+        }
+
+        if ($('#host-port').val() === '') {
+          logger.error('Adress port expected.', true);
+          return true;
+        }
+
+        if ($('#host-port').val() < 0 || $('#host-port').val() > 65535) {
+          logger.error('Adress port must between 0 and 65535.', true);
+          return true;
+        }
+
+        let address = `${$('#host-ip').val()}:${$('#host-port').val()}`;
+        logger.info(`Connect to: ${address}`);
+        debuggerObj = new DebuggerClient(address, session, surface, chart);
+
+        return true;
+      });
+
+      $('#delete-all-button').on('click', () => {
+        if (debuggerObj && debuggerObj.getEngineMode() !== ENGINE_MODE.DISCONNECTED) {
+          let found = false;
+          let actives = debuggerObj.getActiveBreakpoints();
+
+          for (let i in actives) {
+            if (actives.hasOwnProperty(i)) {
+              debuggerObj.deleteBreakpoint(actives[i].activeIndex);
+              found = true;
+            }
+          }
+
+          if (!found) {
+            logger.info('No active breakpoints.');
+          }
+          session.deleteBreakpointsFromEditor();
+        }
+      });
+
+      $('#continue-stop-button').on('click', (e) => {
+        if ($(e.target).hasClass('disabled')) {
+          return true;
+        }
+
+        if (debuggerObj.getEngineMode() === ENGINE_MODE.BREAKPOINT) {
+          surface.continueCommand();
+          debuggerObj.sendResumeExec(PROTOCOL.CLIENT.JERRY_DEBUGGER_CONTINUE);
+        } else {
+          surface.stopCommand();
+
+          if (surface.getPanelProperty('chart.active')) {
+            chart.deleteTimeoutLoop();
+          }
+
+          debuggerObj.encodeMessage('B', [PROTOCOL.CLIENT.JERRY_DEBUGGER_STOP]);
+        }
+      });
+
+      $('#step-button').on('click', (e) => {
+        if ($(e.target).hasClass('disabled')) {
+          return true;
+        }
+
+        if (debuggerObj.getEngineMode() !== ENGINE_MODE.BREAKPOINT) {
+          logger.error('This action only available in breakpoint mode.', true);
+          return true;
+        }
+
+        debuggerObj.encodeMessage('B', [PROTOCOL.CLIENT.JERRY_DEBUGGER_STEP]);
+      });
+
+      $('#next-button').on('click', (e) => {
+        if ($(e.target).hasClass('disabled')) {
+          return true;
+        }
+
+        if (debuggerObj.getEngineMode() !== ENGINE_MODE.BREAKPOINT) {
+          logger.error('This action only available in breakpoint mode.', true);
+          return true;
+        }
+
+        debuggerObj.encodeMessage('B', [PROTOCOL.CLIENT.JERRY_DEBUGGER_NEXT]);
+      });
+    })();
+
+
+    /**
+     * Watch panel events.
+     */
+    (() => {
+      /**
+       * Add button in the panel head.
+       */
+      $('#watch-add-button').on('click', (e) => {
+        if ($(e.target).hasClass('disabled')) {
+          return;
+        }
+
+        $('#watch-add-wrapper').show();
+        $('#watch-add-input').focus();
+      });
+
+      /**
+       * Refresh button in the panel head.
+       */
+      $('#watch-refresh-button').on('click', (e) => {
+        if ($(e.target).hasClass('disabled')) {
+          return;
+        }
+
+        if (debuggerObj && debuggerObj.getEngineMode() === debuggerObj.ENGINE_MODE.BREAKPOINT) {
+          session.updateWatchExpressions(debuggerObj);
+        }
+      });
+
+      /**
+       * Clear button in the panel head.
+       */
+      $('#watch-clear-button').on('click', (e) => {
+        if ($(e.target).hasClass('disabled')) {
+          return;
+        }
+
+        $('#watch-list').html('');
+        session.removeAllWatchExpression();
         surface.updateWatchPanelButtons(debuggerObj);
-      }
-    });
+      });
+
+      /**
+       * Listed item delete icons.
+       */
+      $('#watch-list').on('click', '.watch-li-remove i', (e) => {
+        session.removeWatchExpression($(e.target).parent().data('rid'));
+        $(e.target).parent().parent().remove();
+        surface.updateWatchPanelButtons(debuggerObj);
+      });
+
+      /**
+       * Input field behaviour.
+       */
+      $('#watch-add-input').focusout((e) => {
+        $(e.target).val('');
+        $('#watch-add-wrapper').hide();
+      });
+
+      $('#watch-add-input').on('keypress', (e) => {
+        if (e.keyCode === keys.enter) {
+          if ($(e.target).val() !== '') {
+            session.addWatchExpression(debuggerObj, $(e.target).val());
+          }
+
+          $(e.target).val('');
+          $('#watch-add-wrapper').hide();
+        }
+      });
+    })();
+
 
     /**
-     * Watch panel add button.
+     * Backtrace and breakpoints panel events.
      */
-    $("#watch-add-button").on("click", function() {
-      if ($(this).hasClass("disabled")) {
-        return;
-      }
+    (() => {
+      /**
+       * Init the backtrace and breakpoints panels fixed head view.
+       */
+      $('.scroll-table').floatThead({
+        autoReflow: true,
+        position: 'fixed',
+        scrollContainer: ($table) => {
+          return $table.closest('.wrapper');
+        },
+      });
+    })();
 
-      $("#watch-add-wrapper").show();
-      $("#watch-add-input").focus();
-    });
 
     /**
-     * Watch panel refresh button.
+     * MemoryChart panel events.
      */
-    $("#watch-refresh-button").on("click", function() {
-      if ($(this).hasClass("disabled")) {
-        return;
-      }
-
-      if (debuggerObj && debuggerObj.getEngineMode() == ENGINE_MODE.BREAKPOINT) {
-        session.updateWatchExpressions(debuggerObj);
-      }
-    });
-
-    /**
-     * Watch panel clear button.
-     */
-    $("#watch-clear-button").on("click", function() {
-      if ($(this).hasClass("disabled")) {
-        return;
-      }
-
-      $("#watch-list").html("");
-      session.removeAllWatchExpression();
-      surface.updateWatchPanelButtons(debuggerObj);
-    });
-
-    /**
-     * Watch panel list item delete icons.
-     */
-    $("#watch-list").on("click", ".watch-li-remove i", function() {
-      session.removeWatchExpression($(this).parent().data("rid"));
-      $(this).parent().parent().remove();
-      surface.updateWatchPanelButtons(debuggerObj);
-    });
-
-    /**
-     * Watch panel input field.
-     */
-    $("#watch-add-input").focusout(function() {
-      $(this).val("");
-      $("#watch-add-wrapper").hide();
-    });
-
-    $("#watch-add-input").on("keypress", function(e) {
-      if (e.keyCode == 13) {
-        if ($(this).val() != "") {
-          session.addWatchExpression(debuggerObj, $(this).val());
+    (() => {
+      $('#chart-record-button').on('click', (e) => {
+        if ($(e.target).hasClass('disabled')) {
+          return true;
         }
 
-        $(this).val("");
-        $("#watch-add-wrapper").hide();
-      }
-    });
-
-    /**
-     * Init backtrace and breakpoints panels fixed head view.
-     */
-    $(".scroll-table").floatThead({
-      autoReflow: true,
-      position: "fixed",
-      scrollContainer: function($table) {
-        return $table.closest(".wrapper");
-      }
-    });
-
-    /**
-     * Selectable ul lists for file select.
-     */
-    $(".selectable").selectable({
-      filter: "li",
-      cancel: ".handle"
-    });
-
-    $("#run-chooser-dest").sortable({
-      handle: ".handle",
-      axis: "y",
-      update: function(event, ui) {
-        var sid = parseInt($(ui.item[0]).data("sid"));
-        if (session.getFileDataById(sid).scheduled) {
-          session.moveFileInUploadList(session.getUploadList().indexOf(sid), $(ui.item[0]).index());
-        }
-      }
-    });
-
-    /**
-     * Right arrow button in the source selecting panel.
-     */
-    $('#run-right-button').on('click', function() {
-      if ($(this).hasClass('disabled')) {
-        return;
-      }
-
-      $('#run-chooser-src .ui-selected').each(function() {
-        $(this).detach().appendTo('#run-chooser-dest').removeClass('ui-selected').addClass('sortable')
-          .children('div').removeClass('hidden');
-
-        var sid = parseInt($(this).data('sid'));
-
-        if (!session.getFileDataById(sid).scheduled) {
-          session.addFileToUploadList(sid, $(this).index());
+        chart.startChartWithButton();
+        if (debuggerObj) {
+          debuggerObj.encodeMessage('B', [PROTOCOL.CLIENT.JERRY_DEBUGGER_MEMSTATS]);
         }
       });
 
-      surface.updateRunPanel(surface.RUN_UPDATE_TYPE.BUTTON, debuggerObj, session);
-    });
-
-    /**
-     * Left arrow button in the source selecting panel.
-     */
-    $("#run-left-button").on("click", function() {
-      if ($(this).hasClass("disabled")) {
-        return;
-      }
-
-      $("#run-chooser-dest .ui-selected").each(function() {
-        $(this).detach().appendTo("#run-chooser-src").removeClass("sortable").removeClass("ui-selected")
-          .children('div').addClass("hidden");
-
-        var sid = parseInt($(this).data("sid"));
-
-        if (session.getFileDataById(sid).scheduled) {
-          session.removeFileFromUploadList(sid);
+      $('#chart-stop-button').on('click', (e) => {
+        if ($(e.target).hasClass('disabled')) {
+          return true;
         }
+
+        chart.stopChartWithButton();
       });
 
-      surface.updateRunPanel(surface.RUN_UPDATE_TYPE.BUTTON, debuggerObj, session);
-    });
+      $('#chart-reset-button').on('click', (e) => {
+        if ($(e.target).hasClass('disabled')) {
+          return true;
+        }
+
+        chart.resetChart();
+        chart.resizeChart(surface.getPanelProperty('chart.height'), surface.getPanelProperty('chart.width'));
+      });
+    })();
+
 
     /**
-     * Run button in the run panel.
+     * Source sending panel events.
      */
-    $("#run-ok-button").on("click", function() {
-      if ($(this).hasClass("disabled")) {
-        return;
-      }
+    (() => {
+      /**
+       * Selectable and sortable ul lists for file select.
+       */
+      $('.selectable').selectable({
+        filter: 'li',
+        cancel: '.handle',
+      });
 
-      // Prevent the "empty" upload.
-      if ($("#run-chooser-dest").is(":empty")) {
-        return;
-      }
+      $('#run-chooser-dest').sortable({
+        handle: '.handle',
+        axis: 'y',
+        update: (event, ui) => {
+          let sid = parseInt($(ui.item[0]).data('sid'));
+          if (session.getFileDataById(sid).scheduled) {
+            session.moveFileInUploadList(session.getUploadList().indexOf(sid), $(ui.item[0]).index());
+          }
+        },
+      });
 
-      session.setUploadStarted(true);
-
-      // Add the context reset signal to the upload list.
-      if (!session.isFileInUploadList(0)) {
-        session.addFileToUploadList(0, session.getUploadList().length);
-        surface.appendChooserLi($("#run-chooser-dest"), "", "hidden", "run-context-reset-sid", 0, "Context Reset");
-      }
-
-      surface.updateRunPanel(surface.RUN_UPDATE_TYPE.JQUI, debuggerObj, session);
-      surface.updateRunPanel(surface.RUN_UPDATE_TYPE.BUTTON, debuggerObj, session);
-
-      // Send the source(s) to the debugger.
-      debuggerObj.sendClientSource();
-    });
-
-    /**
-     * Clear button in the run panel.
-     */
-    $("#run-clear-button").on("click", function() {
-      if ($(this).hasClass("disabled")) {
-        return;
-      }
-
-      session.getAllData().forEach(function(s) {
-        // Skip the welcome session, which is always stored with id 0.
-        if (s.id === 0) {
+      /**
+       * Right arrow button in the source selecting panel.
+       */
+      $('#run-right-button').on('click', (e) => {
+        if ($(e.target).hasClass('disabled')) {
           return;
         }
 
-        if (s.scheduled) {
-          session.removeFileFromUploadList(s.id);
-        }
+        $('#run-chooser-src .ui-selected').each((i, e) => {
+          $(e).detach().appendTo('#run-chooser-dest').removeClass('ui-selected').addClass('sortable')
+            .children().removeClass('hidden');
+
+          let sid = parseInt($(e).data('sid'));
+
+          if (!session.getFileDataById(sid).scheduled) {
+            session.addFileToUploadList(sid, $(e).index());
+          }
+        });
+
+        surface.updateRunPanel(surface.RUN_UPDATE_TYPE.BUTTON, debuggerObj, session);
       });
 
-      surface.updateRunPanel(surface.RUN_UPDATE_TYPE.ALL, debuggerObj, session);
-    });
-
-    /**
-     * Context reset button in the run panel.
-     */
-    $("#run-context-reset-button").on("click", function() {
-      if ($(this).hasClass("disabled")) {
-        return;
-      }
-
-      // Reset the upload list.
-      session.resetUploadList();
-      surface.updateRunPanel(surface.RUN_UPDATE_TYPE.CR, debuggerObj, session);
-
-      // Remove the unuploaded file placeholders.
-      $("#run-chooser-dest li .btn").each(function() {
-        if (!$(this).hasClass("btn-success")) {
-          $(this).remove();
+      /**
+       * Left arrow button in the source selecting panel.
+       */
+      $('#run-left-button').on('click', (e) => {
+        if ($(e.target).hasClass('disabled')) {
+          return;
         }
+
+        $('#run-chooser-dest .ui-selected').each((i, e) => {
+          $(e).detach().appendTo('#run-chooser-src').removeClass('sortable').removeClass('ui-selected')
+            .children().addClass('hidden');
+
+          let sid = parseInt($(e).data('sid'));
+
+          if (session.getFileDataById(sid).scheduled) {
+            session.removeFileFromUploadList(sid);
+          }
+        });
+
+        surface.updateRunPanel(surface.RUN_UPDATE_TYPE.BUTTON, debuggerObj, session);
       });
 
-      // Disable the reset button.
-      $(this).addClass("disabled");
-    });
-
-    /*
-     * File open button.
-     */
-    $("#open-file-button").on("click", function() {
-      // Check for the various File API support.
-      if (window.File && window.FileReader && window.FileList && window.Blob) {
-        // Great success! All the File APIs are supported.
-        // Open the file browser.
-        $("#hidden-file-input").trigger("click");
-      } else {
-        logger.error("The File APIs are not fully supported in this browser.", true);
-      }
-    });
-
-    /*
-     * Manage the file input change.
-     */
-    $("#hidden-file-input").change(function(evt) {
-      // FileList object
-      var files = evt.target.files;
-      var valid = files.length,
-        processed = 0;
-
-      for (var i = 0; i < files.length; i++) {
-        if (session.fileNameCheck(files[i].name)) {
-          logger.error(files[i].name + " is already loaded.", true);
-          valid--;
-          continue;
+      /**
+       * Run button in the run panel head.
+       */
+      $('#run-ok-button').on('click', (e) => {
+        if ($(e.target).hasClass('disabled')) {
+          return;
         }
 
-        (function(file) {
-          var reader = new FileReader();
-
-          reader.onload = function(evt) {
-            session.createNewFile(file.name, evt.target.result, 1, true);
-
-            if (surface.getPanelProperty("run.active")) {
-              surface.updateRunPanel(surface.RUN_UPDATE_TYPE.ALL, debuggerObj, session);
-            }
-          }
-
-          reader.onerror = function(evt) {
-            if (evt.target.name.error === "NotReadableError") {
-              logger.error(file.name + " file could not be read.", true);
-            }
-          }
-
-          reader.readAsText(file, "utf-8");
-        })(files[i]);
-      }
-
-      // Reset the file input field.
-      $(this).val("");
-
-      // Close the extra sidenav windows after the open finished.
-      surface.toggleSidenavExtra("file-sidenav");
-    });
-
-    /**
-     * New file name field toggle event.
-     */
-    $("#new-file-button").on("click", function() {
-      surface.toggleSidenavNewFile();
-      $("#new-file-name").focus();
-    });
-
-    /**
-     * New file name on-the-fly validation.
-     */
-    $("#new-file-name").keyup(function(e) {
-      var info = $("#hidden-new-file-info");
-      var filename = $("#new-file-name").val().trim();
-      var valid = true;
-      var regex = /^([a-zA-Z0-9_\-]{1,}.*)$/;
-
-      info.empty();
-      if (!regex.test(filename)) {
-        info.append("<p>The filename must be at least 1 (one) character long.</p>");
-        valid = false;
-      }
-
-      if (session.isFileNameTaken(filename)) {
-        info.append("<p>This filename is already taken.</p>");
-        valid = false;
-      }
-
-      if (valid) {
-        surface.toggleButton(true, "ok-file-name");
-        // If the key was the enter, trigger the ok button.
-        if (e.keyCode === 13) {
-          $("#ok-file-name").click();
+        // Prevent the 'empty' upload.
+        if ($('#run-chooser-dest').is(':empty')) {
+          return;
         }
-      } else {
-        surface.toggleButton(false, "ok-file-name");
-      }
-    });
 
-    /**
-     * New file name cancel button events.
-     */
-    $("#cancel-file-name").on("click", function() {
-      $("#new-file-name").val("");
-      $("#hidden-new-file-info").empty();
-      surface.toggleButton(false, "ok-file-name");
-      surface.toggleSidenavNewFile();
-    });
+        session.setUploadStarted(true);
 
-    /**
-     * New file name ok button events.
-     */
-    $("#ok-file-name").on("click", function() {
-      if ($(this).hasClass("disabled")) {
-        return;
-      }
+        // Add the context reset signal to the upload list.
+        if (!session.isFileInUploadList(0)) {
+          session.addFileToUploadList(0, session.getUploadList().length);
+          surface.appendChooserLi($('#run-chooser-dest'), '', 'hidden', 'run-context-reset-sid', 0, 'Context Reset');
+        }
 
-      session.createNewFile($("#new-file-name").val().trim(), "", session.TABTYPE.WORK, false);
+        surface.updateRunPanel(surface.RUN_UPDATE_TYPE.JQUI, debuggerObj, session);
+        surface.updateRunPanel(surface.RUN_UPDATE_TYPE.BUTTON, debuggerObj, session);
 
-      if (surface.getPanelProperty("run.active")) {
+        // Send the source(s) to the debugger.
+        debuggerObj.sendClientSource();
+      });
+
+      /**
+       * Clear button in the run panel head.
+       */
+      $('#run-clear-button').on('click', (e) => {
+        if ($(e.target).hasClass('disabled')) {
+          return;
+        }
+
+        session.getAllData().forEach((s) => {
+          // Skip the welcome session, which is always stored with id 0.
+          if (s.id === 0) {
+            return;
+          }
+
+          if (s.scheduled) {
+            session.removeFileFromUploadList(s.id);
+          }
+        });
+
         surface.updateRunPanel(surface.RUN_UPDATE_TYPE.ALL, debuggerObj, session);
-      }
+      });
 
-      $("#new-file-name").val("");
-      surface.toggleButton(false, "ok-file-name");
-      surface.toggleSidenavNewFile();
-      surface.toggleSidenavExtra("file-sidenav");
-    });
-
-    /**
-     * Save button event.
-     */
-    $("#save-file-button").on("click", function() {
-      if ($(this).hasClass("disabled")) {
-        return;
-      }
-
-      var blob = new Blob([env.editor.session.getValue()]);
-      saveAs(blob, session.getFileNameById(session.getActiveID()));
-      $("#tab-" + session.getActiveID()).removeClass("unsaved");
-      surface.toggleSidenavExtra("file-sidenav");
-    });
-
-    /**
-     * Editor setting events.
-     */
-    $("#theme").on("change", function() {
-      env.editor.setTheme(this.value);
-    });
-
-    $("#fontsize").on("change", function() {
-      env.editor.setFontSize(this.value);
-    });
-
-    $("#folding").on("change", function() {
-      env.editor.session.setFoldStyle(this.value);
-    });
-
-    $("#keybinding").on("change", function() {
-      env.editor.setKeyboardHandler(keybindings[this.value]);
-    });
-
-    $("#soft_wrap").on("change", function() {
-      env.editor.setOption("wrap", this.value);
-    });
-
-    $("#select_style").on("change", function() {
-      env.editor.setOption("selectionStyle", this.checked ? "line" : "text");
-    });
-
-    $("#highlight_active").on("change", function() {
-      env.editor.setHighlightActiveLine(this.checked);
-    });
-
-    $("#display_indent_guides").on("change", function() {
-      env.editor.setDisplayIndentGuides(this.checked);
-    });
-
-    $("#show_hidden").on("change", function() {
-      env.editor.setShowInvisibles(this.checked);
-    });
-
-    $("#show_hscroll").on("change", function() {
-      env.editor.setOption("hScrollBarAlwaysVisible", this.checked);
-    });
-
-    $("#show_vscroll").on("change", function() {
-      env.editor.setOption("vScrollBarAlwaysVisible", this.checked);
-    });
-
-    $("#animate_scroll").on("change", function() {
-      env.editor.setAnimatedScroll(this.checked);
-    });
-
-    $("#show_gutter").on("change", function() {
-      env.editor.renderer.setShowGutter(this.checked);
-    });
-
-    $("#show_print_margin").on("change", function() {
-      env.editor.renderer.setShowPrintMargin(this.checked);
-    });
-
-    $("#soft_tab").on("change", function() {
-      env.editor.session.setUseSoftTabs(this.checked);
-    });
-
-    $("#highlight_selected_word").on("change", function() {
-      env.editor.setHighlightSelectedWord(this.checked);
-    });
-
-    $("#enable_behaviours").on("change", function() {
-      env.editor.setBehavioursEnabled(this.checked);
-    });
-
-    $("#fade_fold_widgets").on("change", function() {
-      env.editor.setFadeFoldWidgets(this.checked);
-    });
-
-    $("#scrollPastEnd").on("change", function() {
-      env.editor.setOption("scrollPastEnd", this.checked);
-    });
-
-    /**
-     * Address port check.
-     */
-    $("#host-port").keydown(function(e) {
-      // Allow: backspace, delete, tab, escape, enter.
-      if ($.inArray(e.keyCode, [46, 8, 9, 27, 13, 110]) !== -1 ||
-        // Allow: Ctrl/cmd+A.
-        (e.keyCode == 65 && (e.ctrlKey === true || e.metaKey === true)) ||
-        // Allow: Ctrl/cmd+C.
-        (e.keyCode == 67 && (e.ctrlKey === true || e.metaKey === true)) ||
-        // Allow: Ctrl/cmd+X.
-        (e.keyCode == 88 && (e.ctrlKey === true || e.metaKey === true)) ||
-        // Allow: home, end, left, right.
-        (e.keyCode >= 35 && e.keyCode <= 39)) {
-        // let it happen, don't do anything.
-        return;
-      }
-
-      // Ensure that it is a number and stop the keypress.
-      if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
-        e.preventDefault();
-      }
-    });
-
-    /**
-     * Debugger action events.
-     */
-    $("#connect-to-button").on("click", function(e) {
-      if ($(this).hasClass("disabled")) {
-        return true;
-      }
-
-      if (debuggerObj && debuggerObj.getEngineMode() != ENGINE_MODE.DISCONNECTED) {
-        logger.info("Debugger is connected.");
-        return true;
-      }
-
-      if ($("#host-ip").val() == "") {
-        logger.error("IP address expected.", true);
-        return true;
-      }
-
-      if ($("#host-port").val() == "") {
-        logger.error("Adress port expected.", true);
-        return true;
-      }
-
-      if ($("#host-port").val() < 0 || $("#host-port").val() > 65535) {
-        logger.error("Adress port must between 0 and 65535.", true);
-        return true;
-      }
-
-      var address = $("#host-ip").val() + ":" + $("#host-port").val();
-      logger.info("Connect to: " + address);
-      debuggerObj = new DebuggerClient(address, session, surface, chart);
-
-      return true;
-    });
-
-    /*
-     * Update the breakpoint lines after editor or session changes.
-     */
-    env.editor.on("change", function(e) {
-      $("#tab-" + session.getActiveID()).addClass("unsaved");
-      if (debuggerObj && debuggerObj.getEngineMode() != ENGINE_MODE.DISCONNECTED) {
-        session.markBreakpointGutters(debuggerObj);
-      }
-    });
-
-    env.editor.on("changeSession", function(e) {
-      if (debuggerObj && debuggerObj.getEngineMode() != ENGINE_MODE.DISCONNECTED) {
-        session.markBreakpointGutters(debuggerObj);
-      }
-    });
-
-    /*
-     * Debugger action button events.
-     */
-    $("#delete-all-button").on("click", function() {
-      if (debuggerObj && debuggerObj.getEngineMode() != ENGINE_MODE.DISCONNECTED) {
-        var found = false;
-
-        for (var i in debuggerObj.getActiveBreakpoints()) {
-          debuggerObj.deleteBreakpoint(debuggerObj.getActiveBreakpoints()[i].activeIndex);
-          found = true;
-        }
-
-        if (!found) {
-          logger.info("No active breakpoints.")
-        }
-        session.deleteBreakpointsFromEditor();
-      }
-    });
-
-    $("#continue-stop-button").on("click", function() {
-      if ($(this).hasClass("disabled")) {
-        return true;
-      }
-
-      if (debuggerObj.getEngineMode() == ENGINE_MODE.BREAKPOINT) {
-        surface.continueCommand();
-        debuggerObj.sendResumeExec(PROTOCOL.CLIENT.JERRY_DEBUGGER_CONTINUE);
-      } else {
-        surface.stopCommand();
-
-        if (surface.getPanelProperty("chart.active")) {
-          chart.deleteTimeoutLoop();
-        }
-
-        debuggerObj.encodeMessage("B", [PROTOCOL.CLIENT.JERRY_DEBUGGER_STOP]);
-      }
-    });
-
-    $("#step-button").on("click", function() {
-      if ($(this).hasClass("disabled")) {
-        return true;
-      }
-
-      if (debuggerObj.getEngineMode() != ENGINE_MODE.BREAKPOINT) {
-        logger.error("This action only available in breakpoint mode.", true);
-        return true;
-      }
-
-      debuggerObj.encodeMessage("B", [PROTOCOL.CLIENT.JERRY_DEBUGGER_STEP]);
-    });
-
-    $("#next-button").on("click", function() {
-      if ($(this).hasClass("disabled")) {
-        return true;
-      }
-
-      if (debuggerObj.getEngineMode() != ENGINE_MODE.BREAKPOINT) {
-        logger.error("This action only available in breakpoint mode.", true);
-        return true;
-      }
-
-      debuggerObj.encodeMessage("B", [PROTOCOL.CLIENT.JERRY_DEBUGGER_NEXT]);
-    });
-
-    /**
-     * Chart buttons.
-     */
-    $("#chart-record-button").on("click", function() {
-      if ($(this).hasClass("disabled")) {
-        return true;
-      }
-
-      chart.startChartWithButton();
-      if (debuggerObj) {
-        debuggerObj.encodeMessage('B', [PROTOCOL.CLIENT.JERRY_DEBUGGER_MEMSTATS]);
-      }
-    });
-
-    $("#chart-stop-button").on("click", function() {
-      if ($(this).hasClass("disabled")) {
-        return true;
-      }
-
-      chart.stopChartWithButton();
-    });
-
-    $("#chart-reset-button").on("click", function() {
-      if ($(this).hasClass("disabled")) {
-        return true;
-      }
-
-      chart.resetChart();
-      chart.resizeChart(surface.getPanelProperty("chart.height"), surface.getPanelProperty("chart.width"));
-    });
-
-    /**
-     * Export chart menu button.
-     */
-    $("#export-chart-button").on("click", function() {
-      if ($(this).hasClass("disabled")) {
-        return;
-      }
-
-      chart.exportChartData();
-    });
-
-    /*
-     * Editor mouse click, breakpoint add/delete.
-     */
-    env.editor.on("guttermousedown", function(e) {
-      if (debuggerObj && debuggerObj.getEngineMode() != ENGINE_MODE.DISCONNECTED) {
-        var target = e.domEvent.target;
-        if (target.className.indexOf("ace_gutter-cell") == -1) {
+      /**
+       * Context reset button in the run panel head.
+       */
+      $('#run-context-reset-button').on('click', (e) => {
+        if ($(e.target).hasClass('disabled')) {
           return;
         }
 
-        if (!env.editor.isFocused()) {
-          return;
-        }
+        // Reset the upload list.
+        session.resetUploadList();
+        surface.updateRunPanel(surface.RUN_UPDATE_TYPE.CR, debuggerObj, session);
 
-        if (e.clientX > 25 + target.getBoundingClientRect().left) {
-          return;
-        }
+        // Remove the unuploaded file placeholders.
+        $('#run-chooser-dest li .btn').each((i, el) => {
+          if (!$(el).hasClass('btn-success')) {
+            $(el).remove();
+          }
+        });
 
-        var breakpoints = e.editor.session.getBreakpoints(row, 0);
-        var row = e.getDocumentPosition().row;
-        var lines = session.getLinesFromRawData(debuggerObj.getBreakpointLines());
+        // Disable the reset button.
+        $(e.target).addClass('disabled');
+      });
+    })();
 
-        if (lines.includes(row + 1)) {
-          if (typeof breakpoints[row] === typeof undefined) {
-            env.editor.session.setBreakpoint(row);
-            session.addBreakpointID(row, debuggerObj.getNextBreakpointIndex());
-            debuggerObj.setBreakpoint(session.getFileNameById(session.getActiveID()) + ":" + parseInt(row + 1));
+
+    /**
+     * Console panel events.
+     */
+    (() => {
+      /**
+       * Command line input field.
+       */
+      $('#command-line-input').keydown((e) => {
+        if (e.keyCode === keys.upArrow) {
+          if (session.getCommandCounter() - 1 > -1) {
+            session.setCommandCounter(session.getCommandCounter() - 1);
+            $('#command-line-input').val(session.getCommandList()[session.getCommandCounter()]);
+          }
+        } else if (e.keyCode === keys.downArrow) {
+          if (session.getCommandCounter() + 1 < session.getCommandList().length) {
+            session.setCommandCounter(session.getCommandCounter() + 1);
+            $('#command-line-input').val(session.getCommandList()[session.getCommandCounter()]);
           } else {
-            debuggerObj.deleteBreakpoint(session.getBreakpointID(row));
-            env.editor.session.clearBreakpoint(row);
+            session.setCommandCounter(session.getCommandList().length);
+            $('#command-line-input').val('');
           }
-          surface.updateBreakpointsPanel(debuggerObj.getActiveBreakpoints());
+        }
+      });
+
+      /**
+       * Command line input keypress event.
+       */
+      $('#command-line-input').keypress((event) => {
+        if (event.keyCode !== keys.enter) {
+          return true;
         }
 
-        e.stop();
-      }
-    });
-  });
+        let commandInput = $('#command-line-input');
+        let command = commandInput.val().trim();
 
-  /*
-   * Command line log.
-   */
-  $('#command-line-input').keydown(function(e) {
-    if (e.keyCode == keys.upArrow) {
-      if (session.getCommandCounter() - 1 > -1) {
-        session.setCommandCounter(session.getCommandCounter() - 1);
-        $("#command-line-input").val(session.getCommandList()[session.getCommandCounter()]);
-      }
-    } else if (e.keyCode == keys.downArrow) {
-      if (session.getCommandCounter() + 1 < session.getCommandList().length) {
-        session.setCommandCounter(session.getCommandCounter() + 1);
-        $("#command-line-input").val(session.getCommandList()[session.getCommandCounter()]);
-      } else {
+        session.addCommandToList(command);
         session.setCommandCounter(session.getCommandList().length);
-        $("#command-line-input").val("");
-      }
-    }
-  });
+        let args = /^([a-zA-Z]+)(?:\s+([^\s].*)|)$/.exec(command);
 
-  /**
-   * Comman line keypress event.
-   */
-  $("#command-line-input").keypress(function(e) {
-    debuggerCommand(e);
-  });
+        if (!args) {
+          logger.error('Invalid command.');
+          commandInput.val('');
+          return true;
+        }
 
-  /**
-   * Editor and panels column resizer.
-   */
-  $(function() {
-    $("#info-panels").resizable({
-      handles: 'e',
-      resize: function() {
-        $("#editor-wrapper").width(surface.editorHorizontalPercentage() - 10 + "%");
+        if (!args[2]) {
+          args[2] = '';
+        }
 
-        // Resize chart.
-        if (surface.getPanelProperty("chart.active")) {
-          surface.setChartPanelWidth($("#chart-wrapper").width());
-          var tmph = surface.getPanelProperty("chart.height");
-          if ($("#chart-wrapper").height() != 0) {
-            tmph = $("#chart-wrapper").height();
+        if (args[1] == 'help') {
+          logger.info('Debugger commands:\n' +
+            '  connect <IP address:PORT> - connect to server (default is localhost:5001)\n' +
+            '  pendingdel <id> - delete pending breakpoint\n' +
+            '  list - list breakpoints\n' +
+            '  stop|st - stop execution\n' +
+            '  continue|c - continue execution\n' +
+            '  step|s - step-in execution\n' +
+            '  next|n - execution until the next breakpoint\n' +
+            '  eval|e - evaluate expression\n' +
+            '  exception <0|1> - turn on/off the exception handler\n' +
+            '  dump - dump all breakpoint data');
+          commandInput.val('');
+          return true;
+        }
+
+        if (args[1] == 'connect') {
+          if (debuggerObj && debuggerObj.getEngineMode() !== debuggerObj.ENGINE_MODE.DISCONNECTED) {
+            logger.info('Debugger is connected');
+            return true;
           }
-          chart.resizeChart(tmph, surface.getPanelProperty("chart.width"));
-        }
-      },
-      stop: function() {
-        $(this).width($(this).width() / $("#workspace-wrapper").width() * 100 + "%");
-        env.editor.resize();
-      }
-    });
-  });
 
-  /**
-   * Window resize event.
-   */
-  $(window).resize(function(e) {
-    if (e.target == window) {
-      surface.resetPanelsPercentage();
+          let ipAddr = args[2];
+          let PORT = '5001';
+          if (ipAddr === '') {
+            ipAddr = 'localhost';
+          }
 
-      if (surface.getPanelProperty("chart.active")) {
-        setTimeout(function() {
-          surface.setChartPanelHeight($("#chart-wrapper").height());
-          surface.setChartPanelWidth($("#chart-wrapper").width());
-          chart.resizeChart(surface.getPanelProperty("chart.height"), surface.getPanelProperty("chart.width"));
-        }, 100);
-      }
+          if (ipAddr.match(/.*:\d/)) {
+            let fields = ipAddr.split(':');
+            ipAddr = fields[0];
+            PORT = fields[1];
+          }
 
-      // Resize the info panels and the editor.
-      $("#editor-wrapper").width(surface.editorHorizontalPercentage() - 10 + "%");
-      env.editor.resize();
-    }
+          if (PORT < 0 || PORT > 65535) {
+            logger.error('Adress port must between 0 and 65535.');
+            return true;
+          }
 
-    $("#info-panels").resizable("option", "minWidth", Math.floor($("#editor-wrapper").parent().width() / 3));
-    $("#info-panels").resizable("option", "maxWidth", Math.floor(($("#editor-wrapper").parent().width() / 3) * 2));
-  });
+          let address = ipAddr + ':' + PORT;
+          logger.info('Connect to: ' + address);
+          debuggerObj = new DebuggerClient(address, session, surface, chart);
 
-  /**
-   * Info panels vertical resizer.
-   */
-  $(function() {
-    $(".vertical-resizable").not(":last").resizable({
-      handles: 's',
-      minHeight: surface.getPanelProperty("height"),
-      start: function() {
-        this.other = $(this).next();
-        while (!this.other.is(":visible")) {
-          this.other = $(this.other).next();
-        }
-        this.startHeight = this.other.height();
-      },
-      resize: function(e, ui) {
-        var minHeight = ui.element.resizable("option", "minHeight");
-        var diffH = ui.size.height - ui.originalSize.height;
-        if (diffH > this.startHeight - minHeight) {
-          diffH = this.startHeight;
-          ui.size.height = ui.originalSize.height + diffH - minHeight;
+          commandInput.val('');
+
+          return true;
         }
 
-        var tmpHeight = Math.max(surface.getPanelProperty("height"), this.startHeight - diffH)
-        this.other.height((tmpHeight < surface.getPanelProperty("height"))
-                          ? surface.getPanelProperty("height")
-                          : tmpHeight);
-
-        if ((ui.originalElement[0].id == "chart-wrapper" || this.other[0].id == "chart-wrapper") &&
-          this.other.height() != minHeight) {
-          chart.resizeChart($("#chart-wrapper").height(), surface.getPanelProperty("chart.width"));
+        if (!debuggerObj || debuggerObj.getEngineMode() === debuggerObj.ENGINE_MODE.DISCONNECTED) {
+          logger.error('Debugger is NOT connected.');
+          commandInput.val('');
+          return true;
         }
-      }
-    });
-  });
 
-  /**
-   * Command line functionality.
-   *
-   * @param {keyboardEvent} event
-   */
-  function debuggerCommand(event) {
-    if (event.keyCode != 13) {
-      return true;
-    }
+        switch (args[1]) {
+          case 'pendingdel':
+            debuggerObj.deletePendingBreakpoint(args[2]);
+            break;
+          case 'st':
+          case 'stop':
+            $('#continue-stop-button').click();
+            break;
+          case 'c':
+          case 'continue':
+            $('#continue-stop-button').click();
+            break;
+          case 's':
+          case 'step':
+            $('#step-button').click();
+            break;
+          case 'n':
+          case 'next':
+            $('#next-button').click();
+            break;
+          case 'e':
+          case 'eval':
+            debuggerObj.sendEval(args[2]);
+            break;
+          case 'exception':
+            debuggerObj.sendExceptionConfig(args[2]);
+            break;
+          case 'list':
+            debuggerObj.listBreakpoints();
+            break;
+          case 'dump':
+            debuggerObj.dump();
+            break;
+          default:
+            logger.error('Unknown command: ' + args[1]);
+            break;
+        }
 
-    var commandInput = $("#command-line-input");
-    var command = commandInput.val().trim();
-
-    session.addCommandToList(command);
-    session.setCommandCounter(session.getCommandList().length);
-    var args = /^([a-zA-Z]+)(?:\s+([^\s].*)|)$/.exec(command);
-
-    if (!args) {
-      logger.error("Invalid command.");
-      commandInput.val("");
-      return true;
-    }
-
-    if (!args[2]) {
-      args[2] = "";
-    }
-
-    if (args[1] == "help") {
-      logger.info("Debugger commands:\n" +
-        "  connect <IP address:PORT> - connect to server (default is localhost:5001)\n" +
-        "  pendingdel <id> - delete pending breakpoint\n" +
-        "  list - list breakpoints\n" +
-        "  stop|st - stop execution\n" +
-        "  continue|c - continue execution\n" +
-        "  step|s - step-in execution\n" +
-        "  next|n - execution until the next breakpoint\n" +
-        "  eval|e - evaluate expression\n" +
-        "  exception <0|1> - turn on/off the exception handler\n" +
-        "  dump - dump all breakpoint data");
-      commandInput.val("");
-      return true;
-    }
-
-    if (args[1] == "connect") {
-      if (debuggerObj && debuggerObj.getEngineMode() != ENGINE_MODE.DISCONNECTED) {
-        logger.info("Debugger is connected");
+        commandInput.val('');
         return true;
-      }
+      });
+    })();
 
-      var ipAddr = args[2];
-      var PORT = "5001";
-      if (ipAddr == "") {
-        ipAddr = "localhost";
-      }
 
-      if (ipAddr.match(/.*:\d/)) {
-        var fields = ipAddr.split(":");
-        ipAddr = fields[0];
-        PORT = fields[1];
-      }
+    /**
+     * Editor extra events.
+     */
+    (() => {
+      /*
+       * Update the breakpoint lines after editor or session changes.
+       */
+      env.editor.on('change', () => {
+        $('#tab-' + session.getActiveID()).addClass('unsaved');
+        if (debuggerObj && debuggerObj.getEngineMode() !== debuggerObj.ENGINE_MODE.DISCONNECTED) {
+          session.markBreakpointGutters(debuggerObj);
+        }
+      });
 
-      if (PORT < 0 || PORT > 65535) {
-        logger.error("Adress port must between 0 and 65535.");
-        return true;
-      }
+      env.editor.on('changeSession', () => {
+        if (debuggerObj && debuggerObj.getEngineMode() !== debuggerObj.ENGINE_MODE.DISCONNECTED) {
+          session.markBreakpointGutters(debuggerObj);
+        }
+      });
 
-      var address = ipAddr + ":" + PORT;
-      logger.info("Connect to: " + address);
-      debuggerObj = new DebuggerClient(address, session, surface, chart);
+      /*
+       * Editor mouse click, breakpoint add/delete.
+       */
+      env.editor.on('guttermousedown', (e) => {
+        if (debuggerObj && debuggerObj.getEngineMode() !== debuggerObj.ENGINE_MODE.DISCONNECTED) {
+          let target = e.domEvent.target;
+          if (target.className.indexOf('ace_gutter-cell') === -1) {
+            return;
+          }
 
-      commandInput.val("");
+          if (!env.editor.isFocused()) {
+            return;
+          }
 
-      return true;
-    }
+          if (e.clientX > 25 + target.getBoundingClientRect().left) {
+            return;
+          }
 
-    if (!debuggerObj || debuggerObj.getEngineMode() == ENGINE_MODE.DISCONNECTED) {
-      logger.error("Debugger is NOT connected.");
-      commandInput.val("");
-      return true;
-    }
+          let breakpoints = e.editor.session.getBreakpoints(row, 0);
+          let row = e.getDocumentPosition().row;
+          let lines = session.getLinesFromRawData(debuggerObj.getBreakpointLines());
 
-    switch (args[1]) {
-      case "pendingdel":
-        debuggerObj.deletePendingBreakpoint(args[2]);
-      case "st":
-      case "stop":
-        $("#continue-stop-button").click();
-        break;
-      case "c":
-      case "continue":
-        $("#continue-stop-button").click();
-        break;
-      case "s":
-      case "step":
-        $("#step-button").click();
-        break;
-      case "n":
-      case "next":
-        $("#next-button").click();
-        break;
-      case "e":
-      case "eval":
-        debuggerObj.sendEval(args[2]);
-        break;
-      case "exception":
-        debuggerObj.sendExceptionConfig(args[2]);
-        break;
-      case "list":
-        debuggerObj.listBreakpoints();
-        break;
-      case "dump":
-        debuggerObj.dump();
-        break;
-      default:
-        logger.error("Unknown command: " + args[1]);
-        break;
-    }
+          if (lines.includes(row + 1)) {
+            if (typeof breakpoints[row] === typeof undefined) {
+              env.editor.session.setBreakpoint(row);
+              session.addBreakpointID(row, debuggerObj.getNextBreakpointIndex());
+              debuggerObj.setBreakpoint(session.getFileNameById(session.getActiveID()) + ':' + parseInt(row + 1));
+            } else {
+              debuggerObj.deleteBreakpoint(session.getBreakpointID(row));
+              env.editor.session.clearBreakpoint(row);
+            }
+            surface.updateBreakpointsPanel(debuggerObj.getActiveBreakpoints());
+          }
 
-    commandInput.val("");
-    return true;
-  }
-};
+          e.stop();
+        }
+      });
+    })();
+
+
+    /**
+     * Resizer functions and events.
+     */
+    (() => {
+      /**
+       * Editor and info panels horizontal column resizer.
+       */
+      $('#info-panels').resizable({
+        handles: 'e',
+        resize: () => {
+          $('#editor-wrapper').width(surface.editorHorizontalPercentage() - 10 + '%');
+
+          // Resize chart.
+          if (surface.getPanelProperty('chart.active')) {
+            surface.setChartPanelWidth($('#chart-wrapper').width());
+
+            let tmph = surface.getPanelProperty('chart.height');
+
+            if ($('#chart-wrapper').height() !== 0) {
+              tmph = $('#chart-wrapper').height();
+            }
+
+            chart.resizeChart(tmph, surface.getPanelProperty('chart.width'));
+          }
+        },
+        stop: (event, ui) => {
+          $(ui.originalElement).width($(ui.originalElement).width() / $('#workspace-wrapper').width() * 100 + '%');
+          env.editor.resize();
+        },
+      });
+
+      /**
+       * Info panels vertical resizer.
+       */
+      $('.vertical-resizable').not(':last').resizable({
+        handles: 's',
+        minHeight: surface.getPanelProperty('height'),
+        start: (event, ui) => {
+          ui.originalElement.other = $(ui.originalElement).next();
+
+          while (!ui.originalElement.other.is(':visible')) {
+            ui.originalElement.other = $(ui.originalElement.other).next();
+          }
+
+          ui.originalElement.startHeight = ui.originalElement.other.height();
+        },
+        resize: (event, ui) => {
+          let minHeight = ui.element.resizable('option', 'minHeight');
+          let diffH = ui.size.height - ui.originalSize.height;
+
+          if (diffH > ui.originalElement.startHeight - minHeight) {
+            diffH = ui.originalElement.startHeight;
+            ui.size.height = ui.originalSize.height + diffH - minHeight;
+          }
+
+          let tmpHeight = Math.max(surface.getPanelProperty('height'), ui.originalElement.startHeight - diffH);
+
+          ui.originalElement.other.height(
+            (tmpHeight < surface.getPanelProperty('height')) ? surface.getPanelProperty('height') : tmpHeight
+          );
+
+          if ((ui.originalElement[0].id == 'chart-wrapper' || ui.originalElement.other[0].id == 'chart-wrapper') &&
+              ui.originalElement.other.height() != minHeight) {
+            chart.resizeChart($('#chart-wrapper').height(), surface.getPanelProperty('chart.width'));
+          }
+        },
+      });
+
+      /**
+       * Window resize event.
+       */
+      $(window).resize((e) => {
+        if (e.target === window) {
+          surface.resetPanelsPercentage();
+
+          if (surface.getPanelProperty('chart.active')) {
+            setTimeout(() => {
+              surface.setChartPanelHeight($('#chart-wrapper').height());
+              surface.setChartPanelWidth($('#chart-wrapper').width());
+              chart.resizeChart(surface.getPanelProperty('chart.height'), surface.getPanelProperty('chart.width'));
+            }, 100);
+          }
+
+          // Resize the info panels and the editor.
+          $('#editor-wrapper').width(surface.editorHorizontalPercentage() - 10 + '%');
+          env.editor.resize();
+        }
+
+        $('#info-panels').resizable('option', 'minWidth', Math.floor($('#editor-wrapper').parent().width() / 3));
+        $('#info-panels').resizable('option', 'maxWidth', Math.floor(($('#editor-wrapper').parent().width() / 3) * 2));
+      });
+    })();
+  });
+}
