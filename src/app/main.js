@@ -595,7 +595,7 @@ export default function App() {
           return;
         }
 
-        if (debuggerObj && debuggerObj.getEngineMode() === debuggerObj.ENGINE_MODE.BREAKPOINT) {
+        if (debuggerObj && debuggerObj.getEngineMode() === ENGINE_MODE.BREAKPOINT) {
           session.updateWatchExpressions(debuggerObj);
         }
       });
@@ -902,7 +902,7 @@ export default function App() {
         }
 
         if (args[1] == 'connect') {
-          if (debuggerObj && debuggerObj.getEngineMode() !== debuggerObj.ENGINE_MODE.DISCONNECTED) {
+          if (debuggerObj && debuggerObj.getEngineMode() !== ENGINE_MODE.DISCONNECTED) {
             logger.info('Debugger is connected');
             return true;
           }
@@ -933,7 +933,7 @@ export default function App() {
           return true;
         }
 
-        if (!debuggerObj || debuggerObj.getEngineMode() === debuggerObj.ENGINE_MODE.DISCONNECTED) {
+        if (!debuggerObj || debuggerObj.getEngineMode() === ENGINE_MODE.DISCONNECTED) {
           logger.error('Debugger is NOT connected.');
           commandInput.val('');
           return true;
@@ -992,13 +992,13 @@ export default function App() {
        */
       env.editor.on('change', () => {
         $('#tab-' + session.getActiveID()).addClass('unsaved');
-        if (debuggerObj && debuggerObj.getEngineMode() !== debuggerObj.ENGINE_MODE.DISCONNECTED) {
+        if (debuggerObj && debuggerObj.getEngineMode() !== ENGINE_MODE.DISCONNECTED) {
           session.markBreakpointGutters(debuggerObj);
         }
       });
 
       env.editor.on('changeSession', () => {
-        if (debuggerObj && debuggerObj.getEngineMode() !== debuggerObj.ENGINE_MODE.DISCONNECTED) {
+        if (debuggerObj && debuggerObj.getEngineMode() !== ENGINE_MODE.DISCONNECTED) {
           session.markBreakpointGutters(debuggerObj);
         }
       });
@@ -1007,7 +1007,7 @@ export default function App() {
        * Editor mouse click, breakpoint add/delete.
        */
       env.editor.on('guttermousedown', (e) => {
-        if (debuggerObj && debuggerObj.getEngineMode() !== debuggerObj.ENGINE_MODE.DISCONNECTED) {
+        if (debuggerObj && debuggerObj.getEngineMode() !== ENGINE_MODE.DISCONNECTED) {
           let target = e.domEvent.target;
           if (target.className.indexOf('ace_gutter-cell') === -1) {
             return;
