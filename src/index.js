@@ -1,4 +1,5 @@
-/* Copyright 2017 Samsung Electronics Co., Ltd. and other contributors
+/*
+ * Copyright 2017 Samsung Electronics Co., Ltd. and other contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +14,10 @@
  * limitations under the License.
  */
 
-import App from './app/main';
+import app from './app/main';
 
 if (module.hot) {
-  module.hot.accept('./app/main', App);
+  module.hot.accept('./app/main', app);
 }
 
-App();
+app();

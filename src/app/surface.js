@@ -248,7 +248,6 @@ export default class Surface {
     }
 
     // If every information panels are hidden then expand the editor.
-    // -1 from the length because of the resizable div element.
     if (this._panel.numberOfInactive === this.getPanelsNumber()) {
       $('#editor-wrapper').css('width', '100%');
       $('#editor-wrapper').css('padding-left', 0);

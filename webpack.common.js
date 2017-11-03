@@ -64,7 +64,7 @@ const rules = [
   },
   {
     test: /\.ejs$/,
-    loader: 'ejs-render-loader'
+    loader: 'ejs-render-loader',
   },
 ];
 

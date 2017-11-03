@@ -229,8 +229,7 @@ export default class Completer {
     let expr = /require\([''].+['']\);/g;
     let array = null;
 
-    // Add core modules to the return list.
-    // These modules can be used without require in IoT.js.
+    // Add core modules to the return list. These modules can be used without require in IoT.js.
     let modules = ['process', 'events', 'timers'];
 
     while ((array = expr.exec(source)) !== null) {
@@ -241,8 +240,7 @@ export default class Completer {
         // Slice down the end of the statement.
         name = name.slice(0, name.length - 3);
 
-        // Split up the module name and get the last element
-        // (which should be the module's name).
+        // Split up the module name and get the last element (which should be the module's name).
         name = name.split('/');
         name = name[name.length - 1];
 

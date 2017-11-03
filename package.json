@@ -6,6 +6,7 @@
     "start": "webpack-dev-server --open --progress --config webpack.dev.js",
     "build": "webpack -p --progress --config webpack.prod.js",
     "lint": "eslint src ./*.js -f table --ext .js > eslint.log",
+    "travis-lint": "eslint src ./*.js --ext .js",
     "lint-autofix": "eslint src ./*.js -f table --ext .js --fix > eslint.log"
   },
   "repository": {

@@ -1,14 +1,16 @@
 language: node_js
 node_js: 8
 os: linux
-install: true  
+install: true
 cache:
   directories:
     - node_modules
 jobs:
   include:
   - stage: Check
-    script: ./tools/check_signed_off.sh
+    script:
+    - ./tools/check_signed_off.sh
+    - npm run travis-lint
   - stage: Build
     script:
     - npm install
