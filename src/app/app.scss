@@ -310,6 +310,7 @@ input[type="number"] {
   padding: 0;
 }
 
+.sidenav-extra #settings-sidenav #global-control-block .control-item label:hover,
 .sidenav-extra #settings-sidenav #editor-control-block .control-item:nth-child(n+7) label:hover,
 .sidenav-extra #settings-sidenav #layout-control-block .control-item label:hover {
   color: #fff;
@@ -411,11 +412,13 @@ input[type="number"] {
   top: 0;
   right: 0;
   height: 100%;
-  padding-left: 10px;
+  width: 100%;
+  padding-left: 0;
 }
 
 #workspace-wrapper .resizable-columns #info-panels {
   position: absolute;
+  display: none;
   height: 100%;
   top: 0;
   left: 0;
@@ -499,6 +502,7 @@ input[type="number"] {
 /*
 *  Workspace -> Editor
 */
+
 #editor-wrapper,
 #editor-wrapper .row,
 #editor-wrapper .row .col-md-12,

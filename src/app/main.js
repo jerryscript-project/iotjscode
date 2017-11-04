@@ -26,6 +26,7 @@ import Surface from './surface';
 import DebuggerClient, { PROTOCOL, ENGINE_MODE } from './client-debugger';
 import MemoryChart from './memory-chart';
 import Completer, { IOTJS_FUNCTIONS } from './completer';
+import Settings from './settings';
 
 import FileSaver from 'file-saver';
 import 'jqueryui';
@@ -56,17 +57,7 @@ export default function App() {
   };
 
   /**
-   * Costum keybindings.
-   */
-  let keybindings = {
-    ace: null,
-    vim: 'ace/keyboard/vim',
-    emacs: 'ace/keyboard/emacs',
-    custom: null, // Create own bindings here.
-  };
-
-  /**
-   * Keycodes.
+   * Keycodes
    */
   let keys = {
     backspace: 8,
@@ -97,6 +88,7 @@ export default function App() {
   let session = new Session(env, surface);
   let chart = new MemoryChart(session, surface);
   let completer = new Completer();
+  let settings = new Settings(env.editor, surface);
 
 
   /**
@@ -159,6 +151,19 @@ export default function App() {
 
 
     /**
+     * User settings load related events.
+     */
+    (() => {
+      settings.initListeners();
+      settings.load();
+
+      if (surface.getPanelProperty('chart.active')) {
+        surface.initChartPanel(chart);
+      }
+    })();
+
+
+    /**
      * Sidenav events.
      */
     (() => {
@@ -166,7 +171,11 @@ export default function App() {
        * Toggle button click.
        */
       $('#sidenav-toggle-button').on('click', () => {
-        surface.toggleSidenav(chart);
+        surface.toggleSidenav();
+
+        if (surface.getPanelProperty('chart.active')) {
+          surface.initChartPanel(chart);
+        }
       });
 
       /**
@@ -180,12 +189,23 @@ export default function App() {
        * Panel swithcers.
        */
       $('.sidenav-panel-toggle').on('click', (e) => {
-        surface.togglePanel($(e.currentTarget).data('pid'), chart);
+        surface.togglePanel($(e.currentTarget).data('pid'));
 
-        if (surface.getPanelProperty('chart.active') &&
-            debuggerObj &&
-            debuggerObj.getEngineMode() !== ENGINE_MODE.DISCONNECTED) {
-          surface.toggleButton(true, 'chart-record-button');
+        settings.modify(
+          `panels.${$(e.currentTarget).data('pid')}`,
+          surface.getPanelProperty(`${$(e.currentTarget).data('pid')}.active`)
+        );
+
+        if (surface.getPanelProperty('chart.active')) {
+          if (debuggerObj && debuggerObj.getEngineMode() !== ENGINE_MODE.DISCONNECTED) {
+            surface.toggleButton(true, 'chart-record-button');
+          }
+
+          surface.initChartPanel(chart);
+
+          surface.toggleButton(true, 'export-chart-button');
+        } else {
+          surface.toggleButton(false, 'export-chart-button');
         }
 
         if (surface.getPanelProperty('run.active')) {
@@ -347,82 +367,11 @@ export default function App() {
      */
     (() => {
       /**
-       * Editor.
+       * Global.
        */
-      $('#theme').on('change', (e) => {
-        env.editor.setTheme(e.target.value);
-      });
-
-      $('#fontsize').on('change', (e) => {
-        env.editor.setFontSize(e.target.value);
-      });
-
-      $('#folding').on('change', (e) => {
-        env.editor.session.setFoldStyle(e.target.value);
-      });
-
-      $('#keybinding').on('change', (e) => {
-        env.editor.setKeyboardHandler(keybindings[e.target.value]);
-      });
-
-      $('#soft_wrap').on('change', (e) => {
-        env.editor.setOption('wrap', e.target.value);
-      });
-
-      $('#select_style').on('change', (e) => {
-        env.editor.setOption('selectionStyle', e.target.checked ? 'line' : 'text');
-      });
-
-      $('#highlight_active').on('change', (e) => {
-        env.editor.setHighlightActiveLine(e.target.checked);
-      });
-
-      $('#display_indent_guides').on('change', (e) => {
-        env.editor.setDisplayIndentGuides(e.target.checked);
-      });
-
-      $('#show_hidden').on('change', (e) => {
-        env.editor.setShowInvisibles(e.target.checked);
-      });
-
-      $('#show_hscroll').on('change', (e) => {
-        env.editor.setOption('hScrollBarAlwaysVisible', e.target.checked);
-      });
-
-      $('#show_vscroll').on('change', (e) => {
-        env.editor.setOption('vScrollBarAlwaysVisible', e.target.checked);
-      });
-
-      $('#animate_scroll').on('change', (e) => {
-        env.editor.setAnimatedScroll(e.target.checked);
-      });
-
-      $('#show_gutter').on('change', (e) => {
-        env.editor.renderer.setShowGutter(e.target.checked);
-      });
-
-      $('#show_print_margin').on('change', (e) => {
-        env.editor.renderer.setShowPrintMargin(e.target.checked);
-      });
-
-      $('#soft_tab').on('change', (e) => {
-        env.editor.session.setUseSoftTabs(e.target.checked);
-      });
-
-      $('#highlight_selected_word').on('change', (e) => {
-        env.editor.setHighlightSelectedWord(e.target.checked);
-      });
-
-      $('#enable_behaviours').on('change', (e) => {
-        env.editor.setBehavioursEnabled(e.target.checked);
-      });
-
-      $('#fade_fold_widgets').on('change', (e) => {
-        env.editor.setFadeFoldWidgets(e.target.checked);
-      });
-
-      $('#scrollPastEnd').on('change', (e) => {
-        env.editor.setOption('scrollPastEnd', e.target.checked);
+      $('#local-storage-reset-button').on('click', () => {
+        // Call the settings init function with the reset = true parameter.
+        settings.init(true);
       });
     })();
 
@@ -1053,7 +1002,8 @@ export default function App() {
       $('#info-panels').resizable({
         handles: 'e',
         resize: () => {
-          $('#editor-wrapper').width(surface.editorHorizontalPercentage() - 10 + '%');
+          console.log(surface.editorHorizontalPercentage());
+          $('#editor-wrapper').css('width', surface.editorHorizontalPercentage() + '%');
 
           // Resize chart.
           if (surface.getPanelProperty('chart.active')) {
@@ -1116,6 +1066,7 @@ export default function App() {
        */
       $(window).resize((e) => {
         if (e.target === window) {
+
           surface.resetPanelsPercentage();
 
           if (surface.getPanelProperty('chart.active')) {
@@ -1127,7 +1078,7 @@ export default function App() {
           }
 
           // Resize the info panels and the editor.
-          $('#editor-wrapper').width(surface.editorHorizontalPercentage() - 10 + '%');
+          $('#editor-wrapper').css('width', surface.editorHorizontalPercentage() + '%');
           env.editor.resize();
         }
 

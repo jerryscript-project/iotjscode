@@ -38,13 +38,13 @@ export default class Surface {
     };
 
     this._panel = {
-      numberOfInactive: 4,
+      numberOfInactive: 7,
       height: 100,
       backtrace: {
-        active: true,
+        active: false,
       },
       breakpoints: {
-        active: true,
+        active: false,
       },
       watch: {
         active: false,
@@ -61,7 +61,7 @@ export default class Surface {
         active: false,
       },
       console: {
-        active: true,
+        active: false,
       },
     };
   }
@@ -114,7 +114,7 @@ export default class Surface {
   /**
    * Closes or opens the left side menu.
    */
-  toggleSidenav(chart) {
+  toggleSidenav() {
     if (this._sidenav.opened) {
       this._sidenav.opened = false;
       $('#left-sidenav').css('width', this._sidenav.closedWidth + 'px');
@@ -123,12 +123,6 @@ export default class Surface {
       this._sidenav.opened = true;
       $('#left-sidenav').css('width', this._sidenav.openedWidth + 'px');
       $('#main-wrapper').css('margin-left', this._sidenav.openedWidth + 'px');
-    }
-
-    if (this.getPanelProperty('chart.active')) {
-      this._panel.chart.height = $('#chart-wrapper').height();
-      this._panel.chart.width = $('#chart-wrapper').width();
-      chart.resizeChart(this._panel.chart.height, this._panel.chart.width);
     }
 
     if (this.getPanelProperty('backtrace.active')) {
@@ -209,14 +203,9 @@ export default class Surface {
    * Enables or disables an information panel on the page left side.
    *
    * @param {string} target Name of the panel.
-   * @param {object} chart Chart object if the target is the chart.
    */
-  togglePanel(target, chart = null) {
+  togglePanel(target) {
     if (this._panel[target].active) {
-      if (target === 'chart' && chart !== null) {
-        this.toggleButton(false, 'export-chart-button');
-      }
-
       this._panel[target].active = false;
 
       $(`#sidenav-toggle-${target}`).removeClass('active-sidenav-button');
@@ -225,11 +214,6 @@ export default class Surface {
       $(`#${target}-wrapper`).addClass('hidden-panel');
       this._panel.numberOfInactive++;
     } else {
-      if (target === 'chart' && chart !== null) {
-        chart.initChart();
-        this.toggleButton(true, 'export-chart-button');
-      }
-
       this._panel[target].active = true;
 
       $(`#sidenav-toggle-${target}`).addClass('active-sidenav-button');
@@ -246,6 +230,7 @@ export default class Surface {
     if (this.getPanelProperty('breakpoints.active')) {
       $('#breakpoints-table').floatThead('reflow');
     }
+
 
     // If every information panels are hidden then expand the editor.
     if (this._panel.numberOfInactive === this.getPanelsNumber()) {
@@ -275,12 +260,6 @@ export default class Surface {
         $(element).children('.ui-resizable-s').show();
       }
     });
-
-    if (this._panel.chart.active) {
-      this._panel.chart.height = $('#chart-wrapper').height();
-      this._panel.chart.width = $('#chart-wrapper').width();
-      chart.resizeChart(this._panel.chart.height, this._panel.chart.width);
-    }
   }
 
   /**
@@ -571,10 +550,23 @@ export default class Surface {
   }
 
   /**
+   * Sets the memory chart dimensions then init and resize that with these dimensions.
+   *
+   * @param {object} chart The main MemoryChart module instance.
+   */
+  initChartPanel(chart) {
+    this.setChartPanelWidth($('#chart-wrapper').width());
+    this.setChartPanelHeight($('#chart-wrapper').height());
+    chart.initChart();
+    chart.resizeChart(this.getPanelProperty('chart.height'), this.getPanelProperty('chart.width'));
+  }
+
+  /**
    * Returns the view percentage of the editor wrapper.
    */
   editorHorizontalPercentage() {
-    return (($('#workspace-wrapper').width() - $('#info-panels').width()) / $('#workspace-wrapper').width()) * 100;
+    let pw = (this._panel.numberOfInactive === Object.keys(this._panel).length - 2) ? 0 : $('#info-panels').width();
+    return (($('#workspace-wrapper').width() - pw) / $('#workspace-wrapper').width()) * 100;
   }
 
   /**
@@ -720,7 +712,7 @@ export default class Surface {
    * @return {integer}
    */
   getPanelsNumber() {
-    return $('#info-panels').children().length - 1;
+    return $('#info-panels').children('.vertical-resizable').length;
   }
 
   /**

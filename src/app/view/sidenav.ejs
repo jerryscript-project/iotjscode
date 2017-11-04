@@ -44,6 +44,14 @@
       <i class="fa fa-times extra-sidenav-toggle" aria-hidden="true" data-eid="settings-sidenav"></i>
     </div>
 
+    <div class="control-block" id="global-control-block">
+      <h4>Global</h4>
+      <div class="control-item">
+        <p>The IoT.js Code stores the settings in your browser storage.</p>
+        <div class="btn btn-default btn-xs" id="local-storage-reset-button">Reset default settigns</div>
+      </div>
+    </div>
+
     <div class="control-block" id="editor-control-block">
       <h4>Editor</h4>
       <div class="control-item">
@@ -95,7 +103,7 @@
         <select id="fontsize" class="form-control input-sm">
           <option value="10px">10px</option>
           <option value="11px">11px</option>
-          <option value="12px" selected="selected">12px</option>
+          <option value="12px">12px</option>
           <option value="13px">13px</option>
           <option value="14px">14px</option>
           <option value="16px">16px</option>
@@ -108,21 +116,13 @@
         <label for="folding">Code Folding</label>
         <select id="folding" class="form-control input-sm">
           <option value="manual">manual</option>
-          <option value="markbegin" selected="selected">mark begin</option>
+          <option value="markbegin">mark begin</option>
           <option value="markbeginend">mark begin and end</option>
         </select>
       </div>
       <div class="control-item">
-        <label for="keybinding">Key Binding</label>
-        <select id="keybinding" class="form-control input-sm">
-          <option value="ace">Ace</option>
-          <option value="vim">Vim</option>
-          <option value="emacs">Emacs</option>
-        </select>
-      </div>
-      <div class="control-item">
-        <label for="soft_wrap">Soft Wrap</label>
-        <select id="soft_wrap" class="form-control input-sm">
+        <label for="wrap">Wrap</label>
+        <select id="wrap" class="form-control input-sm">
           <option value="off">Off</option>
           <option value="40">40 Chars</option>
           <option value="80">80 Chars</option>
@@ -130,66 +130,66 @@
         </select>
       </div>
       <div class="control-item">
-        <input type="checkbox" name="select_style" id="select_style" checked>
-        <label for="select_style">Full Line Selection</label>
+        <input type="checkbox" name="selectionStyle" id="selectionStyle">
+        <label for="selectionStyle">Full Line Selection</label>
       </div>
       <div class="control-item">
-        <input type="checkbox" name="highlight_active" id="highlight_active" checked>
-        <label for="highlight_active">Highlight Active Line</label>
+        <input type="checkbox" name="highlightActive" id="highlightActive">
+        <label for="highlightActive">Highlight Active Line</label>
       </div>
       <div class="control-item">
-        <input type="checkbox" name="show_hidden" id="show_hidden">
-        <label for="show_hidden">Show Invisibles</label>
+        <input type="checkbox" name="showHidden" id="showHidden">
+        <label for="showHidden">Show Invisibles</label>
       </div>
       <div class="control-item">
-        <input type="checkbox" name="display_indent_guides" id="display_indent_guides" checked>
-        <label for="display_indent_guides">Show Indent Guides</label>
+        <input type="checkbox" name="displayIndentGuides" id="displayIndentGuides">
+        <label for="displayIndentGuides">Show Indent Guides</label>
       </div>
       <div class="control-item">
-        <input type="checkbox" name="show_hscroll" id="show_hscroll">
-        <label for="show_hscroll">Persistent HScroll</label>
-        <input type="checkbox" name="show_vscroll" id="show_vscroll">
-        <label for="show_vscroll" id="vscroll-label">VScroll</label>
+        <input type="checkbox" name="hScrollBarAlwaysVisible" id="hScrollBarAlwaysVisible">
+        <label for="hScrollBarAlwaysVisible">Persistent HScroll</label>
+        <input type="checkbox" name="vScrollBarAlwaysVisible" id="vScrollBarAlwaysVisible">
+        <label for="vScrollBarAlwaysVisible" id="vscroll-label">VScroll</label>
       </div>
       <div class="control-item">
-        <input type="checkbox" name="animate_scroll" id="animate_scroll">
-        <label for="animate_scroll">Animate scrolling</label>
+        <input type="checkbox" name="animateScroll" id="animateScroll">
+        <label for="animateScroll">Animate scrolling</label>
       </div>
       <div class="control-item">
-        <input type="checkbox" id="show_gutter" checked>
-        <label for="show_gutter">Show Gutter</label>
+        <input type="checkbox" id="showGutter">
+        <label for="showGutter">Show Gutter</label>
       </div>
       <div class="control-item">
-        <input type="checkbox" id="show_print_margin" checked>
-        <label for="show_print_margin">Show Print Margin</label>
+        <input type="checkbox" id="showPrintMargin">
+        <label for="showPrintMargin">Show Print Margin</label>
       </div>
       <div class="control-item">
-        <input type="checkbox" id="soft_tab" checked>
-        <label for="soft_tab">Use Soft Tab</label>
+        <input type="checkbox" id="softTab">
+        <label for="softTab">Use Soft Tab</label>
       </div>
       <div class="control-item">
-        <input type="checkbox" id="highlight_selected_word" checked>
-        <label for="highlight_selected_word">Highlight selected word</label>
+        <input type="checkbox" id="highlightSelectedWord">
+        <label for="highlightSelectedWord">Highlight selected word</label>
       </div>
       <div class="control-item">
-        <input type="checkbox" id="enable_behaviours">
-        <label for="enable_behaviours">Enable Behaviours</label>
+        <input type="checkbox" id="enableBehaviours">
+        <label for="enableBehaviours">Enable Behaviours</label>
       </div>
       <div class="control-item">
-        <input type="checkbox" id="fade_fold_widgets">
-        <label for="fade_fold_widgets">Fade Fold Widgets</label>
+        <input type="checkbox" id="fadeFoldWidgets">
+        <label for="fadeFoldWidgets">Fade Fold Widgets</label>
       </div>
       <div class="control-item">
-        <input type="checkbox" id="scrollPastEnd" checked>
+        <input type="checkbox" id="scrollPastEnd">
         <label for="scrollPastEnd">Scroll Past End</label>
       </div>
     </div>
 
-    <div class="control-block">
+    <div class="control-block" id="debugger-control-block">
       <h4>Debugger</h4>
       <div class="control-item">
-        <label for="backtrace-depth">Backtrace depth</label>
-        <input type="number" name="backtrace-depth" id="backtrace-depth" class="form-control input-sm" title="Maximum depth of backtrace. 0 by default." min="0" value="0">
+        <label for="backtraceDepth">Backtrace depth</label>
+        <input type="number" name="backtraceDepth" id="backtraceDepth" class="form-control input-sm" title="Maximum depth of backtrace. 0 by default." min="0" value="0">
       </div>
     </div>
   </div>
