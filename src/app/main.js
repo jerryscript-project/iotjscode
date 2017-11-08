@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootswatch/yeti/bootstrap.min.css';
 import 'jquery-ui-dist/jquery-ui.min.css';
 import 'font-awesome/css/font-awesome.min.css';
 import 'c3/c3.min.css';
@@ -105,7 +105,7 @@ export default function App() {
     env.config.set('themePath', env.basePath);
 
     env.editor.resize();
-    env.editor.setTheme('ace/theme/chrome');
+    env.editor.setTheme('ace/theme/tomorrow');
     env.EditSession = window.ace.require('ace/edit_session').EditSession;
     env.Document = window.ace.require('ace/document').Document;
     env.editor.session.setMode('ace/mode/javascript');
@@ -602,6 +602,7 @@ export default function App() {
       $('.scroll-table').floatThead({
         autoReflow: true,
         position: 'fixed',
+        zIndex: 800,
         scrollContainer: ($table) => {
           return $table.closest('.wrapper');
         },
@@ -676,7 +677,7 @@ export default function App() {
 
         $('#run-chooser-src .ui-selected').each((i, e) => {
           $(e).detach().appendTo('#run-chooser-dest').removeClass('ui-selected').addClass('sortable')
-            .children().removeClass('hidden');
+            .children('div').removeClass('hidden');
 
           let sid = parseInt($(e).data('sid'));
 
@@ -698,7 +699,7 @@ export default function App() {
 
         $('#run-chooser-dest .ui-selected').each((i, e) => {
           $(e).detach().appendTo('#run-chooser-src').removeClass('sortable').removeClass('ui-selected')
-            .children().addClass('hidden');
+            .children('div').addClass('hidden');
 
           let sid = parseInt($(e).data('sid'));
 
@@ -1002,7 +1003,6 @@ export default function App() {
       $('#info-panels').resizable({
         handles: 'e',
         resize: () => {
-          console.log(surface.editorHorizontalPercentage());
           $('#editor-wrapper').css('width', surface.editorHorizontalPercentage() + '%');
 
           // Resize chart.

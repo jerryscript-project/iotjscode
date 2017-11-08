@@ -148,7 +148,8 @@ function createPopup(type, strong, message) {
     `<div class="alert ${clss} alert-dismissable fade in">` +
       `<i class="fa fa-${icon}" aria-hidden="true"></i>` +
       '<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>' +
-      `<strong>${strong}!</strong> ${message}` +
+      `<strong>${strong}!</strong><br/>` +
+      `<strong>${message}</strong>` +
     '</div>'
   );
 

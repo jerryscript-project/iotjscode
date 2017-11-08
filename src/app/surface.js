@@ -240,7 +240,7 @@ export default class Surface {
 
       // If there is at least one information panel then reset the last known layout.
     } else if (this._panel.numberOfInactive > 0 && !$('#info-panels').is(':visible')) {
-      $('#editor-wrapper').css('padding-left', 10);
+      $('#editor-wrapper').css('padding-left', 4);
       $('#editor-wrapper').css('width', this.editorHorizontalPercentage() + '%');
       $('#info-panels').show();
     }
@@ -251,7 +251,7 @@ export default class Surface {
       if (index === 0) {
         $(element).children('.col-md-12').css('padding-top', 0);
       } else {
-        $(element).children('.col-md-12').css('padding-top', 10);
+        $(element).children('.col-md-12').css('padding-top', 4);
       }
 
       if (index === ($('.vertical-resizable').not('.hidden-panel').length - 1)) {

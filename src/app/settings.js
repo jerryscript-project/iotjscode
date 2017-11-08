@@ -60,7 +60,7 @@ export default class Settings {
       editor: {
         theme: [CONTROL_TYPE.SELECT, (theme) => {
           this._editor.setTheme(theme);
-        }, 'ace/theme/chrome'],
+        }, 'ace/theme/tomorrow'],
         fontsize: [CONTROL_TYPE.SELECT, (size) => {
           this._editor.setFontSize(size);
         }, '12px'],
