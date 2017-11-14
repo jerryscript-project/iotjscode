@@ -328,15 +328,9 @@ function onmessage(event) {
         }
       }
 
-      // Remove the old highlights from the session.
-      this._session.unhighlightLine(this._session.HIGHLIGHT_TYPE.EXECUTE);
-      this._session.unhighlightLine(this._session.HIGHLIGHT_TYPE.EXCEPTION);
-
       // Switch to the the right session.
       let sID = this._session.getFileIdByName(breakpoint.func.sourceName);
       if (sID !== undefined && sID !== this._session.getActiveID()) {
-        this._session.removeBreakpointGutters(this._debuggerObj);
-
         // Change the session.
         this._session.switchFile(sID);
       }

@@ -547,6 +547,10 @@ export default class Session {
    * @param {integer} id The id of the desired file.
    */
   switchFile(id) {
+    // Remove the highlight from the current file.
+    this.unhighlightLine(this.HIGHLIGHT_TYPE.EXECUTE);
+    this.unhighlightLine(this.HIGHLIGHT_TYPE.EXCEPTION);
+
     // Select the right tab on the tabs panel.
     this.selectTab(id);
 
