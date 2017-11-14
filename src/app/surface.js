@@ -277,6 +277,20 @@ export default class Surface {
   }
 
   /**
+   * Checks if the given button is disabled or not.
+   *
+   * @param {object} target The button.
+   * @return {boolean} True if the button is disabled, false otehrwise.
+   */
+  buttonIsDisabled(target) {
+    if ($(target).is('i')) {
+      return $(target).parent().hasClass('disabled') ? true : false;
+    } else {
+      return $(target).hasClass('disabled') ? true : false;
+    }
+  }
+
+  /**
    * Returns a porperty from the panel object based on the path argument.
    *
    * @param {string} path Dot spearated path to the property value.

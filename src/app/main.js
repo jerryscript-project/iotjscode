@@ -330,8 +330,8 @@ export default function App() {
        * New file name ok button events.
        */
       $('#ok-file-name').on('click', (e) => {
-        if ($(e.target).hasClass('disabled')) {
-          return;
+        if (surface.buttonIsDisabled(e.target)) {
+          return true;
         }
 
         session.createNewFile($('#new-file-name').val().trim(), '', session.TABTYPE.WORK, false);
@@ -350,8 +350,8 @@ export default function App() {
        * Save button event.
        */
       $('#save-file-button').on('click', (e) => {
-        if ($(e.target).hasClass('disabled')) {
-          return;
+        if (surface.buttonIsDisabled(e.target)) {
+          return true;
         }
 
         let blob = new Blob([env.editor.session.getValue()]);
@@ -384,8 +384,8 @@ export default function App() {
        * Export chart button.
        */
       $('#export-chart-button').on('click', (e) => {
-        if ($(e.target).hasClass('disabled')) {
-          return;
+        if (surface.buttonIsDisabled(e.target)) {
+          return true;
         }
 
         chart.exportChartData();
@@ -423,7 +423,7 @@ export default function App() {
       });
 
       $('#connect-to-button').on('click', (e) => {
-        if ($(e.target).hasClass('disabled')) {
+        if (surface.buttonIsDisabled(e.target)) {
           return true;
         }
 
@@ -474,7 +474,7 @@ export default function App() {
       });
 
       $('#continue-stop-button').on('click', (e) => {
-        if ($(e.target).hasClass('disabled')) {
+        if (surface.buttonIsDisabled(e.target)) {
           return true;
         }
 
@@ -493,7 +493,7 @@ export default function App() {
       });
 
       $('#step-button').on('click', (e) => {
-        if ($(e.target).hasClass('disabled')) {
+        if (surface.buttonIsDisabled(e.target)) {
           return true;
         }
 
@@ -506,7 +506,7 @@ export default function App() {
       });
 
       $('#next-button').on('click', (e) => {
-        if ($(e.target).hasClass('disabled')) {
+        if (surface.buttonIsDisabled(e.target)) {
           return true;
         }
 
@@ -528,8 +528,8 @@ export default function App() {
        * Add button in the panel head.
        */
       $('#watch-add-button').on('click', (e) => {
-        if ($(e.target).hasClass('disabled')) {
-          return;
+        if (surface.buttonIsDisabled(e.target)) {
+          return true;
         }
 
         $('#watch-add-wrapper').show();
@@ -540,8 +540,8 @@ export default function App() {
        * Refresh button in the panel head.
        */
       $('#watch-refresh-button').on('click', (e) => {
-        if ($(e.target).hasClass('disabled')) {
-          return;
+        if (surface.buttonIsDisabled(e.target)) {
+          return true;
         }
 
         if (debuggerObj && debuggerObj.getEngineMode() === ENGINE_MODE.BREAKPOINT) {
@@ -553,8 +553,8 @@ export default function App() {
        * Clear button in the panel head.
        */
       $('#watch-clear-button').on('click', (e) => {
-        if ($(e.target).hasClass('disabled')) {
-          return;
+        if (surface.buttonIsDisabled(e.target)) {
+          return true;
         }
 
         $('#watch-list').html('');
@@ -615,7 +615,7 @@ export default function App() {
      */
     (() => {
       $('#chart-record-button').on('click', (e) => {
-        if ($(e.target).hasClass('disabled')) {
+        if (surface.buttonIsDisabled(e.target)) {
           return true;
         }
 
@@ -626,7 +626,7 @@ export default function App() {
       });
 
       $('#chart-stop-button').on('click', (e) => {
-        if ($(e.target).hasClass('disabled')) {
+        if (surface.buttonIsDisabled(e.target)) {
           return true;
         }
 
@@ -634,7 +634,7 @@ export default function App() {
       });
 
       $('#chart-reset-button').on('click', (e) => {
-        if ($(e.target).hasClass('disabled')) {
+        if (surface.buttonIsDisabled(e.target)) {
           return true;
         }
 
@@ -671,8 +671,8 @@ export default function App() {
        * Right arrow button in the source selecting panel.
        */
       $('#run-right-button').on('click', (e) => {
-        if ($(e.target).hasClass('disabled')) {
-          return;
+        if (surface.buttonIsDisabled(e.target)) {
+          return true;
         }
 
         $('#run-chooser-src .ui-selected').each((i, e) => {
@@ -693,8 +693,8 @@ export default function App() {
        * Left arrow button in the source selecting panel.
        */
       $('#run-left-button').on('click', (e) => {
-        if ($(e.target).hasClass('disabled')) {
-          return;
+        if (surface.buttonIsDisabled(e.target)) {
+          return true;
         }
 
         $('#run-chooser-dest .ui-selected').each((i, e) => {
@@ -715,8 +715,8 @@ export default function App() {
        * Run button in the run panel head.
        */
       $('#run-ok-button').on('click', (e) => {
-        if ($(e.target).hasClass('disabled')) {
-          return;
+        if (surface.buttonIsDisabled(e.target)) {
+          return true;
         }
 
         // Prevent the 'empty' upload.
@@ -743,8 +743,8 @@ export default function App() {
        * Clear button in the run panel head.
        */
       $('#run-clear-button').on('click', (e) => {
-        if ($(e.target).hasClass('disabled')) {
-          return;
+        if (surface.buttonIsDisabled(e.target)) {
+          return true;
         }
 
         session.getAllData().forEach((s) => {
@@ -765,8 +765,8 @@ export default function App() {
        * Context reset button in the run panel head.
        */
       $('#run-context-reset-button').on('click', (e) => {
-        if ($(e.target).hasClass('disabled')) {
-          return;
+        if (surface.buttonIsDisabled(e.target)) {
+          return true;
         }
 
         // Reset the upload list.
