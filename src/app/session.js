@@ -682,6 +682,26 @@ export default class Session {
   }
 
   /**
+   * Checks the opened and the device source match.
+   *
+   * @param {string} filename Name of the stored file.
+   * @param {string} content Content of the current source.
+   */
+  fileContentCheck(filename, content) {
+    return (content === this.getFileSessionById(this.getFileIdByName(filename)).getValue()) ? true : false;
+  }
+
+  /**
+   * Resets the selected file source code content from the debugger engine.
+   *
+   * @param {string} filename Name of the stored content.
+   * @param {string} content The source from the debugger engine.
+   */
+  resetFileContent(filename, content) {
+    this.getFileSessionById(this.getFileIdByName(filename)).setValue(content);
+  }
+
+  /**
    * Marks every valid, available breakpoint line in the current opened file.
    *
    * @param {object} debuggerObj Jerry client object.

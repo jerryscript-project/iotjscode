@@ -106,6 +106,7 @@ export default class DebuggerClient {
     this._cpointerSize = 0;
     this._littleEndian = true;
     this._functions = {};
+    this._sources = {};
     this._lineList = new Multimap();
     this._lastBreakpointHit = null;
     this._activeBreakpoints = {};
@@ -176,6 +177,14 @@ export default class DebuggerClient {
 
   setFunctions(key, value) {
     this._functions[key] = value;
+  }
+
+  getSources() {
+    return this._sources;
+  }
+
+  setSources(name, source) {
+    this._sources[name] = source;
   }
 
   lineListInsert(key, value) {

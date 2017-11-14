@@ -266,6 +266,8 @@ function onmessage(event) {
       let breakpointRef = this._debuggerObj.getBreakpoint(breakpointData);
       let breakpoint = breakpointRef.breakpoint;
       let breakpointInfo = '';
+      let sourceName = breakpoint.func.sourceName;
+      let source = this._debuggerObj.getSources()[sourceName];
 
       this._debuggerObj.setLastBreakpointHit(breakpoint);
 
@@ -283,32 +285,46 @@ function onmessage(event) {
       this._surface.continueStopButtonState(this._surface.CSICON.CONTINUE);
       this._surface.disableActionButtons(false);
 
-      if (breakpoint.func.sourceName !== '') {
-        if (!this._session.fileNameCheck(breakpoint.func.sourceName, true)) {
-          let name = breakpoint.func.sourceName.split('/');
-          name = name[name.length - 1];
-
-          let groupID = name.split('.')[0] + name.length;
+      // Source load and reload from Jerry.
+      if (sourceName !== '') {
+        if (!this._session.fileNameCheck(sourceName, true)) {
+          let groupID = `gid-name-${sourceName.replace('/', '-').replace('.', '-')}-${sourceName.length}`;
 
           this._logger.debug(
-            `The ${breakpoint.func.sourceName} file is missing: `,
+            `The ${sourceName} file is missing: `,
             `<div class="btn btn-xs btn-default load-from-jerry ${groupID}">Load from Jerry</div>`,
             true
           );
 
           $('.load-from-jerry').on('click', (e) => {
-            let code = breakpoint.func.source;
-
-            this._session.createNewFile(name, code, 1, true);
+            this._session.createNewFile(sourceName, source, 1, true);
 
             if (this._surface.getPanelProperty('run.active')) {
               this._surface.updateRunPanel(this._surface.RUN_UPDATE_TYPE.ALL, this._debuggerObj, this._session);
             }
 
-            $('.' + groupID).addClass('disabled');
-            $('.' + groupID).unbind('click');
+            $(`.${groupID}`).addClass('disabled');
+            $(`.${groupID}`).unbind('click');
             e.stopImmediatePropagation();
           });
+        } else {
+          if (!this._session.fileContentCheck(sourceName, source)) {
+            let groupID = `gid-source-${sourceName.replace('/', '-').replace('.', '-')}-${source.length}`;
+
+            this._logger.debug(
+              `The opened ${sourceName} source is not match with the source on the device! `,
+              `<div class="btn btn-xs btn-default reload-from-jerry ${groupID}">Reload from Jerry</div>`,
+              true
+            );
+
+            $('.reload-from-jerry').on('click', (e) => {
+              this._session.resetFileContent(sourceName, source);
+
+              $(`.${groupID}`).addClass('disabled');
+              $(`.${groupID}`).unbind('click');
+              e.stopImmediatePropagation();
+            });
+          }
         }
       }
 

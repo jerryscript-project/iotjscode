@@ -82,6 +82,8 @@ export default class ParseSource {
 
         if (message[0] === PROTOCOL.SERVER.JERRY_DEBUGGER_SOURCE_CODE_END) {
           this._source = this._debuggerObj.cesu8ToString(this._sourceData);
+
+          this._debuggerObj.setSources(this._sourceName, this._source);
         }
         return;
       }

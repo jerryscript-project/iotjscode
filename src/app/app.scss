@@ -28,7 +28,7 @@ $b-yellow-color: #eab700;
 $b-green-color: #718c00;
 $b-aqua-color: #3e999f;
 $b-blue-color: #4271ae;
-$b-puprle-color: #8959a8;
+$b-purple-color: #8959a8;
 
 /**
  * Dark (Tomorrow Night Eighties) color variables.
@@ -44,7 +44,7 @@ $d-yellow-color: #ffcc66;
 $d-green-color: #99cc99;
 $d-aqua-color: #66cccc;
 $d-blue-color: #6699cc;
-$d-puprle-color: #cc99cc;
+$d-purple-color: #cc99cc;
 
 /**
  * Menu color variables.
@@ -982,11 +982,12 @@ input[type="number"] {
 }
 
 #info-panels .logger-panel .log-info,
-#info-panels .logger-panel .log-debug,
-#info-panels .logger-panel .log-debug-dom {
+#info-panels .logger-panel .log-debug {
   color: $default-text-color;
 }
 
 #info-panels .logger-panel .log-debug-dom {
   float: left;
+  color: $default-text-color;
+  font-weight: bold;
 }
