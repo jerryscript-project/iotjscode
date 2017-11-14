@@ -390,7 +390,7 @@ export default class Session {
    * @param {string} expr Expression which will be added into the list.
    */
   addWatchExpression(debuggerObj, expr) {
-    this._watch.list[expr] = '< not available >';
+    this._watch.list[expr] = '&ltnot available&gt';
 
     if (debuggerObj && debuggerObj.getEngineMode() === ENGINE_MODE.BREAKPOINT) {
       this._watch.work.inProgress = true;
@@ -470,6 +470,21 @@ export default class Session {
    */
   removeAllWatchExpression() {
     this._watch.list = {};
+  }
+
+  /**
+   * Sets back the <not available> text in each watch expression.
+   */
+  neutralizeWatchExpressions() {
+    if (Object.keys(this._watch.list).length) {
+      for (let expr in this._watch.list) {
+        if (this._watch.list.hasOwnProperty(expr)) {
+          this._watch.list[expr] = '&ltnot available&gt';
+        }
+      }
+
+      this._surface.updateWatchPanelList(this._watch.list);
+    }
   }
 
   /**

@@ -141,6 +141,7 @@ function onerror() {
 
   if (this._surface.getPanelProperty('watch.active')) {
     this._surface.updateWatchPanelButtons(this._debuggerObj);
+    this._session.neutralizeWatchExpressions();
   }
 
   if (this._session.isUploadStarted()) {
