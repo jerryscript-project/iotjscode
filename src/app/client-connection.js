@@ -288,7 +288,7 @@ function onmessage(event) {
       // Source load and reload from Jerry.
       if (sourceName !== '') {
         if (!this._session.fileNameCheck(sourceName, true)) {
-          let groupID = `gid-name-${sourceName.replace('/', '-').replace('.', '-')}-${sourceName.length}`;
+          let groupID = `gid-name-${sourceName.replace(/\//g, '-').replace(/\./g, '-')}-${sourceName.length}`;
 
           this._logger.debug(
             `The ${sourceName} file is missing: `,
@@ -297,7 +297,7 @@ function onmessage(event) {
           );
 
           $('.load-from-jerry').on('click', (e) => {
-            this._session.createNewFile(sourceName, source, 1, true);
+            this._session.createNewFile(sourceName.split('/').pop(), source, 1, true);
 
             if (this._surface.getPanelProperty('run.active')) {
               this._surface.updateRunPanel(this._surface.RUN_UPDATE_TYPE.ALL, this._debuggerObj, this._session);
@@ -309,7 +309,7 @@ function onmessage(event) {
           });
         } else {
           if (!this._session.fileContentCheck(sourceName, source)) {
-            let groupID = `gid-source-${sourceName.replace('/', '-').replace('.', '-')}-${source.length}`;
+            let groupID = `gid-source-${sourceName.replace(/\//g, '-').replace(/\./g, '-')}-${source.length}`;
 
             this._logger.debug(
               `The opened ${sourceName} source is not match with the source on the device! `,
@@ -318,7 +318,7 @@ function onmessage(event) {
             );
 
             $('.reload-from-jerry').on('click', (e) => {
-              this._session.resetFileContent(sourceName, source);
+              this._session.resetFileContent(sourceName.split('/').pop(), source);
 
               $(`.${groupID}`).addClass('disabled');
               $(`.${groupID}`).unbind('click');
