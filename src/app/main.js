@@ -179,6 +179,13 @@ export default function App() {
       });
 
       /**
+       * Outside click of the sidenav extra.
+       */
+      $('#sidenav-extra-modal').on('click', () => {
+        surface.toggleSidenavExtra(surface.getLastOpenedSidenavExtra());
+      });
+
+      /**
        * Extra panel toggles
        */
       $('.extra-sidenav-toggle').on('click', (e) => {

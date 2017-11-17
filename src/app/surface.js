@@ -144,6 +144,13 @@ export default class Surface {
   }
 
   /**
+   * Returns the last opened sidenav extra menu identifier.
+   */
+  getLastOpenedSidenavExtra() {
+    return this._sidenavExtra.last;
+  }
+
+  /**
    * Enables or disables a specified menu based on the given type.
    *
    * @param {string} extra ID of the menu.
