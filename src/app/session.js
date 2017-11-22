@@ -760,7 +760,7 @@ export default class Session {
   /**
    * Highlights a single line in the editor session.
    *
-   * @param {integer} type Type of the hightlight from the HIGHLIGHT_TYPE.
+   * @param {integer} type Type of the highlight from the HIGHLIGHT_TYPE.
    * @param {integer} line Selected line.
    */
   highlightLine(type, line) {
@@ -771,7 +771,10 @@ export default class Session {
       gutterName: `${type}-gutter-cell-marker`,
     };
 
-    this.unhighlightLine(type);
+    // Remove each kind of highlight.
+    this.unhighlightLine(this.HIGHLIGHT_TYPE.EXECUTE);
+    this.unhighlightLine(this.HIGHLIGHT_TYPE.EXCEPTION);
+
     this._marker[type].obj = this._editor.session.addMarker(new Range(line, 0, line, 1), options.lineName, 'fullLine');
 
     this._editor.session.addGutterDecoration(line, options.gutterName);
@@ -783,7 +786,7 @@ export default class Session {
   /**
    * Removes the highlight (border) from the last highlighted line.
    *
-   * @param {integer} type Type of the hightlight from the HIGHLIGHT_TYPE.
+   * @param {integer} type Type of the highlight from the HIGHLIGHT_TYPE.
    */
   unhighlightLine(type) {
     if (this._marker[type].active) {
