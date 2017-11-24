@@ -43,6 +43,8 @@ export default class Settings {
     // If the local storage settings is not exist, then create it.
     if (this._settings === undefined) {
       this.init();
+    } else {
+      this.validityCheck();
     }
   }
 
@@ -194,6 +196,26 @@ export default class Settings {
     }
 
     store.set('settings', this._settings);
+  }
+
+  /**
+   * Compares the stored and the static setting objects based on their properties.
+   * If they are not equals, then reinits the settings.
+   */
+  validityCheck() {
+    let same = Object.keys(this._settings).every((section) => {
+      if (this.CONTROLS.hasOwnProperty(section)) {
+        return Object.keys(this._settings[section]).every((item) => {
+          return this.CONTROLS[section].hasOwnProperty(item);
+        });
+      } else {
+        return false;
+      }
+    });
+
+    if (!same) {
+      this.init();
+    }
   }
 
   /**
