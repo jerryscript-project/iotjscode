@@ -50,7 +50,7 @@ export default class Connection {
 
     this._socket.onopen = onopen.bind(this);
     this._socket.onmessage = onmessage.bind(this);
-    this._socket.onclose = this._socket.onerror = onerror.bind(this);
+    this._socket.onclose = this._socket.onerror = onclose_and_error.bind(this);
 
     this._logger.info(`ws://${address}/jerry-debugger`);
   }
@@ -120,11 +120,11 @@ function onopen() {
 }
 
 /**
- * The socket onerror event handler.
+ * The socket onclose_and_error event handler.
  * This function will be called when the socket run into an error.
  * this function will be called when the we want to close the socket.
  */
-function onerror() {
+function onclose_and_error() {
   if (this._socket) {
     this._socket = null;
     this._logger.info('Connection closed.');
