@@ -26,6 +26,7 @@
     "font-awesome": "^4.7.0",
     "jquery": "^1.12.4",
     "jquery-ui-dist": "^1.12.1",
+    "perfect-scrollbar": "^1.2.0",
     "store": "^2.0.12"
   },
   "devDependencies": {

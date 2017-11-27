@@ -768,7 +768,7 @@ input[type="number"] {
 #info-panels #watch-content {
   position: relative;
   height: 100%;
-  overflow-y: scroll;
+  overflow-y: auto;
 }
 
 #info-panels #watch-add-wrapper {
@@ -853,6 +853,7 @@ input[type="number"] {
 }
 
 #info-panels #run-panel .run-div:nth-child(odd) .selectable {
+  position: relative;
   border: $default-border-1;
   height: calc(100% - 24px);
   margin: 0;
@@ -926,8 +927,7 @@ input[type="number"] {
   height: 100%;
   padding: 0;
   margin: 0;
-  overflow-x: hidden;
-  overflow-y: scroll;
+  overflow: auto;
 }
 
 #info-panels .panel-body .table thead {
@@ -959,7 +959,7 @@ input[type="number"] {
   width: 100%;
   height: 100%;
   display: block;
-  overflow-y: scroll;
+  overflow: auto;
   padding: 0 5px;
 }
 

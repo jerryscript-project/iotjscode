@@ -17,6 +17,7 @@
 import 'bootswatch/yeti/bootstrap.min.css';
 import 'jquery-ui-dist/jquery-ui.min.css';
 import 'font-awesome/css/font-awesome.min.css';
+import 'perfect-scrollbar/css/perfect-scrollbar.css';
 import 'c3/c3.min.css';
 import './app.scss';
 
@@ -28,6 +29,7 @@ import MemoryChart from './memory-chart';
 import Completer, { IOTJS_FUNCTIONS } from './completer';
 import Settings from './settings';
 
+import PerfectScrollbar from 'perfect-scrollbar';
 import FileSaver from 'file-saver';
 import 'jqueryui';
 import 'thead';
@@ -54,6 +56,13 @@ export default function App() {
     iotjsCompleter: null,
     EditSession: null,
     Document: null,
+  };
+
+  /**
+   * Containers for perfect scrollbars.
+   */
+  let scrollbars = {
+    panels: [],
   };
 
   /**
@@ -939,6 +948,18 @@ export default function App() {
       });
     })();
 
+    /**
+     * Perfect scrollbar events.
+     */
+    (() => {
+      /**
+       * Info panels scrollbars.
+       */
+      $('.perfect-scrollable').each((i, e) => {
+        scrollbars.panels.push(new PerfectScrollbar($(e).get(0)));
+      });
+    })();
+
 
     /**
      * Editor extra events.
@@ -1091,6 +1112,11 @@ export default function App() {
 
         $('#info-panels').resizable('option', 'minWidth', Math.floor($('#editor-wrapper').parent().width() / 3));
         $('#info-panels').resizable('option', 'maxWidth', Math.floor(($('#editor-wrapper').parent().width() / 3) * 2));
+
+        // Update the scrolbars of the panels.
+        for (const sb of scrollbars.panels) {
+          sb.update();
+        }
       });
     })();
   });
