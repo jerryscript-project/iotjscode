@@ -15,6 +15,7 @@
  */
 
 import c3 from 'c3';
+import FileSaver from 'file-saver';
 
 let chart;
 let maxDatapointNumber;
@@ -173,11 +174,13 @@ export default class MemoryChart {
         },
       });
 
-      document.getElementById('chart').addEventListener('mousewheel', MouseWheelHandler);
-      document.getElementById('chart').addEventListener('DOMMouseScroll', MouseWheelHandler);
-      document.getElementById('chart').addEventListener('mousemove', function(e) {
-        tooltipRelativeYPosition = e.clientY - document.getElementById('chart').getBoundingClientRect().top;
-        tooltipRelativeXPosition = e.clientX - document.getElementById('chart').getBoundingClientRect().left;
+      $('#chart').bind('mousewheel DOMMouseScroll', (e) => {
+        mouseWheelHandler(e);
+      });
+
+      $('#chart').mousemove((e) => {
+        tooltipRelativeYPosition = e.clientY - $('#chart').offset().top + 10;
+        tooltipRelativeXPosition = e.clientX - $('#chart').offset().left + 10;
       });
     } else {
       updateScrolledChart();
@@ -221,7 +224,7 @@ export default class MemoryChart {
    */
   disableChartButtons() {
     this._activeChart = false;
-    let list = document.getElementsByClassName('chart-btn');
+    let list = $('.chart-btn');
 
     for (let i = 0; i < list.length; i++) {
       this._surface.toggleButton(false, $(list[i]).attr('id'));
@@ -279,11 +282,7 @@ export default class MemoryChart {
       csv += '\n';
     });
 
-    let hiddenElement = document.createElement('a');
-    hiddenElement.href = 'data:text/csv;charset=utf-8,' + encodeURI(csv);
-    hiddenElement.target = '_blank';
-    hiddenElement.download = 'memoryUsageChart.csv';
-    hiddenElement.click();
+    FileSaver.saveAs(new Blob([csv], {type: 'text/csv;charset=utf-8'}), 'memoryUsage.csv');
 
     this._surface.toggleSidenavExtra('download-sidenav');
   }
@@ -353,8 +352,8 @@ export default class MemoryChart {
  *
  * @param {event} e Mouse scroll event.
  */
-function MouseWheelHandler(e) {
-  e.wheelDelta > 0 ? scrollForward() : scrollBack();
+function mouseWheelHandler(e) {
+  e.originalEvent.wheelDelta > 0 ? scrollForward() : scrollBack();
 }
 
 /**
