@@ -59,10 +59,18 @@ export default class Settings {
    */
   get CONTROLS() {
     return {
-      editor: {
+      global: {
         theme: [CONTROL_TYPE.SELECT, (theme) => {
           this._editor.setTheme(theme);
+
+          if (theme === 'ace/theme/tomorrow') {
+            $('body').removeClass('dark-theme');
+          } else {
+            $('body').addClass('dark-theme');
+          }
         }, 'ace/theme/tomorrow'],
+      },
+      editor: {
         fontsize: [CONTROL_TYPE.SELECT, (size) => {
           this._editor.setFontSize(size);
         }, '12px'],

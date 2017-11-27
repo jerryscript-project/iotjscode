@@ -47,6 +47,18 @@ $d-blue-color: #6699cc;
 $d-purple-color: #cc99cc;
 
 /**
+ * Dark bootstrap and bootswatch overrides.
+ */
+$dark-button-color: #ddd;
+$dark-button-disabled-color: #555;
+$dark-button-hover-color: #fff;
+$dark-button-border-color: #555;
+$dark-button-box-shadow: 0 0 0 0.2rem rgba(85, 85, 85, 0.5);
+$dark-panel-border-color: #555;
+$dark-panel-header-color: #272727;
+$dark-input-background-color: #adafae;
+
+/**
  * Menu color variables.
  */
 $menu-text-color: #818181;
@@ -75,6 +87,8 @@ $menu-text-width: 200px;
  */
 $editor-execute-border: 1px solid rgba(0, 0, 0, 0.25);
 $editor-exception-border: 1px solid $b-red-color;
+$editor-dark-execute-border: 1px solid rgba(255, 255, 255, 0.25);
+$editor-dark-exception-border: 1px solid $d-red-color;
 
 /**
  * Default variables.
@@ -86,6 +100,7 @@ $default-border-1: 1px solid $default-border-color;
 $default-modal-color: rgba(0,0,0,0.4);
 $default-transition-time: 0.3s;
 $default-opacity: 0.3;
+$default-popup-shadow: 3px 3px 6px #888888;
 
 /**
  * Font size variables.
@@ -114,7 +129,8 @@ $z-level-6: 1200;
  * Background variables.
  */
 $resize-handler-background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAKElEQVQYV2NkQAM7duz4z4gsBhLw8PBghAvCBECKwILIAmBBdAGQIADEhBMtfYHnHgAAAABJRU5ErkJggg==) repeat;
-$editor-breakpoint-background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAU0lEQVQoU2NkIBIwIqv7U17+n7mzEy70t7ycgaWzE6wGrvCXr+9/1s2bMcz/7evLwLZ5MyNYIbpJ6KpBJoMV/gcj/IBGCol2I8h1RPka5g184QgAU9Ut1w+ldWoAAAAASUVORK5CYII=) 2px center no-repeat;
+$dark-resize-handler-background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAKElEQVQYV2NkQAOBgYH/GZHFQALr169nhAvCBECKwILIAmBBdAGQIABIMRH4VLPjvAAAAABJRU5ErkJggg==) repeat;
+$editor-breakpoint-background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAPklEQVQoU2NkIBIwoqv7z8DwHybGyMAAl4czkBWgawZpIE0hPtOQnAF2FNxduPwGtppohYQUk+4ZZHfhCkcAqnUSBYlUugcAAAAASUVORK5CYII=) 2px center no-repeat;
 
 
 /**
@@ -451,7 +467,7 @@ input[type="number"] {
 #main-wrapper #popup-wrapper div {
   position: relative;
   min-height: 60px;
-  box-shadow: 3px 3px 6px #888888;
+  box-shadow: $default-popup-shadow;
   padding-top: 20px;
   padding-left: 50px;
 }
@@ -467,7 +483,7 @@ input[type="number"] {
  * Main action buttons ruels.
  */
 .main-buttons {
-  margin: 0;
+  margin: 0 0 10px 0;
 }
 
 .main-buttons .col-md-12 {
@@ -642,13 +658,11 @@ input[type="number"] {
 #editor-wrapper #editor .execute-gutter-cell-marker {
   border-top: $editor-execute-border;
   border-bottom: $editor-execute-border;
-  border-left: $editor-execute-border;
 }
 
 #editor-wrapper #editor .exception-gutter-cell-marker {
   border-top: $editor-exception-border;
   border-bottom: $editor-exception-border;
-  border-left: $editor-exception-border;
   background-color: #f2dede;
   filter: none;
 }
@@ -656,7 +670,6 @@ input[type="number"] {
 #editor-wrapper #editor .execute-marker {
   border-top: $editor-execute-border;
   border-bottom: $editor-execute-border;
-  border-right: $editor-execute-border;
   position: absolute;
   z-index: $z-level-3;
 }
@@ -664,7 +677,6 @@ input[type="number"] {
 #editor-wrapper #editor .exception-marker {
   border-top: $editor-exception-border;
   border-bottom: $editor-exception-border;
-  border-right: $editor-exception-border;
   position: absolute;
   background-color: #f2dede;
   z-index: $z-level-3;
@@ -807,11 +819,11 @@ input[type="number"] {
 }
 
 #info-panels #watch-content #watch-list li span:first-child {
-  color: #909;
+  color: $b-purple-color;
 }
 
 #info-panels #watch-content #watch-list li span:nth-child(2) {
-  color: #f33;
+  color: $b-orange-color;
 }
 
 #info-panels #watch-content #watch-list li .watch-li-remove {
@@ -829,6 +841,10 @@ input[type="number"] {
 #info-panels #watch-content #watch-list li .watch-li-remove:hover {
   opacity: 1;
   cursor: pointer;
+}
+
+.c3 .c3-tooltip-container {
+  z-index: $z-level-5;
 }
 
 #info-panels #run-panel {
@@ -990,4 +1006,287 @@ input[type="number"] {
   float: left;
   color: $default-text-color;
   font-weight: bold;
+}
+
+/**
+ * Dark theme rules.
+ */
+body.dark-theme {
+  background-color: $d-background-color;
+  color: $d-foreground-color;
+
+  input[type="text"],
+  input[type="number"],
+  textarea,
+  select {
+    border: none;
+    color: #000 !important;
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+    -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+    background: #dfdfdfb2;
+  }
+
+  select {
+    background: #DFDFDF;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    text-indent: 0.01px;
+    text-overflow: '';
+    color: #525252;
+  }
+
+
+  input::placeholder {
+    color: $d-background-color;
+  }
+
+  .bg-warning {
+    background-color: $d-yellow-color;
+  }
+
+  .bg-success {
+    background-color: $d-green-color;
+  }
+
+  .bg-danger {
+    background-color: $d-red-color;
+  }
+
+  /**
+   * Sidenav rules.
+   */
+   .sidenav {
+    border-right: 1px solid $menu-border-color;
+  }
+
+  .sidenav-extra {
+    border-left: $menu-border-1;
+  }
+
+  /**
+   * New BootsWatch rules.
+   */
+  .btn-default {
+    color: $dark-button-color;
+    background-color: transparent;
+    background-image: none;
+    border-color: $dark-button-border-color;
+  }
+
+  .btn-default:hover {
+    color: $dark-button-hover-color;
+    background-color: $dark-button-disabled-color;
+    border-color: $dark-button-border-color;
+  }
+
+  .btn-default:focus,
+  .btn-default.focus {
+    -webkit-box-shadow: $dark-button-box-shadow;
+            box-shadow: $dark-button-box-shadow;
+  }
+
+  .btn-default.disabled,
+  .btn-default:disabled {
+    color: $dark-button-disabled-color;
+    background-color: transparent;
+  }
+
+  .panel {
+    background-color: $d-background-color;
+  }
+
+  .panel-default {
+    border-color: $dark-panel-border-color;
+  }
+
+  .panel-default > .panel-heading {
+    color: $d-foreground-color;
+    background-color: $dark-panel-header-color;
+    border-color: $dark-panel-border-color;
+  }
+
+  .panel-default > .panel-footer {
+    background-color: $d-background-color;
+    border-top: 1px solid $dark-panel-border-color;
+  }
+
+  /**
+   * Popup windows.
+   */
+  #main-wrapper #popup-wrapper div {
+    box-shadow: none;
+    color: $d-background-color;
+  }
+
+  /**
+   * File tabs.
+   */
+  #editor-wrapper div#file-tabs .tablinks {
+    color: $d-foreground-color;
+  }
+
+  #editor-wrapper div#file-tabs .active {
+    background-color: $dark-panel-border-color;
+  }
+
+  #editor-wrapper div#file-tabs .tablinks:focus,
+  #editor-wrapper div#file-tabs .tablinks:hover {
+    background-color: $d-selection-color;
+  }
+
+  /**
+   * Editor.
+   */
+  #editor-wrapper #editor .execute-gutter-cell-marker {
+    border-top: $editor-dark-execute-border;
+    border-bottom: $editor-dark-execute-border;
+  }
+
+  #editor-wrapper #editor .exception-gutter-cell-marker {
+    border-top: $editor-dark-exception-border;
+    border-bottom: $editor-dark-exception-border;
+    background-color: transparent;
+  }
+
+  #editor-wrapper #editor .execute-marker {
+    border-top: $editor-dark-execute-border;
+    border-bottom: $editor-dark-execute-border;
+  }
+
+  #editor-wrapper #editor .exception-marker {
+    border-top: $editor-dark-exception-border;
+    border-bottom: $editor-dark-exception-border;
+    background-color: transparent;
+  }
+
+  /**
+   * Specific info panel rules.
+   */
+  #info-panels .logger-panel .log-warning {
+    color: $d-orange-color;
+  }
+
+  #info-panels .logger-panel .log-error {
+    color: $d-red-color;
+  }
+
+  #info-panels .logger-panel .log-info,
+  #info-panels .logger-panel .log-debug {
+    color: $d-foreground-color;
+  }
+
+  #info-panels .logger-panel .log-debug-dom {
+    color: $d-foreground-color;
+  }
+
+  #info-panels .panel-body .table {
+    color: $d-foreground-color;
+  }
+
+  #info-panels .panel-body .table thead,
+  #info-panels .panel-body .table tbody,
+  #info-panels .panel-body .table tbody tr td {
+    background-color: $d-background-color;
+  }
+
+  #info-panels .panel-body .table tbody td,
+  #info-panels .panel-body .table thead th,
+  #info-panels .panel-body .table thead tr th,
+  #info-panels .panel-body .table tbody tr, {
+    border-color: $dark-panel-border-color;
+  }
+
+  #info-panels .panel-body .table-striped tbody tr:nth-child(odd) td,
+  #info-panels .panel-body .table-striped tbody tr:hover td {
+    background-color: $d-current-line-color;
+  }
+
+  #info-panels #watch-add-wrapper {
+    background-color: $d-background-color;
+    border-color: $dark-panel-border-color;
+  }
+
+  #info-panels #watch-content #watch-list li:hover {
+    background-color: $d-current-line-color;
+  }
+
+  #info-panels #watch-content #watch-list li span:first-child {
+    color: $d-purple-color;
+  }
+
+  #info-panels #watch-content #watch-list li span:nth-child(2) {
+    color: $d-orange-color;
+  }
+
+  #info-panels #run-panel .run-div:nth-child(odd) .selectable {
+    border-color: $dark-panel-border-color;
+  }
+
+  #info-panels #run-panel .run-div:nth-child(odd) .selectable .ui-selecting {
+    background-color: $d-yellow-color;
+  }
+
+  #info-panels #run-panel .run-div:nth-child(odd) .selectable .ui-selected {
+    background-color: $d-orange-color;
+  }
+
+  #info-panels #run-panel .run-div:nth-child(odd) .selectable li {
+    border-color: $dark-panel-border-color;
+    background-color: #dfdfdfb2;
+    color: $default-text-color;
+  }
+
+  #info-panels #run-panel .run-div:nth-child(odd) .selectable li .handle {
+    border-color: $dark-panel-border-color;
+  }
+
+  .c3 .c3-axis-x path,
+  .c3 .c3-axis-x line,
+  .c3 .c3-axis-y path,
+  .c3 .c3-axis-y line {
+    stroke: $d-foreground-color;
+  }
+
+  .c3 .c3-axis-x g,
+  .c3 .c3-axis-y g,
+  .c3 .c3-legend-item text {
+    fill: $d-foreground-color;
+  }
+
+  .c3 .c3-tooltip {
+    color: $d-foreground-color;
+    box-shadow: 7px 7px 12px -9px #555;
+    opacity: 1;
+  }
+
+  .c3 .c3-tooltip thead,
+  .c3 .c3-tooltip tbody,
+  .c3 .c3-tooltip tbody tr,
+  .c3 .c3-tooltip tbody tr td {
+    background-color: $d-background-color;
+    border-color: $dark-panel-border-color;
+  }
+
+  .c3 .c3-tooltip tbody tr th {
+    background-color: $dark-panel-header-color;
+    color: $d-foreground-color;
+  }
+
+  /**
+   * Resizable handler.
+   */
+  .ui-resizable-s,
+  .ui-resizable-e {
+    background-color: $d-background-color !important;
+  }
+
+  .ui-resizable-s:hover,
+  .ui-resizable-e:hover {
+    background-color: $menu-background-color !important;
+  }
+
+  .ui-resizable-s:after,
+  .ui-resizable-e:after {
+    background: $dark-resize-handler-background !important;
+  }
 }
