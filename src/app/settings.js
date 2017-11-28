@@ -127,6 +127,9 @@ export default class Settings {
         backtraceDepth: [CONTROL_TYPE.NUMBER, (value) => {
           this.modify('debugger.backtraceDepth', value);
         }, 0],
+        transpileToES5: [CONTROL_TYPE.CHECKBOX, (value) => {
+          this.modify('debugger.transpileToES5', value);
+        }, false],
       },
       panels: {
         backtrace: [CONTROL_TYPE.SURFACE, () => {
@@ -152,6 +155,27 @@ export default class Settings {
         }, true],
       },
     };
+  }
+
+  /**
+   * Returns a value of a setting based on the path argument.
+   *
+   * @param {string} path Path to a single setting value.
+   */
+  getValue(path) {
+    let rv = undefined;
+
+    if (path !== '') {
+      path = path.split('.');
+
+      if (path.length === 2) {
+        if (this._settings[path[0]][path[1]]) {
+          rv = this._settings[path[0]][path[1]];
+        }
+      }
+    }
+
+    return rv;
   }
 
   /**

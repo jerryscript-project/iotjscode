@@ -28,6 +28,7 @@ import DebuggerClient, { PROTOCOL, ENGINE_MODE } from './client-debugger';
 import MemoryChart from './memory-chart';
 import Completer, { IOTJS_FUNCTIONS } from './completer';
 import Settings from './settings';
+import Transpiler from './transpiler';
 
 import PerfectScrollbar from 'perfect-scrollbar';
 import FileSaver from 'file-saver';
@@ -98,6 +99,7 @@ export default function App() {
   let chart = new MemoryChart(session, surface);
   let completer = new Completer();
   let settings = new Settings(env.editor, surface);
+  let transpiler = new Transpiler();
 
 
   /**
@@ -465,7 +467,7 @@ export default function App() {
 
         let address = `${$('#host-ip').val()}:${$('#host-port').val()}`;
         logger.info(`Connect to: ${address}`);
-        debuggerObj = new DebuggerClient(address, session, surface, chart);
+        debuggerObj = new DebuggerClient(address, session, surface, settings, chart);
 
         return true;
       });
@@ -892,7 +894,7 @@ export default function App() {
 
           let address = ipAddr + ':' + PORT;
           logger.info('Connect to: ' + address);
-          debuggerObj = new DebuggerClient(address, session, surface, chart);
+          debuggerObj = new DebuggerClient(address, session, surface, settings, chart);
 
           commandInput.val('');
 
@@ -971,13 +973,13 @@ export default function App() {
       env.editor.on('change', () => {
         $('#tab-' + session.getActiveID()).addClass('unsaved');
         if (debuggerObj && debuggerObj.getEngineMode() !== ENGINE_MODE.DISCONNECTED) {
-          session.markBreakpointGutters(debuggerObj);
+          session.markBreakpointGutters(debuggerObj, settings, transpiler);
         }
       });
 
       env.editor.on('changeSession', () => {
         if (debuggerObj && debuggerObj.getEngineMode() !== ENGINE_MODE.DISCONNECTED) {
-          session.markBreakpointGutters(debuggerObj);
+          session.markBreakpointGutters(debuggerObj, settings, transpiler);
         }
       });
 

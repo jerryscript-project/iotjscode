@@ -16,6 +16,7 @@
 
 import Multimap from './client-multimap';
 import Connection from './client-connection';
+import Transpiler from './transpiler';
 import Util from './util';
 import Logger from './logger';
 
@@ -95,12 +96,15 @@ export default class DebuggerClient {
    * @param {string} address Connection address (ip and port).
    * @param {object} session Session module object.
    * @param {object} surface Surface module object.
+   * @param {object} settings Settings module object.
    * @param {object} chart MemoryChart module object.
    */
-  constructor(address, session, surface, chart) {
+  constructor(address, session, surface, settings, chart) {
     this._logger = new Logger($('#console-panel'));
+    this._transpiler = new Transpiler();
     this._session = session;
     this._surface = surface;
+    this._settings = settings;
 
     this._maxMessageSize = 0;
     this._cpointerSize = 0;
@@ -120,7 +124,7 @@ export default class DebuggerClient {
       last: null,
     };
 
-    this._connection = new Connection(this, address, this._surface, this._session, chart);
+    this._connection = new Connection(this, address, this._surface, this._session, this._settings, chart);
   }
 
   getMaxMessageSize() {
@@ -699,6 +703,7 @@ export default class DebuggerClient {
     this.setEngineMode(ENGINE_MODE.RUN);
 
     let sid = this._session.getUploadList()[0];
+
     if (sid === 0) {
       this.encodeMessage('B', [PROTOCOL.CLIENT.JERRY_DEBUGGER_CONTEXT_RESET]);
       this._session.shiftUploadList();
@@ -711,7 +716,22 @@ export default class DebuggerClient {
     // Turn on the action buttons and turn off run button.
     this._surface.disableActionButtons(false);
 
-    let array = this.stringToCesu8(this._session.getFileNameById(sid) + '\0' + this._session.getFileSessionById(sid));
+    let source = this._session.getFileSessionById(sid);
+
+    if (this._settings.getValue('debugger.transpileToES5')) {
+      if (this._transpiler.transformToES5(this._session.getFileNameById(sid), this._session.getFileSessionById(sid))) {
+        source = this._transpiler.getTransformedSource(this._session.getFileNameById(sid));
+      } else {
+        this.encodeMessage('B', [PROTOCOL.CLIENT.JERRY_DEBUGGER_CONTEXT_RESET]);
+        this._session.resetUploadList();
+        this._session.shiftUploadList();
+        this._session.setContextReset(true);
+        this._session.allowUploadAndRun(false);
+        return;
+      }
+    }
+
+    let array = this.stringToCesu8(`${this._session.getFileNameById(sid)}\0${source}`);
     let byteLength = array.byteLength;
 
     array[0] = PROTOCOL.CLIENT.JERRY_DEBUGGER_CLIENT_SOURCE;
@@ -818,11 +838,34 @@ export default class DebuggerClient {
       result = '[unknown]';
     }
 
-    result += `:${breakpoint.line}`;
+    let line = breakpoint.line;
+
+    if (this._settings.getValue('debugger.transpileToES5')) {
+      line = this._transpiler.getOriginalPositionFor(
+        this._session.getFileNameById(this._session.getActiveID()),
+        line,
+        0
+      ).line;
+    }
+
+    result += `:${line}`;
 
     if (breakpoint.func.is_func) {
       let f = breakpoint.func;
-      result += ` (in ${(f.name ? f.name : 'function')}() at line:${f.line}, col:${f.column})`;
+      let position = {
+        line: f.line,
+        column: f.column,
+      };
+
+      if (this._settings.getValue('debugger.transpileToES5')) {
+        position = this._transpiler.getOriginalPositionFor(
+          this._session.getFileNameById(this._session.getActiveID()),
+          position.line,
+          position.column
+        );
+      }
+
+      result += ` (in ${(f.name ? f.name : 'function')}() at line:${position.line}, col:${position.column})`;
     }
 
     return result;

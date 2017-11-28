@@ -22,6 +22,11 @@ import Util from './util';
 const LINE = $('<span class="data"></span>');
 
 /**
+ * A single pre html element in the console or output panel.
+ */
+const PRE = $('<pre>');
+
+/**
  * The popup window wrapper element and window types enumeration.
  */
 const POPUP = {
@@ -52,8 +57,8 @@ export default class Logger {
    * @param {string} message The message which will appear in the logger panel.
    * @param {boolean} pop Enable the popup window (disabled by default).
    */
-  info(message, pop = false) {
-    this._panel.append(LINE.clone().addClass('log-info').text(message));
+  info(message, pop = false, pre = false) {
+    this._panel.append(((pre) ? PRE : LINE).clone().addClass('log-info').text(message));
     Util.scrollDown(this._panel);
 
     if (pop) {
@@ -67,8 +72,8 @@ export default class Logger {
    * @param {string} message The message which will appear in the popup alert.
    * @param {boolean} pop Enable the popup window (disabled by default).
    */
-  warning(message, pop = false) {
-    this._panel.append(LINE.clone().addClass('log-warning').text(message));
+  warning(message, pop = false, pre = false) {
+    this._panel.append(((pre) ? PRE : LINE).clone().addClass('log-warning').text(message));
     Util.scrollDown(this._panel);
 
     if (pop) {
@@ -82,12 +87,12 @@ export default class Logger {
    * @param {string} message The message which will appear in the popup alert.
    * @param {boolean} pop Enable the popup window (disabled by default).
    */
-  error(message, pop = false) {
-    this._panel.append(LINE.clone().addClass('log-error').text(message));
+  error(message, pop = false, pre = false) {
+    this._panel.append(((pre) ? PRE : LINE).clone().addClass('log-error').text(message));
     Util.scrollDown(this._panel);
 
     if (pop) {
-      POPUP.WRAPPER.append(createPopup(POPUP.TYPE.DANGER, 'Error', message));
+      POPUP.WRAPPER.append(createPopup(POPUP.TYPE.DANGER, 'Error', message, pre));
     }
   }
 
@@ -120,7 +125,7 @@ export default class Logger {
  * @param {string} message The message to the user.
  * @return {object} HTML div element.
  */
-function createPopup(type, strong, message) {
+function createPopup(type, strong, message, pre = false) {
   let icon = '',
       clss = '',
       lrt = null;
@@ -149,7 +154,7 @@ function createPopup(type, strong, message) {
       `<i class="fa fa-${icon}" aria-hidden="true"></i>` +
       '<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>' +
       `<strong>${strong}!</strong><br/>` +
-      `<strong>${message}</strong>` +
+      ((pre) ? `<strong><pre>${message}</pre></strong>` : `<strong>${message}</strong>`) +
     '</div>'
   );
 

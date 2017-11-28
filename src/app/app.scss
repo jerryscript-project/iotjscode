@@ -144,6 +144,8 @@ body {
   background-color: $b-background-color;
   word-wrap: normal;
   height: 100%;
+  font-size: $font-size-3;
+  line-height: 1.4em;
 }
 
 h1,
@@ -151,6 +153,21 @@ h2,
 h3,
 h4 {
   margin: 0 0 5px;
+}
+
+pre {
+  display: block;
+  margin: 0;
+  padding: 0 10px 0 0;
+  font-family: monospace;
+  font-size: inherit;
+  color: inherit;
+  word-break: break-all;
+  word-wrap: break-word;
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+  overflow: unset;
 }
 
 .hidden {
@@ -435,8 +452,8 @@ select,
 }
 
 .sidenav-extra #settings-sidenav #global-control-block .control-item label:hover,
-.sidenav-extra #settings-sidenav #editor-control-block .control-item:nth-child(n+7) label:hover,
-.sidenav-extra #settings-sidenav #layout-control-block .control-item label:hover {
+.sidenav-extra #settings-sidenav #editor-control-block .control-item:nth-child(n+6) label:hover,
+.sidenav-extra #settings-sidenav #debugger-control-block .control-item:nth-child(n+3) label:hover, {
   color: #fff;
   cursor: pointer;
 }
@@ -467,6 +484,7 @@ input[type="number"] {
 #main-wrapper #popup-wrapper div {
   position: relative;
   min-height: 60px;
+  min-width: 320px;
   box-shadow: $default-popup-shadow;
   padding-top: 20px;
   padding-left: 50px;
@@ -483,7 +501,7 @@ input[type="number"] {
  * Main action buttons ruels.
  */
 .main-buttons {
-  margin: 0 0 10px 0;
+  margin: 0;
 }
 
 .main-buttons .col-md-12 {

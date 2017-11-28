@@ -16,6 +16,7 @@
 
 import ParseSource from './client-parsesource';
 import { PROTOCOL, ENGINE_MODE } from './client-debugger';
+import Transpiler from './transpiler';
 import Util from './util';
 import Logger from './logger';
 
@@ -28,13 +29,16 @@ export default class Connection {
    * @param {object} address Connection host address and host port.
    * @param {object} surface The Surface module object.
    * @param {object} session The Session module object.
+   * @param {object} settings The Settings module object.
    * @param {object} chart The MemoryChart module object.
    */
-  constructor(debuggerObject, address, surface, session, chart) {
+  constructor(debuggerObject, address, surface, session, settings, chart) {
     this._debuggerObj = debuggerObject;
     this._surface = surface;
     this._session = session;
+    this._settings = settings;
     this._chart = chart;
+    this._transpiler = new Transpiler();
     this._output = new Logger($('#output-panel'));
     this._logger = new Logger($('#console-panel'));
 
@@ -142,6 +146,10 @@ function onclose_and_error() {
   if (this._surface.getPanelProperty('watch.active')) {
     this._surface.updateWatchPanelButtons(this._debuggerObj);
     this._session.neutralizeWatchExpressions();
+  }
+
+  if (this._settings.getValue('debugger.transpileToES5')) {
+    this._transpiler.clearTranspiledSources();
   }
 
   if (this._session.isUploadStarted()) {
@@ -275,12 +283,6 @@ function onmessage(event) {
         breakpointInfo = ` breakpoint:${breakpoint.offset.activeIndex} `;
       }
 
-      this._logger.info(
-        `Stopped ${(breakpoint.at ? 'at ' : 'around ')}` +
-        breakpointInfo +
-        this._debuggerObj.breakpointToString(breakpoint)
-      );
-
       this._session.setLastBreakpoint(breakpoint);
       this._surface.continueStopButtonState(this._surface.CSICON.CONTINUE);
       this._surface.disableActionButtons(false);
@@ -308,22 +310,25 @@ function onmessage(event) {
             e.stopImmediatePropagation();
           });
         } else {
-          if (!this._session.fileContentCheck(sourceName, source)) {
-            let groupID = `gid-source-${sourceName.replace(/\//g, '-').replace(/\./g, '-')}-${source.length}`;
+          // Do not check the code match if the transpile is enabled.
+          if (!this._settings.getValue('debugger.transpileToES5')) {
+            if (!this._session.fileContentCheck(sourceName, source)) {
+              let groupID = `gid-source-${sourceName.replace(/\//g, '-').replace(/\./g, '-')}-${source.length}`;
 
-            this._logger.debug(
-              `The opened ${sourceName} source is not match with the source on the device! `,
-              `<div class="btn btn-xs btn-default reload-from-jerry ${groupID}">Reload from Jerry</div>`,
-              true
-            );
+              this._logger.debug(
+                `The opened ${sourceName} source is not match with the source on the device! `,
+                `<div class="btn btn-xs btn-default reload-from-jerry ${groupID}">Reload from Jerry</div>`,
+                true
+              );
 
-            $('.reload-from-jerry').on('click', (e) => {
-              this._session.resetFileContent(sourceName.split('/').pop(), source);
+              $('.reload-from-jerry').on('click', (e) => {
+                this._session.resetFileContent(sourceName.split('/').pop(), source);
 
-              $(`.${groupID}`).addClass('disabled');
-              $(`.${groupID}`).unbind('click');
-              e.stopImmediatePropagation();
-            });
+                $(`.${groupID}`).addClass('disabled');
+                $(`.${groupID}`).unbind('click');
+                e.stopImmediatePropagation();
+              });
+            }
           }
         }
       }
@@ -335,9 +340,16 @@ function onmessage(event) {
         this._session.switchFile(sID);
       }
 
+      // Get the right line, which is depends on that if we use transpiled code or not.
+      let hlLine = breakpoint.line - 1;
+
+      if (this._settings.getValue('debugger.transpileToES5')) {
+        hlLine = this._transpiler.getOriginalPositionFor(sourceName, breakpoint.line, 0).line - 1;
+      }
+
       // After we switched to the decent file/sesison show the exception hint (if exists).
       if (message[0] === PROTOCOL.SERVER.JERRY_DEBUGGER_EXCEPTION_HIT) {
-        this._session.highlightLine(this._session.HIGHLIGHT_TYPE.EXCEPTION, breakpoint.line - 1);
+        this._session.highlightLine(this._session.HIGHLIGHT_TYPE.EXCEPTION, hlLine);
         this._logger.error('Exception throw detected!');
 
         if (this._exceptionData) {
@@ -347,8 +359,8 @@ function onmessage(event) {
       } else {
         // Hightlight the execute line in the correct session.
         if (sID !== undefined && sID === this._session.getActiveID()) {
-          this._session.highlightLine(this._session.HIGHLIGHT_TYPE.EXECUTE, breakpoint.line - 1);
-          this._session.markBreakpointGutters(this._debuggerObj);
+          this._session.highlightLine(this._session.HIGHLIGHT_TYPE.EXECUTE, hlLine);
+          this._session.markBreakpointGutters(this._debuggerObj, this._settings, this._transpiler);
         }
       }
 
@@ -376,6 +388,12 @@ function onmessage(event) {
         this._session.setBreakpointInfoToChart(this._debuggerObj.breakpointToString(breakpoint));
       }
 
+      this._logger.info(
+        `Stopped ${(breakpoint.at ? 'at ' : 'around ')}` +
+        breakpointInfo +
+        this._debuggerObj.breakpointToString(breakpoint)
+      );
+
       return;
     }
 
@@ -394,7 +412,10 @@ function onmessage(event) {
 
         this._surface.updateBacktracePanel(
           this._debuggerObj.getBacktraceFrame(),
-          this._debuggerObj.getBreakpoint(breakpointData).breakpoint
+          this._debuggerObj.getBreakpoint(breakpointData).breakpoint,
+          this._session.getFileNameById(this._session.getActiveID()),
+          this._settings,
+          this._transpiler
         );
 
         this._debuggerObj.setBacktraceFrame(this._debuggerObj.getBacktraceFrame() + 1);

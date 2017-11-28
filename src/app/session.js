@@ -710,9 +710,21 @@ export default class Session {
    *
    * @param {object} debuggerObj Jerry client object.
    */
-  markBreakpointGutters(debuggerObj) {
+  markBreakpointGutters(debuggerObj, settings, transpiler) {
     if (debuggerObj && debuggerObj.getEngineMode() !== ENGINE_MODE.DISCONNECTED) {
       let lines = this.getLinesFromRawData(debuggerObj.getBreakpointLines());
+
+      if (settings.getValue('debugger.transpileToES5')) {
+        let newLines = [];
+        for (let i of lines) {
+          let originLine = transpiler.getOriginalPositionFor(this.getFileNameById(this._id.active), i, 0);
+          if (originLine.line) {
+            newLines.push(originLine.line);
+          }
+        }
+
+        lines = newLines.slice();
+      }
 
       if (lines.length !== 0) {
         lines.sort((a, b) => {

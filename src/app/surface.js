@@ -656,8 +656,17 @@ export default class Surface {
    * @param {object} info A complete breakpoint from the debuggerObj.
    * @return {string}
    */
-  generateFunctionLog(info) {
-    let suffix = `() at line: ${info.func.line}, col: ${info.func.column}`;
+  generateFunctionLog(info, filename, settings, transpiler) {
+    let position = {
+      line: info.func.line,
+      column: info.func.column,
+    };
+
+    if (settings.getValue('debugger.transpileToES5')) {
+      position = transpiler.getOriginalPositionFor(filename, position.line, position.column);
+    }
+
+    let suffix = `() at line: ${position.line}, col: ${position.column}`;
 
     if (!info.func.name && !info.func.is_func) {
       return '-';
@@ -674,17 +683,21 @@ export default class Surface {
    * @param {integer} frame Frame number information.
    * @param {object} info Breakpoint information from the debuggerObj.
    */
-  updateBacktracePanel(frame, info) {
+  updateBacktracePanel(frame, info, filename, settings, transpiler) {
     let sourceName = info.func.sourceName || info;
     let line = info.line || '-';
     let $table = $('#backtrace-table-body');
+
+    if (settings.getValue('debugger.transpileToES5')) {
+      line = transpiler.getOriginalPositionFor(filename, line, 0).line;
+    }
 
     $table.append(
       '<tr>' +
         `<td>${frame}</td>` +
         `<td>${sourceName}</td>` +
         `<td>${line}</td>` +
-        `<td>${this.generateFunctionLog(info)}</td>` +
+        `<td>${this.generateFunctionLog(info, filename, settings, transpiler)}</td>` +
       '</tr>'
     );
 
