@@ -113,6 +113,10 @@ $ ./tools/build.py --buildtype=debug --jerry-debugger
 # To build with memory statistics.
 $ ./tools/build.py --buildtype=debug --jerry-debugger --jerry-memstat
 
+# If you want to debug the IoT.js javascript modules with the iotjscode
+# then you have to turn off the snapshot in the IoT.js build
+$ ./tools/build.py --buildtype=debug --jerry-debugger --no-snapshot
+
 # Run the IoT.js with the following switches.
 $ ./build/x86_64-linux/debug/bin/iotjs --start-debug-server {file}
 
