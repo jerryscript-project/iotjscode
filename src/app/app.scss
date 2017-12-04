@@ -652,6 +652,33 @@ input[type="number"] {
   padding: 0;
 }
 
+#editor-wrapper .panel-body {
+  padding: 0;
+}
+
+#editor-wrapper #editor-placeholder {
+  display: none;
+}
+
+#editor-wrapper #editor-placeholder h2 {
+  margin: 50px auto;
+  text-align: center;
+}
+
+#editor-wrapper #editor-placeholder #start-info {
+  width: 200px;
+  margin: 0 auto;
+}
+
+#editor-wrapper #editor-placeholder #start-info #start-options span {
+  color: $b-blue-color;
+}
+
+#editor-wrapper #editor-placeholder #start-info #start-options span:hover {
+  cursor: pointer;
+  text-decoration: underline;
+}
+
 #editor-wrapper #editor {
   position: relative;
   width: 100%;
@@ -703,9 +730,20 @@ input[type="number"] {
 /**
  * File tabs rules in the editor panel heading.
  */
+#editor-wrapper div#file-tabs #file-tabs-placeholder {
+  position: relative;
+  display: none;
+  height: 32px;
+  font-style: italic;
+  opacity: 0.5;
+  padding: 5px;
+}
+
 #editor-wrapper div#file-tabs {
+  position: relative;
   padding: 0;
   margin-bottom: 0;
+  min-height: 32px;
 }
 
 #editor-wrapper div#file-tabs .tablinks {
@@ -717,7 +755,7 @@ input[type="number"] {
   margin-bottom: -5px;
   text-decoration: none;
   width: 120px;
-  height: 33px;
+  height: 32px;
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow-x: hidden;
@@ -1155,6 +1193,10 @@ body.dark-theme {
   /**
    * Editor.
    */
+  #editor-wrapper #editor-placeholder #start-info #start-options span {
+    color: $d-blue-color;
+  }
+
   #editor-wrapper #editor .execute-gutter-cell-marker {
     border-top: $editor-dark-execute-border;
     border-bottom: $editor-dark-execute-border;

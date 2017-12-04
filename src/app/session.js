@@ -77,18 +77,7 @@ export default class Session {
       list: {},
     };
 
-    this._welcomeTab = true;
     this._contextReset = false;
-  }
-
-  /**
-   * File tab types.
-   */
-  get TABTYPE() {
-    return {
-      WELCOME: 0,
-      WORK: 1,
-    };
   }
 
   /**
@@ -279,7 +268,10 @@ export default class Session {
    * @param {integer} index Position of the session in the list.
    */
   addFileToUploadList(id, index) {
-    this.getFileDataById(id).scheduled = true;
+    if (id !== 0) {
+      this.getFileDataById(id).scheduled = true;
+    }
+
     this._upload.list.splice(index, 0, id);
 
     // Store the changes in the backup list.
@@ -492,10 +484,9 @@ export default class Session {
    *
    * @param {string} name The filename.
    * @param {string} cont The file content (the source code).
-   * @param {integer} tab The tab type.
    * @param {boolean} saved The file saved status.
    */
-  createNewFile(name, cont, tab = this.TABTYPE.WORK, saved = true) {
+  createNewFile(name, cont, saved = true) {
     // Create a new document for the editor from the trimmed content.
     let doc = new this._enviroment.Document(cont);
     // Create a new javascript mode session from the document.
@@ -503,14 +494,16 @@ export default class Session {
 
     // Store the e-session.
     this._data.push({
-      id: (tab === this.TABTYPE.WELCOME) ? 0 : ++this._id.next,
+      id: ++this._id.next,
       saved: saved,
       scheduled: false,
       name: name,
       editSession: eSession,
     });
 
-    this.updateTabs(this._id.next, name, tab);
+    this._surface.showEditor();
+
+    this.updateTabs(this._id.next, name);
     this.switchFile(this._id.next);
 
     // Enable the save button.
@@ -522,23 +515,12 @@ export default class Session {
    * This file can not be closed or modified.
    */
   setWelcomeFile() {
-    this._welcomeTab = true;
+    let welcome = '/**\n' +
+                  ' * IoT.js Code\n' +
+                  ' * Browser based IDE including debugger for IoT.js.\n' +
+                  ' */\n';
 
-    // If this is a fresh start.
-    if (this.getFileSessionById(0) === undefined) {
-      let welcome = '/**\n' +
-                    ' * IoT.js Code\n' +
-                    ' * Browser based IDE including debugger for IoT.js.\n' +
-                    ' */\n';
-
-      this.createNewFile('welcome.js', welcome, this.TABTYPE.WELCOME, true);
-    } else {
-      this.updateTabs(0, 'welcome.js', this.TABTYPE.WELCOME);
-      this.switchFile(0);
-    }
-
-    // Enable the read only mode in the editor.
-    this._editor.setReadOnly(true);
+    this.createNewFile('welcome.js', welcome, true);
   }
 
   /**
@@ -567,11 +549,6 @@ export default class Session {
 
     if (this._breakpoint.last === null) {
       this.removeBreakpointGutters();
-    }
-
-    // Disable the read only in the editor.
-    if (this._editor.getReadOnly()) {
-      this._editor.setReadOnly(false);
     }
   }
 
@@ -636,15 +613,14 @@ export default class Session {
   /**
    * Returns the left or the right neighbour of a file.
    * This is possible, because we store the files "in a straight line".
-   * The 0. file is the welcome file.
    *
    * @param {integer} id The base file id.
-   * @return {integer} Return the neighbour id if exists one, 0 otherwise.
+   * @return {mixed} Return the neighbour id if exists one, undefined otherwise.
    */
   getFileNeighbourById(id) {
-    for (let i = 1; i < this._data.length; i++) {
-      if (this._data[i].id === parseInt(id)) {
-        if (this._data[i - 1] !== undefined && this._data[i - 1].id !== 0) {
+    for (let i = 0; i < this._data.length; i++) {
+      if (this._data[i].id === id) {
+        if (this._data[i - 1] !== undefined) {
           return this._data[i - 1].id;
         }
         if (this._data[i + 1] !== undefined) {
@@ -653,7 +629,7 @@ export default class Session {
       }
     }
 
-    return 0;
+    return undefined;
   }
 
   /**
@@ -828,30 +804,18 @@ export default class Session {
    *
    * @param {integer} id New tab ID.
    * @param {string} name New tab name (aka. file name).
-   * @param {integer} type New tab type.
    */
-  updateTabs(id, name, type) {
+  updateTabs(id, name) {
     let $tabs = $('#file-tabs');
 
-    if (this._welcomeTab && type === this.TABTYPE.WORK) {
-      $tabs.empty();
-      this._welcomeTab = false;
-    }
-
-    let tab = '';
-
-    tab += `<div class="tablinks" id="tab-${id}" title="${name}"> ${name}`;
-    if (type === this.TABTYPE.WORK) {
-      tab += '<i class="fa fa-times" aria-hidden="true"></i>';
-    }
-    tab += '</div>';
-
-    $tabs.append(tab);
+    $tabs.append(
+      `<div class="tablinks" id="tab-${id}" title="${name}"> ${name}` +
+        '<i class="fa fa-times" aria-hidden="true"></i>' +
+      '</div>'
+    );
 
     // Update the editor height based on the new header height.
-    if (id !== 0) {
-      this._surface.updateEditorHeight();
-    }
+    this._surface.updateEditorHeight();
 
     $(`#tab-${id}`).on('click', () => {
       this.switchFile(id);
@@ -890,12 +854,13 @@ export default class Session {
 
     // If the selected session is the current file let's switch to an other existing file.
     if (id === this._id.active) {
-      let nID = this.getFileNeighbourById(id);
+      const nID = this.getFileNeighbourById(id);
 
-      if (nID !== 0) {
+      if (nID !== undefined) {
         this.switchFile(nID);
       } else {
-        this.setWelcomeFile();
+        this._editor.session.setValue('');
+        this._surface.hideEditor();
       }
     }
 

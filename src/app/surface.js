@@ -64,6 +64,11 @@ export default class Surface {
         active: false,
       },
     };
+
+    this._editor = {
+      minTabHeight: 34,
+      active: false,
+    };
   }
 
   /**
@@ -393,11 +398,6 @@ export default class Surface {
       $dest.html('');
 
       session.getAllData().forEach((s) => {
-        // Skip the welcome session, which is always stored with id 0.
-        if (s.id === 0) {
-          return;
-        }
-
         if (!s.scheduled) {
           // Create a new list item.
           this.appendChooserLi($src, '', 'hidden', 'run-' + s.name, s.id, s.name);
@@ -762,7 +762,36 @@ export default class Surface {
    * Updates the ace editor height based on the height of the wrapper and the file tabs header.
    */
   updateEditorHeight() {
-    $('#editor').height($('#editor-wrapper').height() - $('#file-tabs').height() - 3);
+    const height = ($('#file-tabs').children().length) ? $('#file-tabs').height() : this._editor.minTabHeight;
+    $('#editor').height($('#editor-wrapper').height() - height - 3);
+  }
+
+  /**
+   * Shows the editor and hides the file tabs and editor helper placeholders.
+   */
+  showEditor() {
+    if (!this._editor.active) {
+      this._editor.active = true;
+
+      $('#editor').show();
+
+      $('#file-tabs-placeholder').hide();
+      $('#editor-placeholder').hide();
+    }
+  }
+
+  /**
+   * Hides the editor and shows the file tabs and editor helper placeholders.
+   */
+  hideEditor() {
+    if (this._editor.active) {
+      this._editor.active = false;
+
+      $('#editor').hide();
+
+      $('#file-tabs-placeholder').show();
+      $('#editor-placeholder').show();
+    }
   }
 
   /**

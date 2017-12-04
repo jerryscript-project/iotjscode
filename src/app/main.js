@@ -157,7 +157,7 @@ export default function App() {
     // Workaround for scrolling problem.
     env.editor.$blockScrolling = Infinity;
 
-    // Init the blocked welcome session.
+    // Init the welcome session.
     session.setWelcomeFile();
 
 
@@ -244,7 +244,7 @@ export default function App() {
       /*
        * File open button.
        */
-      $('#open-file-button').on('click', () => {
+      $('#open-file-button, #start-open-file-link').on('click', () => {
         // Check for the various File API support.
         if (window.File && window.FileReader && window.FileList && window.Blob) {
           // Great success! All the File APIs are supported. Open the file browser.
@@ -271,7 +271,7 @@ export default function App() {
             let reader = new FileReader();
 
             reader.onload = (evt) => {
-              session.createNewFile(file.name, evt.target.result, 1, true);
+              session.createNewFile(file.name, evt.target.result, true);
 
               if (surface.getPanelProperty('run.active')) {
                 surface.updateRunPanel(surface.RUN_UPDATE_TYPE.ALL, debuggerObj, session);
@@ -292,13 +292,20 @@ export default function App() {
         $(evt.target).val('');
 
         // Close the extra sidenav windows after the open finished.
-        surface.toggleSidenavExtra('file-sidenav');
+        if (surface.isSidenavExtraOpened()) {
+          surface.toggleSidenavExtra('file-sidenav');
+        }
       });
 
       /**
        * New file name field toggle event.
        */
-      $('#new-file-button').on('click', () => {
+      $('#new-file-button, #start-new-file-link').on('click', (e) => {
+        // If the user clicked the placeholder button then open the sidenav first.
+        if (e.target.id === 'start-new-file-link') {
+          surface.toggleSidenavExtra('file-sidenav');
+        }
+
         surface.toggleSidenavNewFile();
         $('#new-file-name').focus();
       });
@@ -352,7 +359,7 @@ export default function App() {
           return true;
         }
 
-        session.createNewFile($('#new-file-name').val().trim(), '', session.TABTYPE.WORK, false);
+        session.createNewFile($('#new-file-name').val().trim(), '', false);
 
         if (surface.getPanelProperty('run.active')) {
           surface.updateRunPanel(surface.RUN_UPDATE_TYPE.ALL, debuggerObj, session);
@@ -685,6 +692,11 @@ export default function App() {
         },
       });
 
+      // If the run panel is active after settings load and sortable initialization we have to fill up the files list.
+      if (surface.getPanelProperty('run.active')) {
+        surface.updateRunPanel(surface.RUN_UPDATE_TYPE.ALL, debuggerObj, session);
+      }
+
       /**
        * Right arrow button in the source selecting panel.
        */
@@ -766,11 +778,6 @@ export default function App() {
         }
 
         session.getAllData().forEach((s) => {
-          // Skip the welcome session, which is always stored with id 0.
-          if (s.id === 0) {
-            return;
-          }
-
           if (s.scheduled) {
             session.removeFileFromUploadList(s.id);
           }

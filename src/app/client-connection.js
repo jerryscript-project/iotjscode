@@ -299,7 +299,7 @@ function onmessage(event) {
           );
 
           $('.load-from-jerry').on('click', (e) => {
-            this._session.createNewFile(sourceName.split('/').pop(), source, 1, true);
+            this._session.createNewFile(sourceName.split('/').pop(), source, true);
 
             if (this._surface.getPanelProperty('run.active')) {
               this._surface.updateRunPanel(this._surface.RUN_UPDATE_TYPE.ALL, this._debuggerObj, this._session);
