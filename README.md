@@ -172,6 +172,6 @@ Connected from: 127.0.0.1
 
 # License
 
-IoT.js is Open Source software under the [Apache 2.0 license](LICENSE). Complete license and copyright information can be found within the code.
+IoT.js Code is Open Source software under the [Apache 2.0 license](LICENSE). Complete license and copyright information can be found within the code.
 
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FSamsung%2Fiotjscode.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FSamsung%2Fiotjscode?ref=badge_large)
