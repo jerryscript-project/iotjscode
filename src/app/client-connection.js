@@ -148,7 +148,7 @@ function onclose_and_error() {
     this._session.neutralizeWatchExpressions();
   }
 
-  if (this._settings.getValue('debugger.transpileToES5')) {
+  if (this._settings.getValue('debugger.transpileToES5') && !this._transpiler.isEmpty()) {
     this._transpiler.clearTranspiledSources();
   }
 
@@ -311,7 +311,7 @@ function onmessage(event) {
           });
         } else {
           // Do not check the code match if the transpile is enabled.
-          if (!this._settings.getValue('debugger.transpileToES5')) {
+          if (!this._settings.getValue('debugger.transpileToES5') && this._transpiler.isEmpty()) {
             if (!this._session.fileContentCheck(sourceName, source)) {
               let groupID = `gid-source-${sourceName.replace(/\//g, '-').replace(/\./g, '-')}-${source.length}`;
 
@@ -343,8 +343,8 @@ function onmessage(event) {
       // Get the right line, which is depends on that if we use transpiled code or not.
       let hlLine = breakpoint.line - 1;
 
-      if (this._settings.getValue('debugger.transpileToES5')) {
-        hlLine = this._transpiler.getOriginalPositionFor(sourceName, breakpoint.line, 0).line - 1;
+      if (this._settings.getValue('debugger.transpileToES5') && !this._transpiler.isEmpty()) {
+        hlLine = this._transpiler.getOriginalPositionFor(sourceName.split('/').pop(), breakpoint.line, 0).line - 1;
       }
 
       // After we switched to the decent file/sesison show the exception hint (if exists).
@@ -413,7 +413,6 @@ function onmessage(event) {
         this._surface.updateBacktracePanel(
           this._debuggerObj.getBacktraceFrame(),
           this._debuggerObj.getBreakpoint(breakpointData).breakpoint,
-          this._session.getFileNameById(this._session.getActiveID()),
           this._settings,
           this._transpiler
         );

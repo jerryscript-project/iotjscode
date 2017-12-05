@@ -183,6 +183,15 @@ export default class Settings {
    * These listener handler function are stored in the controls array at the 1 position.
    */
   initListeners() {
+    // Prevent the click when the item is disabled.
+    $('.control-item select, .control-item input').on('click', (e) => {
+      if (this._surface.settingItemIsDisabled(e.target.id)) {
+        e.preventDefault();
+        return false;
+      }
+    });
+
+    // Listen on change.
     $('.control-item select, .control-item input').on('change', (e) => {
       let section = $(e.target).parent().parent().attr('id').split('-')[0];
       let id = e.target.id;

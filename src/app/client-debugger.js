@@ -202,6 +202,13 @@ export default class DebuggerClient {
   setEngineMode(mode) {
     this._mode.last = this._mode.current;
     this._mode.current = mode;
+
+    if (mode === ENGINE_MODE.CLIENT_SOURCE ||
+        mode === ENGINE_MODE.DISCONNECTED) {
+      this._surface.toggleSettingItem(true, 'transpileToES5');
+    } else {
+      this._surface.toggleSettingItem(false, 'transpileToES5');
+    }
   }
 
   /**
@@ -459,6 +466,7 @@ export default class DebuggerClient {
         }
       }
     }
+
     if (!found) {
       this._logger.info('Breakpoint not found');
       if (pending) {
@@ -471,6 +479,8 @@ export default class DebuggerClient {
         }
       }
     }
+
+    this._surface.updateBreakpointsPanel(this._activeBreakpoints, this._settings, this._transpiler);
   }
 
   /**
@@ -518,7 +528,6 @@ export default class DebuggerClient {
     }
 
     this._logger.info(`Breakpoint ${breakpoint.activeIndex} at ${this.breakpointToString(breakpoint)}`);
-    this._surface.updateBreakpointsPanel();
   }
 
   /**
@@ -562,6 +571,7 @@ export default class DebuggerClient {
     this.encodeMessage('BBCI', values);
 
     this._logger.info(`Breakpoint ${index} is deleted.`);
+    this._surface.updateBreakpointsPanel(this._activeBreakpoints, this._settings, this._transpiler);
   }
 
   /**
@@ -718,7 +728,7 @@ export default class DebuggerClient {
 
     let source = this._session.getFileSessionById(sid);
 
-    if (this._settings.getValue('debugger.transpileToES5')) {
+    if (this._settings.getValue('debugger.transpileToES5') && !this._transpiler.isEmpty()) {
       if (this._transpiler.transformToES5(this._session.getFileNameById(sid), this._session.getFileSessionById(sid))) {
         source = this._transpiler.getTransformedSource(this._session.getFileNameById(sid));
       } else {
@@ -840,7 +850,7 @@ export default class DebuggerClient {
 
     let line = breakpoint.line;
 
-    if (this._settings.getValue('debugger.transpileToES5')) {
+    if (this._settings.getValue('debugger.transpileToES5') && !this._transpiler.isEmpty()) {
       line = this._transpiler.getOriginalPositionFor(
         this._session.getFileNameById(this._session.getActiveID()),
         line,
@@ -857,7 +867,7 @@ export default class DebuggerClient {
         column: f.column,
       };
 
-      if (this._settings.getValue('debugger.transpileToES5')) {
+      if (this._settings.getValue('debugger.transpileToES5') && !this._transpiler.isEmpty()) {
         position = this._transpiler.getOriginalPositionFor(
           this._session.getFileNameById(this._session.getActiveID()),
           position.line,

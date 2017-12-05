@@ -1021,7 +1021,6 @@ export default function App() {
               debuggerObj.deleteBreakpoint(session.getBreakpointID(row));
               env.editor.session.clearBreakpoint(row);
             }
-            surface.updateBreakpointsPanel(debuggerObj.getActiveBreakpoints());
           }
 
           e.stop();

@@ -446,6 +446,20 @@ select,
   font-weight: bold;
 }
 
+.sidenav-extra #settings-sidenav .control-block .control-item.disabled {
+  opacity: $default-opacity;
+}
+
+.sidenav-extra #settings-sidenav .control-block .control-item.disabled:hover,
+.sidenav-extra #settings-sidenav .control-block .control-item.disabled:hover input {
+  cursor: not-allowed;
+}
+
+.sidenav-extra #settings-sidenav .control-block .control-item.disabled label:hover {
+  color: inherit !important;
+  cursor: inherit !important;
+}
+
 .sidenav-extra #settings-sidenav .control-block .control-item label {
   margin: 0;
   padding: 0;

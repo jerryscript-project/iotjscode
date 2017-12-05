@@ -690,7 +690,7 @@ export default class Session {
     if (debuggerObj && debuggerObj.getEngineMode() !== ENGINE_MODE.DISCONNECTED) {
       let lines = this.getLinesFromRawData(debuggerObj.getBreakpointLines());
 
-      if (settings.getValue('debugger.transpileToES5')) {
+      if (settings.getValue('debugger.transpileToES5') && !transpiler.isEmpty()) {
         let newLines = [];
         for (let i of lines) {
           let originLine = transpiler.getOriginalPositionFor(this.getFileNameById(this._id.active), i, 0);

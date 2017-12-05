@@ -109,6 +109,13 @@ export default class Transpiler {
   }
 
   /**
+   * Checks the transpiled array is that empty or not.
+   */
+  isEmpty() {
+    return (transpiled.length ? false : true);
+  }
+
+  /**
    * Removes the stored source maps.
    */
   clearTranspiledSources() {

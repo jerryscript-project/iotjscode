@@ -303,6 +303,30 @@ export default class Surface {
   }
 
   /**
+   * Sets the given setting item enabled or disabled.
+   *
+   * @param {boolean} enabled New state of the setting item.
+   * @param {string} item The id of the selected setting item.
+   */
+  toggleSettingItem(enabled, item) {
+    if (enabled) {
+      $(`#${item}`).parent().removeClass('disabled');
+    } else {
+      $(`#${item}`).parent().addClass('disabled');
+    }
+  }
+
+  /**
+   * Checks that the selected setting item is enabled or not.
+   *
+   * @param {object} item The selected setting item.
+   * @returns {boolean} True if the item is disabled, false otherwise.
+   */
+  settingItemIsDisabled(item) {
+    return ($(`#${item}`).parent().hasClass('disabled') ? true : false);
+  }
+
+  /**
    * Returns a porperty from the panel object based on the path argument.
    *
    * @param {string} path Dot spearated path to the property value.
@@ -656,14 +680,16 @@ export default class Surface {
    * @param {object} info A complete breakpoint from the debuggerObj.
    * @return {string}
    */
-  generateFunctionLog(info, filename, settings, transpiler) {
+  generateFunctionLog(info, settings, transpiler) {
     let position = {
       line: info.func.line,
       column: info.func.column,
     };
 
-    if (settings.getValue('debugger.transpileToES5')) {
-      position = transpiler.getOriginalPositionFor(filename, position.line, position.column);
+    if (settings.getValue('debugger.transpileToES5') && !transpiler.isEmpty()) {
+      position = transpiler.getOriginalPositionFor(
+        info.func.sourceName.split('/').pop(), position.line, position.column
+      );
     }
 
     let suffix = `() at line: ${position.line}, col: ${position.column}`;
@@ -683,13 +709,13 @@ export default class Surface {
    * @param {integer} frame Frame number information.
    * @param {object} info Breakpoint information from the debuggerObj.
    */
-  updateBacktracePanel(frame, info, filename, settings, transpiler) {
+  updateBacktracePanel(frame, info, settings, transpiler) {
     let sourceName = info.func.sourceName || info;
     let line = info.line || '-';
     let $table = $('#backtrace-table-body');
 
-    if (settings.getValue('debugger.transpileToES5')) {
-      line = transpiler.getOriginalPositionFor(filename, line, 0).line;
+    if (settings.getValue('debugger.transpileToES5') && !transpiler.isEmpty()) {
+      line = transpiler.getOriginalPositionFor(sourceName.split('/').pop(), line, 0).line;
     }
 
     $table.append(
@@ -697,7 +723,7 @@ export default class Surface {
         `<td>${frame}</td>` +
         `<td>${sourceName}</td>` +
         `<td>${line}</td>` +
-        `<td>${this.generateFunctionLog(info, filename, settings, transpiler)}</td>` +
+        `<td>${this.generateFunctionLog(info, settings, transpiler)}</td>` +
       '</tr>'
     );
 
@@ -709,22 +735,26 @@ export default class Surface {
    *
    * @param {array} activeBreakpoints Currently active (inserted) breakpoints list.
    */
-  updateBreakpointsPanel(activeBreakpoints) {
+  updateBreakpointsPanel(activeBreakpoints, settings, transpiler) {
     let $table = $('#breakpoints-table-body');
     Util.clearElement($table);
 
     for (let i in activeBreakpoints) {
       if (activeBreakpoints.hasOwnProperty(i)) {
-        let sourceName = activeBreakpoints[i].func.sourceName || '-',
-        line = activeBreakpoints[i].line || '-',
-        id = activeBreakpoints[i].activeIndex || '-';
+        let sourceName = activeBreakpoints[i].func.sourceName || '-';
+        let line = activeBreakpoints[i].line || '-';
+        let id = activeBreakpoints[i].activeIndex || '-';
+
+        if (settings.getValue('debugger.transpileToES5') && !transpiler.isEmpty()) {
+          line = transpiler.getOriginalPositionFor(sourceName.split('/').pop(), line, 0).line;
+        }
 
         $table.append(
           '<tr>' +
             `<td>${sourceName}</td>` +
             `<td>${line}</td>` +
             `<td>${id}</td>` +
-            `<td>${this.generateFunctionLog(activeBreakpoints[i])}</td>` +
+            `<td>${this.generateFunctionLog(activeBreakpoints[i], settings, transpiler)}</td>` +
           '</tr>'
         );
       }
