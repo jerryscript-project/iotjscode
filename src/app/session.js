@@ -58,12 +58,10 @@ export default class Session {
       execute: {
         obj: null,
         line: null,
-        active: false,
       },
       exception: {
         obj: null,
         line: null,
-        active: false,
       },
     };
 
@@ -768,7 +766,6 @@ export default class Session {
     this._editor.session.addGutterDecoration(line, options.gutterName);
     this._editor.scrollToLine(line, true, true, function() {});
     this._marker[type].line = line;
-    this._marker[type].active = true;
   }
 
   /**
@@ -777,11 +774,8 @@ export default class Session {
    * @param {integer} type Type of the highlight from the HIGHLIGHT_TYPE.
    */
   unhighlightLine(type) {
-    if (this._marker[type].active) {
-      this._marker[type].active = false;
-      this._editor.getSession().removeMarker(this._marker[type].obj);
-      this._editor.session.removeGutterDecoration(this._marker[type].line, `${type}-gutter-cell-marker`);
-    }
+    this._editor.getSession().removeMarker(this._marker[type].obj);
+    this._editor.session.removeGutterDecoration(this._marker[type].line, `${type}-gutter-cell-marker`);
   }
 
   /**
