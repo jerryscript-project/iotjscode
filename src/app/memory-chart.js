@@ -29,7 +29,7 @@ let bytes;
 export default class MemoryChart {
 
   /**
-   * Contructor.
+   * Constructor.
    *
    * @param {object} session The main Session module object.
    * @param {object} surface The main Surface module object.
@@ -62,7 +62,7 @@ export default class MemoryChart {
   /**
    * Sets the record status.
    *
-   * @param {boolean} value True if the record should start, flase otherwise.
+   * @param {boolean} value True if the record should start, false otherwise.
    */
   startRecord(value) {
     this._startRecord = value;
@@ -89,14 +89,14 @@ export default class MemoryChart {
   /**
    * Checks for available data.
    *
-   * @return {boolean} True if there is at least one data, false otherwise.
+   * @return {boolean} True if there is any data, false otherwise.
    */
   containsData() {
     return (chart.data('allocated_bytes')[0].values[maxDatapointNumber - 1].value == null) ? false : true;
   }
 
   /**
-   * Inits or redraw the chart.
+   * Init or redraw the chart.
    * The C3 based charts do not have a redraw function,
    * if we need a complete new chart we have to reinit the dom element with the new dataset.
    *
@@ -207,7 +207,7 @@ export default class MemoryChart {
   }
 
   /**
-   * Sesizes the chart dimensions.
+   * Resizes the chart dimensions.
    *
    * @param {integer} height New height dimension in pixel.
    * @param {integer} width New width dimension in pixel.
@@ -245,7 +245,7 @@ export default class MemoryChart {
   }
 
   /**
-   * Stops the chart work and sets the action buttons to pasue state.
+   * Stops the chart work and sets the action buttons to pause state.
    */
   stopChartWithButton() {
     this._activeChart = false;
@@ -257,7 +257,7 @@ export default class MemoryChart {
   }
 
   /**
-   * Generates a JSON report about the collected informations and popup a download window.
+   * Generates a JSON report about the collected informations and pops up a download window.
    */
   exportChartData() {
     if (xAxisData.length == 1) {
@@ -288,7 +288,7 @@ export default class MemoryChart {
   }
 
   /**
-   * Push a new memory consumption data part into the main dataset.
+   * Push new memory consumption data part into the main dataset.
    *
    * @param {array} data The new bytes informations.
    * @param {array} breakpointInformation Informations about the current breakpoint (e.g.: line).
@@ -357,7 +357,7 @@ function mouseWheelHandler(e) {
 }
 
 /**
- * Backward scroll range handler. Decrease the minimum X axis range.
+ * Backwards scroll range handler. Decrease the minimum X axis range.
  */
 function scrollBack() {
   if (xAxisData.length >= maxDatapointNumber + 1 && minimumXIndex > maxDatapointNumber + 1) {
@@ -367,7 +367,7 @@ function scrollBack() {
 }
 
 /**
- * Foreward scroll range handler. Increase the minimum X axis range.
+ * Forwards scroll range handler. Increase the minimum X axis range.
  */
 function scrollForward() {
   if (xAxisData.length > maxDatapointNumber + minimumXIndex) {
@@ -377,7 +377,7 @@ function scrollForward() {
 }
 
 /**
- * Updates the chart by redraw the dataset based on the new minimum X axis range.
+ * Updates the chart by redrawing the dataset based on the new minimum X axis range.
  */
 function updateScrolledChart() {
   chart.load({
@@ -393,7 +393,7 @@ function updateScrolledChart() {
 }
 
 /**
- * Inits the chart releated variables to the default start values.
+ * Inits the chart related variables to their default start values.
  */
 function initVariables() {
   minimumXIndex = 1;

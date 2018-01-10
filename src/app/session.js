@@ -20,13 +20,13 @@ import Util from './util';
 export default class Session {
 
   /**
-   * Contructor.
+   * Constructor.
    *
-   * @param {object} env The core enviroment object.
+   * @param {object} env The core environment object.
    * @param {object} surface The main Surface instance.
    */
   constructor(env, surface) {
-    this._enviroment = env;
+    this._environment = env;
     this._surface = surface;
     this._editor = env.editor;
 
@@ -79,7 +79,7 @@ export default class Session {
   }
 
   /**
-   * Types of the line hightlight in the editor sesison.
+   * Types of the line highlight in the editor session.
    */
   get HIGHLIGHT_TYPE() {
     return {
@@ -110,7 +110,7 @@ export default class Session {
    * Stores a new breakpoint row and index information.
    *
    * @param {integer} row Breakpoint's row.
-   * @param {integer} index breakpount number (constantly growing).
+   * @param {integer} index breakpoint number (constantly growing).
    */
   addBreakpointID(row, index) {
     this._breakpoint.IDs[row] = index;
@@ -145,7 +145,7 @@ export default class Session {
   }
 
   /**
-   * Returns the chart specific brakpoint informations.
+   * Returns the chart specific breakpoint informations.
    *
    * @return {string} Formatted string.
    */
@@ -154,7 +154,7 @@ export default class Session {
   }
 
   /**
-   * Store the chart specific brakpoint informations.
+   * Store the chart specific breakpoint informations.
    *
    * @param {string} info Breakpoint informations.
    */
@@ -201,7 +201,7 @@ export default class Session {
   /**
    * Returns the actual state of the contextReset.
    *
-   * @return {boolean} True if the context reset request active, false otherwise.
+   * @return {boolean} True if the context reset request is active, false otherwise.
    */
   isContextReset() {
     return this._contextReset;
@@ -305,7 +305,7 @@ export default class Session {
   }
 
   /**
-   * Checks that is the given session id is in the upload list or not.
+   * Checks whether the given session id is in the upload list or not.
    *
    * @param {integer} id The identifier of the session.
    * @return {boolean} Returns true if the session is in the list, false otherwise.
@@ -363,7 +363,7 @@ export default class Session {
   }
 
   /**
-   * Returns that expression which is under evaluate right at the moment.
+   * Returns that expression which is under evaluation at the moment.
    *
    * @return {string} Watch Expression.
    */
@@ -372,8 +372,8 @@ export default class Session {
   }
 
   /**
-   * Creates a new property in the watch list for thw new watch expression.
-   * If the debugger client is connected then it will try to evaluate the expression,
+   * Creates a new property in the watch list for the new watch expression.
+   * If the debugger client is connected, it will try to evaluate the expression,
    * otherwise it will update the watch list.
    *
    * @param {object} debuggerObj DebuggerClient module instance.
@@ -395,8 +395,8 @@ export default class Session {
   /**
    * Add a value to a specific expression.
    * This function will be called after the debugger engine evaluated the expression.
-   * This is cooperate with the updateWatchExpressions function,
-   * if the watch work counter is not equal with the number of the list elements.
+   * This cooperates with the updateWatchExpressions function,
+   * if the watch work counter is not equal to the number of the list elements.
    *
    * @param {object} debuggerObj DebuggerClient module instance.
    * @param {string} expr Expression which was evaluated.
@@ -425,7 +425,7 @@ export default class Session {
   /**
    * Updates every expression in the watch list.
    * This function will grab only one expression from the list
-   * (based on the watch work countter) and send that to the engine.
+   * (based on the watch work counter) and send that to the engine.
    *
    * @param {object} debuggerObj DebuggerClient module instance.
    */
@@ -456,7 +456,7 @@ export default class Session {
   }
 
   /**
-   * Removes every expression from the watch list by make the list empty.
+   * Removes every expression from the watch list by making the list empty.
    */
   removeAllWatchExpression() {
     this._watch.list = {};
@@ -486,9 +486,9 @@ export default class Session {
    */
   createNewFile(name, cont, saved = true) {
     // Create a new document for the editor from the trimmed content.
-    let doc = new this._enviroment.Document(cont);
+    let doc = new this._environment.Document(cont);
     // Create a new javascript mode session from the document.
-    let eSession = new this._enviroment.EditSession(doc, 'ace/mode/javascript');
+    let eSession = new this._environment.EditSession(doc, 'ace/mode/javascript');
 
     // Store the e-session.
     this._data.push({
@@ -534,9 +534,9 @@ export default class Session {
     // Select the right tab on the tabs panel.
     this.selectTab(id);
 
-    // Marked the selected file as an active.
+    // Mark the selected file as active.
     this._id.active = id;
-    // Change the currently e-session through the editor's API.
+    // Change the current e-session through the editor's API.
     this._editor.setSession(this.getFileSessionById(id));
 
     // Refresh the available breakpoint lines in the editor based on the new file/e-session.
@@ -573,7 +573,7 @@ export default class Session {
   }
 
   /**
-   * Checks the given file name is already taken or not.
+   * Checks if the given file name is already taken.
    *
    * @param {string} name The new name of a file.
    * @return {boolean} True if the name is taken, false otherwise.
@@ -586,7 +586,7 @@ export default class Session {
    * Returns a file edit session based on the given id.
    *
    * @param {integer} id The searched file ID.
-   * @return {mixed} Returns the file editSesison if exists, undefined otherwise.
+   * @return {mixed} Returns the file editSession if exists, undefined otherwise.
    */
   getFileSessionById(id) {
     let f = this._data.find(x => x.id === id);
@@ -613,7 +613,7 @@ export default class Session {
    * This is possible, because we store the files "in a straight line".
    *
    * @param {integer} id The base file id.
-   * @return {mixed} Return the neighbour id if exists one, undefined otherwise.
+   * @return {mixed} Return the neighbour id if it exists, undefined otherwise.
    */
   getFileNeighbourById(id) {
     for (let i = 0; i < this._data.length; i++) {
@@ -653,14 +653,14 @@ export default class Session {
    * Searches the given name in the stored files.
    *
    * @param {string} name Searched file name.
-   * @return {boolean} Returns true if the given name is exists, false otherwise.
+   * @return {boolean} Returns true if the given name exists, false otherwise.
    */
   fileNameCheck(name) {
     return this.getFileIdByName(name) ? true : false;
   }
 
   /**
-   * Checks the opened and the device source match.
+   * Checks whether the opened and the device sources match.
    *
    * @param {string} filename Name of the stored file.
    * @param {string} content Content of the current source.
@@ -680,7 +680,7 @@ export default class Session {
   }
 
   /**
-   * Marks every valid, available breakpoint line in the current opened file.
+   * Marks every valid, available breakpoint line in the currently opened file.
    *
    * @param {object} debuggerObj Jerry client object.
    */
@@ -727,7 +727,7 @@ export default class Session {
   /**
    * Returns every valid, available line in the currently active file.
    *
-   * @param {object} raw Line informtion from the debuggerObj.
+   * @param {object} raw Line information from the debuggerObj.
    * @return {array} Array of the file lines.
    */
   getLinesFromRawData(raw) {
@@ -843,10 +843,10 @@ export default class Session {
    * @param {integer} id Selected tab ID.
    */
   closeTab(id) {
-    // Remove the sesison tab from the session bar.
+    // Remove the session tab from the session bar.
     $(`#tab-${id}`).remove();
 
-    // If the selected session is the current file let's switch to an other existing file.
+    // If the selected session is the current file switches to an other existing file.
     if (id === this._id.active) {
       const nID = this.getFileNeighbourById(id);
 
@@ -864,7 +864,7 @@ export default class Session {
     // Update the editor height based on the new header height.
     this._surface.updateEditorHeight();
 
-    // Remove the session from upload list if it was selected.
+    // Remove the session from the upload list if it was selected.
     if (this.isFileInUploadList(id)) {
       this.removeFileFromUploadList(id);
     }
@@ -876,7 +876,7 @@ export default class Session {
   }
 
   /**
-   * Removes the stored data and sets back the variables to the default value.
+   * Removes the stored data and sets back the variables to their default values.
    */
   reset() {
     Util.clearElement($('#backtrace-table-body'));

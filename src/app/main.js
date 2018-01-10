@@ -47,7 +47,7 @@ export default function App() {
   let debuggerObj = null;
 
   /**
-   * Core enviroment variables.
+   * Core environment variables.
    */
   let env = {
     editor: window.ace.edit('editor'),
@@ -91,7 +91,7 @@ export default function App() {
   };
 
   /**
-   * Modul objects.
+   * Module objects.
    */
   let logger = new Logger($('#console-panel'));
   let surface = new Surface();
@@ -241,7 +241,7 @@ export default function App() {
      * File menu events.
      */
     (() => {
-      /*
+      /**
        * File open button.
        */
       $('#open-file-button, #start-open-file-link').on('click', () => {
@@ -254,7 +254,7 @@ export default function App() {
         }
       });
 
-      /*
+      /**
        * Manage the file input change.
        */
       $('#hidden-file-input').change((evt) => {
@@ -523,7 +523,7 @@ export default function App() {
         }
 
         if (debuggerObj.getEngineMode() !== ENGINE_MODE.BREAKPOINT) {
-          logger.error('This action only available in breakpoint mode.', true);
+          logger.error('This action is only available in breakpoint mode.', true);
           return true;
         }
 
@@ -536,7 +536,7 @@ export default function App() {
         }
 
         if (debuggerObj.getEngineMode() !== ENGINE_MODE.BREAKPOINT) {
-          logger.error('This action only available in breakpoint mode.', true);
+          logger.error('This action is only available in breakpoint mode.', true);
           return true;
         }
 
@@ -692,7 +692,10 @@ export default function App() {
         },
       });
 
-      // If the run panel is active after settings load and sortable initialization we have to fill up the files list.
+      /**
+       * If the run panel is active after loading settings and sortable initialization
+       * we have to fill up the files list.
+       */
       if (surface.getPanelProperty('run.active')) {
         surface.updateRunPanel(surface.RUN_UPDATE_TYPE.ALL, debuggerObj, session);
       }
@@ -895,7 +898,7 @@ export default function App() {
           }
 
           if (PORT < 0 || PORT > 65535) {
-            logger.error('Adress port must between 0 and 65535.');
+            logger.error('Adress port must be between 0 and 65535.');
             return true;
           }
 
@@ -974,7 +977,7 @@ export default function App() {
      * Editor extra events.
      */
     (() => {
-      /*
+      /**
        * Update the breakpoint lines after editor or session changes.
        */
       env.editor.on('change', () => {
@@ -990,7 +993,7 @@ export default function App() {
         }
       });
 
-      /*
+      /**
        * Editor mouse click, breakpoint add/delete.
        */
       env.editor.on('guttermousedown', (e) => {
@@ -1121,7 +1124,7 @@ export default function App() {
         $('#info-panels').resizable('option', 'minWidth', Math.floor($('#editor-wrapper').parent().width() / 3));
         $('#info-panels').resizable('option', 'maxWidth', Math.floor(($('#editor-wrapper').parent().width() / 3) * 2));
 
-        // Update the scrolbars of the panels.
+        // Update the scrollbars of the panels.
         for (const sb of scrollbars.panels) {
           sb.update();
         }

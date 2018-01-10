@@ -42,7 +42,7 @@ const POPUP = {
 export default class Logger {
 
   /**
-   * Contructor.
+   * Constructor.
    *
    * @param {object} element Dom element where the messages should go.
    */
@@ -99,7 +99,7 @@ export default class Logger {
   /**
    * Appends the given data into the panel
    * as a debug information in JSON format,
-   * or puts a new dom element into it if the dom parametere is true.
+   * or puts a new dom element into it if the dom parameter is true.
    *
    * @param {string} message The message which will appear in the logger panel.
    * @param {mixed} data A complex JSON formatted information object.
@@ -118,7 +118,7 @@ export default class Logger {
 }
 
 /**
- * Creates a bootsrtap based alert div with the given aprameters.
+ * Creates a bootstrap based alert div with the given parameters.
  *
  * @param {number} type The type of the alert div.
  * @param {string} strong The strong text in the alert div.

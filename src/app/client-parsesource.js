@@ -19,7 +19,7 @@ import { PROTOCOL } from './client-debugger';
 export default class ParseSource {
 
   /**
-   * Contructor.
+   * Constructor.
    *
    * @param {object} debuggerObject DebuggerClient module object.
    */
@@ -64,7 +64,7 @@ export default class ParseSource {
   }
 
   /**
-   * Process the incoming message source releated parts.
+   * Process the incoming message's source releated parts.
    *
    * @param {uint8} message The incoming message from the engine.
    */

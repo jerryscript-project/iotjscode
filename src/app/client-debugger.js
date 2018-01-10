@@ -79,7 +79,7 @@ export const PROTOCOL = {
 
 /**
  * States of the JerryScript engine.
- * The available actions in the client are depends on these modes.
+ * The available actions in the client depend on these modes.
  */
 export const ENGINE_MODE = {
   DISCONNECTED: 0,
@@ -91,7 +91,7 @@ export const ENGINE_MODE = {
 export default class DebuggerClient {
 
   /**
-   * Contructor.
+   * Constructor.
    *
    * @param {string} address Connection address (ip and port).
    * @param {object} session Session module object.
@@ -273,11 +273,11 @@ export default class DebuggerClient {
 
       if (chr >= 0x7f) {
         if (chr & 0x20) {
-          /* Three byte long character. */
+          /* Three bytes long character. */
           chr = ((chr & 0xf) << 12) | ((array[i] & 0x3f) << 6) | (array[i + 1] & 0x3f);
           i += 2;
         } else {
-          /* Two byte long character. */
+          /* Two bytes long character. */
           chr = ((chr & 0x1f) << 6) | (array[i] & 0x3f);
           ++i;
         }
@@ -306,7 +306,7 @@ export default class DebuggerClient {
     }
 
     if (offset + this.getFormatSize(format) > message.byteLength) {
-      this._connection.abort('received message too short.');
+      this._connection.abort('received message is too short.');
     }
 
     for (let i in format) {
@@ -354,7 +354,7 @@ export default class DebuggerClient {
   }
 
   /**
-   * Encode an outgoing message and sends after the encoding is completed.
+   * Encode an outgoing message and send it after the encoding is completed.
    * Format: B=byte I=int32 C=cpointer.
    *
    * @param {char} format Format type.
@@ -533,7 +533,7 @@ export default class DebuggerClient {
   /**
    * Removes a breakpoint from the active breakpoints list and updates the engine.
    *
-   * @param {integer} index Index's of the breakpoint.
+   * @param {integer} index Index of the breakpoint.
    */
   deleteBreakpoint(index) {
     let breakpoint = this._activeBreakpoints[index];
@@ -570,21 +570,21 @@ export default class DebuggerClient {
 
     this.encodeMessage('BBCI', values);
 
-    this._logger.info(`Breakpoint ${index} is deleted.`);
+    this._logger.info(`Breakpoint ${index} deleted.`);
     this._surface.updateBreakpointsPanel(this._activeBreakpoints, this._settings, this._transpiler);
   }
 
   /**
    * Removes a single pending breakpoint from the pending list.
    *
-   * @param {integer} index The index's of the pending breakpoint.
+   * @param {integer} index The index of the pending breakpoint.
    */
   deletePendingBreakpoint(index) {
     if (index >= this._pendingBreakpoints.length) {
       this._logger.info('Pending breakpoint not found');
     } else {
       this._pendingBreakpoints.splice(index, 1);
-      this._logger.info(`Pending breakpoint ${index} is deleted.`);
+      this._logger.info(`Pending breakpoint ${index} deleted.`);
     }
   }
 
@@ -621,7 +621,7 @@ export default class DebuggerClient {
   /**
    * Sends the execution resume byte message to the engine.
    *
-   * @param {PROTOCOL} command The execution resume package command.s
+   * @param {PROTOCOL} command The execution resume package command.
    */
   sendResumeExec(command) {
     if (this._mode.current !== ENGINE_MODE.BREAKPOINT) {
@@ -659,8 +659,8 @@ export default class DebuggerClient {
 
   /**
    * Sends an eval message to the engine which should be evaluated.
-   * If the eval message can not fit into one message this function will slice that
-   * and sends that into pieces to the engine.
+   * If the eval message can not fit into one message this function will slice it
+   * and send it in pieces to the engine.
    *
    * @param {string} str The eval code string.
    */
@@ -695,9 +695,9 @@ export default class DebuggerClient {
   }
 
   /**
-   * Sends one or more source file to the engine which should be executed.
-   * If the source code message can not fit into one message this function will slice that
-   * and sends that into pieces to the engine.
+   * Sends one or more source file(s) to the engine which should be executed.
+   * If the source code message can not fit into one message this function will slice it
+   * and send it in pieces to the engine.
    */
   sendClientSource() {
     if (this._mode.current !== ENGINE_MODE.CLIENT_SOURCE) {
@@ -780,7 +780,7 @@ export default class DebuggerClient {
 
   /**
    * Prints every information about the breakpoints into the logger panel.
-   * Thiw function will print every breakpoint no matter that is an actove or not.
+   * This function will print every breakpoint no matter if it's active or not.
    */
   dump() {
     for (let i in this._functions) {

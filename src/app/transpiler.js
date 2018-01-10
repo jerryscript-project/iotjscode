@@ -109,7 +109,7 @@ export default class Transpiler {
   }
 
   /**
-   * Checks the transpiled array is that empty or not.
+   * Checks if the transpiled array is empty.
    */
   isEmpty() {
     return (transpiled.length ? false : true);

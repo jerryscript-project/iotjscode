@@ -83,8 +83,8 @@ export default class Settings {
         selectionStyle: [CONTROL_TYPE.CHECKBOX, (checked) => {
           this._editor.setOption('selectionStyle', checked ? 'line' : 'text');
         }, true],
-        highlightActive: [CONTROL_TYPE.CHECKBOX, (hightlight) => {
-          this._editor.setHighlightActiveLine(hightlight);
+        highlightActive: [CONTROL_TYPE.CHECKBOX, (highlight) => {
+          this._editor.setHighlightActiveLine(highlight);
         }, true],
         displayIndentGuides: [CONTROL_TYPE.CHECKBOX, (enabled) => {
           this._editor.setDisplayIndentGuides(enabled);
@@ -110,8 +110,8 @@ export default class Settings {
         softTab: [CONTROL_TYPE.CHECKBOX, (enabled) => {
           this._editor.session.setUseSoftTabs(enabled);
         }, true],
-        highlightSelectedWord: [CONTROL_TYPE.CHECKBOX, (hightlight) => {
-          this._editor.setHighlightSelectedWord(hightlight);
+        highlightSelectedWord: [CONTROL_TYPE.CHECKBOX, (highlight) => {
+          this._editor.setHighlightSelectedWord(highlight);
         }, true],
         enableBehaviours: [CONTROL_TYPE.CHECKBOX, (enabled) => {
           this._editor.setBehavioursEnabled(enabled);

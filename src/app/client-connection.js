@@ -23,7 +23,7 @@ import Logger from './logger';
 export default class Connection {
 
   /**
-   * Contructor.
+   * Constructor.
    *
    * @param {object} debuggerObject The DebuggerClient module object.
    * @param {object} address Connection host address and host port.
@@ -78,12 +78,12 @@ export default class Connection {
 
     this.close();
 
-    this._logger.error(`Abort connection: ${message}`, true);
+    this._logger.error(`Connection aborted: ${message}`, true);
     throw new Error(message);
   }
 
   /**
-   * Sens a message through the socket.
+   * Sends a message through the socket.
    *
    * @param {uint8} message The message data.
    */
@@ -100,7 +100,7 @@ export default class Connection {
 
 /**
  * The socket onopen event handler.
- * This function will be called when the socket estabilished the connection.
+ * This function will be called when the socket established the connection.
  */
 function onopen() {
   this._logger.info('Connection created.');
@@ -125,8 +125,8 @@ function onopen() {
 
 /**
  * The socket onclose_and_error event handler.
- * This function will be called when the socket run into an error.
- * this function will be called when the we want to close the socket.
+ * This function will be called when the socket runs into an error.
+ * This function will be called when we want to close the socket.
  */
 function onclose_and_error() {
   if (this._socket) {
@@ -197,7 +197,7 @@ function onmessage(event) {
     this._debuggerObj.setLittleEndian((message[3] != 0));
 
     if (this._debuggerObj.getCPointerSize() !== 2 && this._debuggerObj.getCPointerSize() !== 4) {
-      this._socket.abortConnection('compressed pointer must be 2 or 4 byte long.');
+      this._socket.abortConnection('compressed pointer must be 2 or 4 bytes long.');
     }
 
     return;
@@ -293,7 +293,7 @@ function onmessage(event) {
           let groupID = `gid-name-${sourceName.replace(/\//g, '-').replace(/\./g, '-')}-${sourceName.length}`;
 
           this._logger.debug(
-            `The ${sourceName} file is missing: `,
+            `The file ${sourceName} is missing: `,
             `<div class="btn btn-xs btn-default load-from-jerry ${groupID}">Load from Jerry</div>`,
             true
           );
@@ -316,7 +316,7 @@ function onmessage(event) {
               let groupID = `gid-source-${sourceName.replace(/\//g, '-').replace(/\./g, '-')}-${source.length}`;
 
               this._logger.debug(
-                `The opened ${sourceName} source is not match with the source on the device! `,
+                `The opened ${sourceName} source does not match with the source on the device! `,
                 `<div class="btn btn-xs btn-default reload-from-jerry ${groupID}">Reload from Jerry</div>`,
                 true
               );
@@ -340,14 +340,14 @@ function onmessage(event) {
         this._session.switchFile(sID);
       }
 
-      // Get the right line, which is depends on that if we use transpiled code or not.
+      // Get the right line, based on whether we use transpiled code or not.
       let hlLine = breakpoint.line - 1;
 
       if (this._settings.getValue('debugger.transpileToES5') && !this._transpiler.isEmpty()) {
         hlLine = this._transpiler.getOriginalPositionFor(sourceName.split('/').pop(), breakpoint.line, 0).line - 1;
       }
 
-      // After we switched to the decent file/sesison show the exception hint (if exists).
+      // After we switched to the correct file/session show the exception hint (if exists).
       if (message[0] === PROTOCOL.SERVER.JERRY_DEBUGGER_EXCEPTION_HIT) {
         this._session.highlightLine(this._session.HIGHLIGHT_TYPE.EXCEPTION, hlLine);
         this._logger.error('Exception throw detected!');
@@ -357,7 +357,7 @@ function onmessage(event) {
           this._exceptionData = null;
         }
       } else {
-        // Hightlight the execute line in the correct session.
+        // Highlight the execute line in the correct session.
         if (sID !== undefined && sID === this._session.getActiveID()) {
           this._session.highlightLine(this._session.HIGHLIGHT_TYPE.EXECUTE, hlLine);
           this._session.markBreakpointGutters(this._debuggerObj, this._settings, this._transpiler);
@@ -369,12 +369,12 @@ function onmessage(event) {
         this._debuggerObj.getBacktrace(this._debuggerObj);
       }
 
-      // Updates the watched expression list if the watch panel activated.
+      // Updates the watched expression list if the watch panel is active.
       if (this._surface.getPanelProperty('watch.active')) {
         this._session.updateWatchExpressions(this._debuggerObj);
       }
 
-      // Add breakpoint information to chart
+      // Add breakpoint information to chart.
       if (this._surface.getPanelProperty('chart.active')) {
         for (let i in this._debuggerObj.getActiveBreakpoints()) {
           if (this._debuggerObj.getActiveBreakpoints()[i].line ===

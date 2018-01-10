@@ -197,7 +197,7 @@ export default class Completer {
   constructor() {}
 
   /**
-   * Returns a slice from the functions list that based on prefix.
+   * Returns a slice from the functions list based on the prefix.
    *
    * @param {array} list JSON formatted list about the available functions.
    * @param {string} prefix Searched function name substring.
@@ -220,7 +220,7 @@ export default class Completer {
 
   /**
    * Checks the whole source code to find every require call,
-   * extract the module name from it, then returns with them.
+   * extracts the module names from them, then returns with them.
    *
    * @param {string} source The actual opened source code.
    * @return {array} List of the required module names.
