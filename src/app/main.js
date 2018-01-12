@@ -382,6 +382,7 @@ export default function App() {
         let blob = new Blob([env.editor.session.getValue()]);
         FileSaver.saveAs(blob, session.getFileNameById(session.getActiveID()));
         $('#tab-' + session.getActiveID()).removeClass('unsaved');
+        session.changeFileSavedProperty(session.getActiveID(), true);
         surface.toggleSidenavExtra('file-sidenav');
       });
     })();
@@ -982,6 +983,7 @@ export default function App() {
        */
       env.editor.on('change', () => {
         $('#tab-' + session.getActiveID()).addClass('unsaved');
+        session.changeFileSavedProperty(session.getActiveID(), false);
         if (debuggerObj && debuggerObj.getEngineMode() !== ENGINE_MODE.DISCONNECTED) {
           session.markBreakpointGutters(debuggerObj, settings, transpiler);
         }

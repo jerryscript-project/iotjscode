@@ -17,6 +17,15 @@
 import { ENGINE_MODE } from './client-debugger';
 import Util from './util';
 
+/**
+ * The content of the welcome.js file on the begining.
+ */
+const welcomeContent = '/**\n' +
+                       ' * IoT.js Code\n' +
+                       ' * Browser based IDE including debugger for IoT.js.\n' +
+                       ' */\n';
+
+
 export default class Session {
 
   /**
@@ -501,6 +510,11 @@ export default class Session {
 
     this._surface.showEditor();
 
+    // Remove the welcome file if that is untouched.
+    if (this._id.next !== 1 && this.isWelcomeFileUntouched()) {
+      this.closeTab(1);
+    }
+
     this.updateTabs(this._id.next, name);
     this.switchFile(this._id.next);
 
@@ -509,16 +523,21 @@ export default class Session {
   }
 
   /**
+   * Checks that the welcome file is exists and untouched.
+   *
+   * @returns {boolean} True, if the welcome file exists and untouched, false otherwise.
+   */
+  isWelcomeFileUntouched() {
+    const w = this.getFileDataById(1);
+    return (w && w.saved && !w.scheduled && w.editSession.getValue() === welcomeContent) ? true : false;
+  }
+
+  /**
    * Sets a simple starting file into the editor.
    * This file can not be closed or modified.
    */
   setWelcomeFile() {
-    let welcome = '/**\n' +
-                  ' * IoT.js Code\n' +
-                  ' * Browser based IDE including debugger for IoT.js.\n' +
-                  ' */\n';
-
-    this.createNewFile('welcome.js', welcome, true);
+    this.createNewFile('welcome.js', welcomeContent, true);
   }
 
   /**
@@ -606,6 +625,16 @@ export default class Session {
     if (this._data.length === 1) {
       this._surface.toggleButton(false, 'save-file-button');
     }
+  }
+
+  /**
+   * Changes the saved file property in the selected file session.
+   *
+   * @param {integer} id Identifier of the selected file.
+   * @param {boolean} saved The new value of the saved property.
+   */
+  changeFileSavedProperty(id, saved) {
+    this._data.find(x => x.id === id).saved = saved;
   }
 
   /**
