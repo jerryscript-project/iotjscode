@@ -26,20 +26,23 @@ import Session from './session';
 import Surface from './surface';
 import DebuggerClient, { PROTOCOL, ENGINE_MODE } from './client-debugger';
 import MemoryChart from './memory-chart';
-import Completer, { IOTJS_FUNCTIONS } from './completer';
 import Settings from './settings';
 import Transpiler from './transpiler';
+import Completer from './completer';
 
 import PerfectScrollbar from 'perfect-scrollbar';
 import FileSaver from 'file-saver';
 import 'jqueryui';
 import 'thead';
 import 'bootstrap';
-import 'ace/ace';
-import 'ace/ext-language_tools';
 
 export default function App() {
   console.log('IoT.JS Code');
+
+  /**
+   * Delay the document ready, wait for monaco init.
+   */
+  $.holdReady(true);
 
   /**
    * Object for the DebuggerClient.
@@ -50,13 +53,7 @@ export default function App() {
    * Core environment variables.
    */
   let env = {
-    editor: window.ace.edit('editor'),
-    basePath: 'ace',
-    langTools: null,
-    config: null,
-    iotjsCompleter: null,
-    EditSession: null,
-    Document: null,
+    editor: null,
   };
 
   /**
@@ -90,76 +87,93 @@ export default function App() {
     decPoint: 110,
   };
 
+
   /**
-   * Module objects.
+   * Monaco related: the monaco loader function.
    */
-  let logger = new Logger($('#console-panel'));
-  let surface = new Surface();
-  let session = new Session(env, surface);
-  let chart = new MemoryChart(session, surface);
-  let completer = new Completer();
-  let settings = new Settings(env.editor, surface);
-  let transpiler = new Transpiler();
+  const onGotAmdLoader = () => {
+    window.require(['vs/editor/editor.main'], () => {
+      initMonaco();
+    });
+  };
+
+
+  /**
+   * Monaco related: initalization function.
+   */
+  const initMonaco = () => {
+    env.editor = window.monaco.editor.create($('#monaco').get(0), {
+      language: 'javascript',
+      glyphMargin: true,
+    });
+
+    // Release the document ready delay.
+    $.holdReady(false);
+  };
+
+
+  /**
+   * Monaco related: load the monaco own loader if we do not have one.
+   */
+  if (!window.require) {
+    let loaderScript = document.createElement('script');
+    loaderScript.type = 'text/javascript';
+    loaderScript.src = 'vs/loader.js';
+    loaderScript.addEventListener('load', onGotAmdLoader);
+    document.body.appendChild(loaderScript);
+  } else {
+    onGotAmdLoader();
+  }
 
 
   /**
    * Document ready.
    */
   $(() => {
-    // Init the ACE editor.
-    env.langTools = window.ace.require('ace/ext/language_tools');
-    env.config = window.ace.require('ace/config');
-    env.config.set('packaged', true);
-    env.config.set('basePath', env.basePath);
-    env.config.set('workerPath', env.basePath);
-    env.config.set('modePath', env.basePath);
-    env.config.set('themePath', env.basePath);
+    /**
+     * Module objects.
+     */
+    let logger = new Logger($('#console-panel'));
+    let surface = new Surface();
+    let session = new Session(env, surface);
+    let chart = new MemoryChart(session, surface);
+    let settings = new Settings(env.editor, surface);
+    let transpiler = new Transpiler();
+    let completer = new Completer();
 
-    env.editor.resize();
-    env.editor.setTheme('ace/theme/tomorrow');
-    env.EditSession = window.ace.require('ace/edit_session').EditSession;
-    env.Document = window.ace.require('ace/document').Document;
-    env.editor.session.setMode('ace/mode/javascript');
-    env.editor.setShowInvisibles(false);
+    /**
+     * Editor related events.
+     */
+    (() => {
+      // Set the default welcome file.
+      session.setWelcomeFile();
 
-    // Enable the autocomplete and snippets.
-    env.editor.setOptions({
-      enableBasicAutocompletion: true,
-      enableSnippets: true,
-      enableLiveAutocompletion: true,
-    });
+      // Register a completion item provider.
+      window.monaco.languages.registerCompletionItemProvider(
+        'javascript',
+        completer.getCompletionProvider()
+      );
 
-    // Add the IoT.js completer to the editor language tools.
-    env.langTools.addCompleter({
-      getCompletions: (editor, session, pos, prefix, callback) => {
-        if (prefix.length === 0) {
-          callback(null, []);
-          return;
+      /**
+       * Model change event.
+       */
+      env.editor.onDidChangeModel(() => {
+        if (debuggerObj && debuggerObj.getEngineMode() !== ENGINE_MODE.DISCONNECTED) {
+          session.markBreakpointLines(debuggerObj, settings, transpiler);
         }
+      });
 
-        let wordList = completer.getCompleterWordList(
-          IOTJS_FUNCTIONS,
-          prefix,
-          completer.lookingForModules(env.editor.session.getValue())
-        );
-
-        callback(null, wordList.map((ea) => {
-          return {
-            name: ea.word,
-            value: ea.word,
-            score: ea.score,
-            meta: 'IoT.js ' + ea.meta,
-          };
-        }));
-      },
-    });
-
-    // Workaround for scrolling problem.
-    env.editor.$blockScrolling = Infinity;
-
-    // Init the welcome session.
-    session.setWelcomeFile();
-
+      /**
+       * Mosue click event.
+       */
+      env.editor.onMouseDown((e) => {
+        if (e.target.type === window.monaco.editor.MouseTargetType.GUTTER_GLYPH_MARGIN) {
+          if (debuggerObj && debuggerObj.getEngineMode() !== ENGINE_MODE.DISCONNECTED) {
+            session.toggleBreakpoint(e.target.position.lineNumber, debuggerObj, settings, transpiler);
+          }
+        }
+      });
+    })();
 
     /**
      * User settings load related events.
@@ -171,6 +185,9 @@ export default function App() {
       if (surface.getPanelProperty('chart.active')) {
         surface.initChartPanel(chart);
       }
+
+      // After settings load resize the editor.
+      env.editor.layout(surface.getEditorContainerDimensions());
     })();
 
 
@@ -187,6 +204,9 @@ export default function App() {
         if (surface.getPanelProperty('chart.active')) {
           surface.initChartPanel(chart);
         }
+
+        // Adapt the editor dimensions.
+        env.editor.layout(surface.getEditorContainerDimensions());
       });
 
       /**
@@ -233,6 +253,9 @@ export default function App() {
         if (surface.getPanelProperty('watch.active')) {
           surface.updateWatchPanelButtons(debuggerObj);
         }
+
+        // Adapt the editor dimensions.
+        env.editor.layout(surface.getEditorContainerDimensions());
       });
     })();
 
@@ -275,6 +298,10 @@ export default function App() {
 
               if (surface.getPanelProperty('run.active')) {
                 surface.updateRunPanel(surface.RUN_UPDATE_TYPE.ALL, debuggerObj, session);
+              }
+
+              if ($('#save-file-button').hasClass('disabled')) {
+                surface.toggleButton(true, 'save-file-button');
               }
             },
 
@@ -374,12 +401,12 @@ export default function App() {
       /**
        * Save button event.
        */
-      $('#save-file-button').on('click', (e) => {
-        if (surface.buttonIsDisabled(e.target)) {
+      $('#save-file-button').on('click', () => {
+        if ($('#save-file-button').hasClass('disabled')) {
           return true;
         }
 
-        let blob = new Blob([env.editor.session.getValue()]);
+        let blob = new Blob([session.getFileModelById(session.getActiveID()).getValue()]);
         FileSaver.saveAs(blob, session.getFileNameById(session.getActiveID()));
         $('#tab-' + session.getActiveID()).removeClass('unsaved');
         session.changeFileSavedProperty(session.getActiveID(), true);
@@ -975,66 +1002,6 @@ export default function App() {
 
 
     /**
-     * Editor extra events.
-     */
-    (() => {
-      /**
-       * Update the breakpoint lines after editor or session changes.
-       */
-      env.editor.on('change', () => {
-        $('#tab-' + session.getActiveID()).addClass('unsaved');
-        session.changeFileSavedProperty(session.getActiveID(), false);
-        if (debuggerObj && debuggerObj.getEngineMode() !== ENGINE_MODE.DISCONNECTED) {
-          session.markBreakpointGutters(debuggerObj, settings, transpiler);
-        }
-      });
-
-      env.editor.on('changeSession', () => {
-        if (debuggerObj && debuggerObj.getEngineMode() !== ENGINE_MODE.DISCONNECTED) {
-          session.markBreakpointGutters(debuggerObj, settings, transpiler);
-        }
-      });
-
-      /**
-       * Editor mouse click, breakpoint add/delete.
-       */
-      env.editor.on('guttermousedown', (e) => {
-        if (debuggerObj && debuggerObj.getEngineMode() !== ENGINE_MODE.DISCONNECTED) {
-          let target = e.domEvent.target;
-          if (target.className.indexOf('ace_gutter-cell') === -1) {
-            return;
-          }
-
-          if (!env.editor.isFocused()) {
-            return;
-          }
-
-          if (e.clientX > 25 + target.getBoundingClientRect().left) {
-            return;
-          }
-
-          let breakpoints = e.editor.session.getBreakpoints(row, 0);
-          let row = e.getDocumentPosition().row;
-          let lines = session.getLinesFromRawData(debuggerObj.getBreakpointLines());
-
-          if (lines.includes(row + 1)) {
-            if (typeof breakpoints[row] === typeof undefined) {
-              env.editor.session.setBreakpoint(row);
-              session.addBreakpointID(row, debuggerObj.getNextBreakpointIndex());
-              debuggerObj.setBreakpoint(session.getFileNameById(session.getActiveID()) + ':' + parseInt(row + 1));
-            } else {
-              debuggerObj.deleteBreakpoint(session.getBreakpointID(row));
-              env.editor.session.clearBreakpoint(row);
-            }
-          }
-
-          e.stop();
-        }
-      });
-    })();
-
-
-    /**
      * Resizer functions and events.
      */
     (() => {
@@ -1043,7 +1010,7 @@ export default function App() {
        */
       $('#info-panels').resizable({
         handles: 'e',
-        resize: () => {
+        resize: (event, ui) => {
           $('#editor-wrapper').css('width', surface.editorHorizontalPercentage() + '%');
 
           // Resize chart.
@@ -1058,10 +1025,11 @@ export default function App() {
 
             chart.resizeChart(tmph, surface.getPanelProperty('chart.width'));
           }
-        },
-        stop: (event, ui) => {
+
+          // Resize editor.
           $(ui.originalElement).width($(ui.originalElement).width() / $('#workspace-wrapper').width() * 100 + '%');
-          env.editor.resize();
+
+          env.editor.layout(surface.getEditorContainerDimensions());
         },
       });
 
@@ -1120,7 +1088,8 @@ export default function App() {
 
           // Resize the info panels and the editor.
           $('#editor-wrapper').css('width', surface.editorHorizontalPercentage() + '%');
-          env.editor.resize();
+
+          env.editor.layout(surface.getEditorContainerDimensions());
         }
 
         $('#info-panels').resizable('option', 'minWidth', Math.floor($('#editor-wrapper').parent().width() / 3));

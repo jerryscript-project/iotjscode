@@ -712,13 +712,13 @@ export default class DebuggerClient {
 
     this.setEngineMode(ENGINE_MODE.RUN);
 
-    let sid = this._session.getUploadList()[0];
+    let fid = this._session.getUploadList()[0];
 
-    if (sid === 0) {
+    if (fid === 0) {
       this.encodeMessage('B', [PROTOCOL.CLIENT.JERRY_DEBUGGER_CONTEXT_RESET]);
       this._session.shiftUploadList();
       this._session.setContextReset(true);
-      this._surface.changeUploadColor(this._surface.COLOR.GREEN, sid);
+      this._surface.changeUploadColor(this._surface.COLOR.GREEN, fid);
       this._session.allowUploadAndRun(false);
       return;
     }
@@ -726,11 +726,11 @@ export default class DebuggerClient {
     // Turn on the action buttons and turn off run button.
     this._surface.disableActionButtons(false);
 
-    let source = this._session.getFileSessionById(sid);
+    let source = this._session.getFileModelById(fid).getValue();
 
     if (this._settings.getValue('debugger.transpileToES5') && !this._transpiler.isEmpty()) {
-      if (this._transpiler.transformToES5(this._session.getFileNameById(sid), this._session.getFileSessionById(sid))) {
-        source = this._transpiler.getTransformedSource(this._session.getFileNameById(sid));
+      if (this._transpiler.transformToES5(this._session.getFileNameById(fid), this._session.getFileModelById(fid))) {
+        source = this._transpiler.getTransformedSource(this._session.getFileNameById(fid));
       } else {
         this.encodeMessage('B', [PROTOCOL.CLIENT.JERRY_DEBUGGER_CONTEXT_RESET]);
         this._session.resetUploadList();
@@ -741,7 +741,7 @@ export default class DebuggerClient {
       }
     }
 
-    let array = this.stringToCesu8(`${this._session.getFileNameById(sid)}\0${source}`);
+    let array = this.stringToCesu8(`${this._session.getFileNameById(fid)}\0${source}`);
     let byteLength = array.byteLength;
 
     array[0] = PROTOCOL.CLIENT.JERRY_DEBUGGER_CLIENT_SOURCE;
@@ -750,7 +750,7 @@ export default class DebuggerClient {
       this._connection.send(array);
       this._session.shiftUploadList();
       this._session.allowUploadAndRun(false);
-      this._surface.changeUploadColor(this._surface.COLOR.GREEN, sid);
+      this._surface.changeUploadColor(this._surface.COLOR.GREEN, fid);
       return;
     }
 
@@ -766,7 +766,7 @@ export default class DebuggerClient {
 
     this._session.shiftUploadList();
     this._session.allowUploadAndRun(false);
-    this._surface.changeUploadColor(this._surface.COLOR.GREEN, sid);
+    this._surface.changeUploadColor(this._surface.COLOR.GREEN, fid);
   }
 
   /**

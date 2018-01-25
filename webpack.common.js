@@ -10,13 +10,13 @@ const build_path = path.resolve(__dirname, 'dist');
 const module_path = path.resolve(__dirname, 'node_modules');
 
 const html_title = 'IoT.JS Code';
-const ace_editor_path = 'ace-builds/src-min-noconflict';
+const monaco_editor_path = 'monaco-editor/min/vs';
 
 const resolve = {
   alias: {
     c3$: 'c3/c3.min',
     d3$: 'd3/d3.min',
-    ace: ace_editor_path,
+    vs: monaco_editor_path,
     jquery$: 'jquery/src/jquery',
     jqueryui$: 'jquery-ui-dist/jquery-ui.min',
     thead$: 'floatthead',
@@ -35,8 +35,8 @@ const plugins = [
   }),
   new CopyWebpackPlugin([
     {
-      from: `${module_path}/${ace_editor_path}`,
-      to: `${build_path}/ace`,
+      from: `${module_path}/${monaco_editor_path}`,
+      to: `${build_path}/vs`,
     },
   ]),
   new ExtractTextPlugin('[name].css'),

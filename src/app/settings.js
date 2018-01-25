@@ -61,67 +61,78 @@ export default class Settings {
     return {
       global: {
         theme: [CONTROL_TYPE.SELECT, (theme) => {
-          this._editor.setTheme(theme);
+          window.monaco.editor.setTheme(theme);
 
-          if (theme === 'ace/theme/tomorrow') {
+          if (theme === 'vs') {
             $('body').removeClass('dark-theme');
           } else {
             $('body').addClass('dark-theme');
           }
-        }, 'ace/theme/tomorrow'],
+        }, 'vs'],
       },
       editor: {
         fontsize: [CONTROL_TYPE.SELECT, (size) => {
-          this._editor.setFontSize(size);
-        }, '12px'],
-        folding: [CONTROL_TYPE.SELECT, (style) => {
-          this._editor.session.setFoldStyle(style);
-        }, 'markbegin'],
+          this._editor.updateOptions({
+            fontSize: size,
+          });
+        }, '14px'],
         wrap: [CONTROL_TYPE.SELECT, (wrap) => {
-          this._editor.setOption('wrap', wrap);
+          this._editor.updateOptions({
+            wordWrap: wrap,
+          });
         }, 'off'],
-        selectionStyle: [CONTROL_TYPE.CHECKBOX, (checked) => {
-          this._editor.setOption('selectionStyle', checked ? 'line' : 'text');
+        wrapColumn: [CONTROL_TYPE.SELECT, (column) => {
+          this._editor.updateOptions({
+            wordWrapColumn: column,
+          });
+        }, '80'],
+        lineHighlight: [CONTROL_TYPE.SELECT, (highlght) => {
+          this._editor.updateOptions({
+            renderLineHighlight: highlght,
+          });
+        }, 'all'],
+        whitespace: [CONTROL_TYPE.SELECT, (ws) => {
+          this._editor.updateOptions({
+            renderWhitespace: ws,
+          });
+        }, 'all'],
+        minimap: [CONTROL_TYPE.CHECKBOX, (enabled) => {
+          this._editor.updateOptions({
+            minimap: {
+              enabled: enabled,
+            },
+          });
         }, true],
-        highlightActive: [CONTROL_TYPE.CHECKBOX, (highlight) => {
-          this._editor.setHighlightActiveLine(highlight);
-        }, true],
-        displayIndentGuides: [CONTROL_TYPE.CHECKBOX, (enabled) => {
-          this._editor.setDisplayIndentGuides(enabled);
-        }, true],
-        showHidden: [CONTROL_TYPE.CHECKBOX, (enabled) => {
-          this._editor.setShowInvisibles(enabled);
+        folding: [CONTROL_TYPE.CHECKBOX, (enabled) => {
+          this._editor.updateOptions({
+            folding: enabled,
+          });
         }, false],
-        hScrollBarAlwaysVisible: [CONTROL_TYPE.CHECKBOX, (visible) => {
-          this._editor.setOption('hScrollBarAlwaysVisible', visible);
-        }, false],
-        vScrollBarAlwaysVisible: [CONTROL_TYPE.CHECKBOX, (visible) => {
-          this._editor.setOption('vScrollBarAlwaysVisible', visible);
-        }, false],
-        animateScroll: [CONTROL_TYPE.CHECKBOX, (animated) => {
-          this._editor.setAnimatedScroll(animated);
-        }, false],
-        showGutter: [CONTROL_TYPE.CHECKBOX, (show) => {
-          this._editor.renderer.setShowGutter(show);
+        autoClosingBrackets: [CONTROL_TYPE.CHECKBOX, (enabled) => {
+          this._editor.updateOptions({
+            autoClosingBrackets: enabled,
+          });
         }, true],
-        showPrintMargin: [CONTROL_TYPE.CHECKBOX, (show) => {
-          this._editor.renderer.setShowPrintMargin(show);
+        matchBrackets: [CONTROL_TYPE.CHECKBOX, (enabled) => {
+          this._editor.updateOptions({
+            matchBrackets: enabled,
+          });
         }, true],
-        softTab: [CONTROL_TYPE.CHECKBOX, (enabled) => {
-          this._editor.session.setUseSoftTabs(enabled);
+        autoIndent: [CONTROL_TYPE.CHECKBOX, (enabled) => {
+          this._editor.updateOptions({
+            autoIndent: enabled,
+          });
         }, true],
-        highlightSelectedWord: [CONTROL_TYPE.CHECKBOX, (highlight) => {
-          this._editor.setHighlightSelectedWord(highlight);
-        }, true],
-        enableBehaviours: [CONTROL_TYPE.CHECKBOX, (enabled) => {
-          this._editor.setBehavioursEnabled(enabled);
+        renderIndentGuides: [CONTROL_TYPE.CHECKBOX, (enabled) => {
+          this._editor.updateOptions({
+            renderIndentGuides: enabled,
+          });
         }, false],
-        fadeFoldWidgets: [CONTROL_TYPE.CHECKBOX, (enabled) => {
-          this._editor.setFadeFoldWidgets(enabled);
+        mouseWheelZoom: [CONTROL_TYPE.CHECKBOX, (enabled) => {
+          this._editor.updateOptions({
+            mouseWheelZoom: enabled,
+          });
         }, false],
-        scrollPastEnd: [CONTROL_TYPE.CHECKBOX, (enabled) => {
-          this._editor.setOption('scrollPastEnd', enabled);
-        }, true],
       },
       debugger: {
         backtraceDepth: [CONTROL_TYPE.NUMBER, (value) => {

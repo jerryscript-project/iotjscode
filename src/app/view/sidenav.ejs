@@ -29,7 +29,7 @@
           <div class="btn btn-success btn-xs disabled" id="ok-file-name"><i class="fa fa-check" aria-hidden="true"></i> OK</div>
         </div>
       </div>
-      <li id="save-file-button" class="available-li disabled">
+      <li id="save-file-button" class="available-li">
         <div>Save</div>
         <div>Save the currently opened file.</div>
       </li>
@@ -56,8 +56,8 @@
       <div class="control-item">
         <label for="theme">Theme</label>
         <select id="theme" class="form-control input-sm">
-          <option value="ace/theme/tomorrow">Bright</option>
-          <option value="ace/theme/tomorrow_night_eighties">Dark</option>
+          <option value="vs">Bright</option>
+          <option value="vs-dark">Dark</option>
         </select>
       </div>
     </div>
@@ -79,75 +79,67 @@
         </select>
       </div>
       <div class="control-item">
-        <label for="folding">Code Folding</label>
-        <select id="folding" class="form-control input-sm">
-          <option value="manual">manual</option>
-          <option value="markbegin">mark begin</option>
-          <option value="markbeginend">mark begin and end</option>
-        </select>
-      </div>
-      <div class="control-item">
         <label for="wrap">Wrap</label>
         <select id="wrap" class="form-control input-sm">
           <option value="off">Off</option>
-          <option value="40">40 Chars</option>
-          <option value="80">80 Chars</option>
-          <option value="free">Free</option>
+          <option value="on">On</option>
+          <option value="wordWrapColumn">Column</option>
+          <option value="bounded">Bounded</option>
         </select>
       </div>
       <div class="control-item">
-        <input type="checkbox" name="selectionStyle" id="selectionStyle">
-        <label for="selectionStyle">Full Line Selection</label>
+        <label for="wrapColumn">Wrap column</label>
+        <select id="wrapColumn" class="form-control input-sm">
+          <option value="80">80</option>
+          <option value="100">100</option>
+          <option value="120">120</option>
+          <option value="200">200</option>
+        </select>
       </div>
       <div class="control-item">
-        <input type="checkbox" name="highlightActive" id="highlightActive">
-        <label for="highlightActive">Highlight Active Line</label>
+        <label for="lineHighlight">Line highlight</label>
+        <select id="lineHighlight" class="form-control input-sm">
+          <option value="none">None</option>
+          <option value="gutter">Gutter</option>
+          <option value="line">Line</option>
+          <option value="all">All</option>
+        </select>
       </div>
       <div class="control-item">
-        <input type="checkbox" name="showHidden" id="showHidden">
-        <label for="showHidden">Show Invisibles</label>
+        <label for="whitespace">Whitespace</label>
+        <select id="whitespace" class="form-control input-sm">
+          <option value="none">None</option>
+          <option value="boundary">Boundary</option>
+          <option value="all">All</option>
+        </select>
       </div>
       <div class="control-item">
-        <input type="checkbox" name="displayIndentGuides" id="displayIndentGuides">
-        <label for="displayIndentGuides">Show Indent Guides</label>
+        <input type="checkbox" name="minimap" id="minimap">
+        <label for="minimap">Minimap</label>
       </div>
       <div class="control-item">
-        <input type="checkbox" name="hScrollBarAlwaysVisible" id="hScrollBarAlwaysVisible">
-        <label for="hScrollBarAlwaysVisible">Persistent HScroll</label>
-        <input type="checkbox" name="vScrollBarAlwaysVisible" id="vScrollBarAlwaysVisible">
-        <label for="vScrollBarAlwaysVisible" id="vscroll-label">VScroll</label>
+        <input type="checkbox" name="folding" id="folding">
+        <label for="folding">Code Folding</label>
       </div>
       <div class="control-item">
-        <input type="checkbox" name="animateScroll" id="animateScroll">
-        <label for="animateScroll">Animate scrolling</label>
+        <input type="checkbox" name="autoClosingBrackets" id="autoClosingBrackets">
+        <label for="autoClosingBrackets">Auto closing brackets</label>
       </div>
       <div class="control-item">
-        <input type="checkbox" id="showGutter">
-        <label for="showGutter">Show Gutter</label>
+        <input type="checkbox" name="matchBrackets" id="matchBrackets">
+        <label for="matchBrackets">Highlighting match brackets</label>
       </div>
       <div class="control-item">
-        <input type="checkbox" id="showPrintMargin">
-        <label for="showPrintMargin">Show Print Margin</label>
+        <input type="checkbox" name="autoIndent" id="autoIndent">
+        <label for="autoIndent">Auto indent</label>
       </div>
       <div class="control-item">
-        <input type="checkbox" id="softTab">
-        <label for="softTab">Use Soft Tab</label>
+        <input type="checkbox" name="autoIndent" id="renderIndentGuides">
+        <label for="renderIndentGuides">Render indent guides</label>
       </div>
       <div class="control-item">
-        <input type="checkbox" id="highlightSelectedWord">
-        <label for="highlightSelectedWord">Highlight selected word</label>
-      </div>
-      <div class="control-item">
-        <input type="checkbox" id="enableBehaviours">
-        <label for="enableBehaviours">Enable Behaviours</label>
-      </div>
-      <div class="control-item">
-        <input type="checkbox" id="fadeFoldWidgets">
-        <label for="fadeFoldWidgets">Fade Fold Widgets</label>
-      </div>
-      <div class="control-item">
-        <input type="checkbox" id="scrollPastEnd">
-        <label for="scrollPastEnd">Scroll Past End</label>
+        <input type="checkbox" name="autoIndent" id="mouseWheelZoom">
+        <label for="mouseWheelZoom">Mouse wheel zoom</label>
       </div>
     </div>
 

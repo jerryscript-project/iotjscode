@@ -37,14 +37,15 @@ export default class Session {
   constructor(env, surface) {
     this._environment = env;
     this._surface = surface;
-    this._editor = env.editor;
 
     this._id = {
       next: 0,
+      last: 0,
       active: 0,
     };
 
-    this._data = [];
+    this._models = [];
+
     this._command = {
       list: [],
       counter: -1,
@@ -64,13 +65,19 @@ export default class Session {
     };
 
     this._marker = {
-      execute: {
-        obj: null,
-        line: null,
+      decorations: [],
+      list: {},
+    };
+
+    this._glyph = {
+      default: {
+        decorations: [],
+        list: [],
       },
-      exception: {
-        obj: null,
-        line: null,
+      active: {
+        decorations: [],
+        list: [],
+        lines: {},
       },
     };
 
@@ -340,7 +347,7 @@ export default class Session {
   }
 
   /**
-   * Returns the array of the selected session ids from the upload list.
+   * Returns the array of the file ids from the upload list.
    *
    * @return {array} The id list.
    */
@@ -490,22 +497,17 @@ export default class Session {
    * Creates a new session based on the given parameters.
    *
    * @param {string} name The filename.
-   * @param {string} cont The file content (the source code).
-   * @param {boolean} saved The file saved status.
+   * @param {string} value The file content (the source code).
    */
-  createNewFile(name, cont, saved = true) {
-    // Create a new document for the editor from the trimmed content.
-    let doc = new this._environment.Document(cont);
-    // Create a new javascript mode session from the document.
-    let eSession = new this._environment.EditSession(doc, 'ace/mode/javascript');
+  createNewFile(name, value) {
+    const model = window.monaco.editor.createModel(value, 'text/javascript');
 
-    // Store the e-session.
-    this._data.push({
+    this._models.push({
       id: ++this._id.next,
-      saved: saved,
       scheduled: false,
       name: name,
-      editSession: eSession,
+      model: model,
+      state: null,
     });
 
     this._surface.showEditor();
@@ -517,10 +519,8 @@ export default class Session {
 
     this.updateTabs(this._id.next, name);
     this.switchFile(this._id.next);
-
-    // Enable the save button.
-    this._surface.toggleButton(true, 'save-file-button');
   }
+
 
   /**
    * Checks that the welcome file is exists and untouched.
@@ -529,7 +529,7 @@ export default class Session {
    */
   isWelcomeFileUntouched() {
     const w = this.getFileDataById(1);
-    return (w && w.saved && !w.scheduled && w.editSession.getValue() === welcomeContent) ? true : false;
+    return (w && !w.scheduled && w.model.getValue() === welcomeContent) ? true : false;
   }
 
   /**
@@ -537,7 +537,7 @@ export default class Session {
    * This file can not be closed or modified.
    */
   setWelcomeFile() {
-    this.createNewFile('welcome.js', welcomeContent, true);
+    this.createNewFile('welcome.js', welcomeContent);
   }
 
   /**
@@ -546,28 +546,37 @@ export default class Session {
    * @param {integer} id The id of the desired file.
    */
   switchFile(id) {
+    const last = this._id.active;
     // Remove the highlight from the current file.
-    this.unhighlightLine(this.HIGHLIGHT_TYPE.EXECUTE);
-    this.unhighlightLine(this.HIGHLIGHT_TYPE.EXCEPTION);
+    this.unhighlightLine();
 
     // Select the right tab on the tabs panel.
     this.selectTab(id);
-
-    // Mark the selected file as active.
+    // Marked the selected file as an active.
     this._id.active = id;
-    // Change the current e-session through the editor's API.
-    this._editor.setSession(this.getFileSessionById(id));
+
+    if (last !== 0) {
+      const file = this._models.find(x => x.id === last);
+      file.state = this._environment.editor.saveViewState();
+    }
+
+    this._environment.editor.setModel(this.getFileModelById(id));
+    if (last !== 0) {
+      this._environment.editor.restoreViewState(this.getFileStateById(id));
+    }
+    this._environment.editor.focus();
 
     // Refresh the available breakpoint lines in the editor based on the new file/e-session.
     if (this._breakpoint.last !== null &&
-        this._breakpoint.last.func.sourceName.endsWith(this.getFileNameById(id))) {
-      this.highlightLine(this.HIGHLIGHT_TYPE.EXECUTE, this._breakpoint.last.line - 1);
+      this._breakpoint.last.func.sourceName.endsWith(this.getFileNameById(id))) {
+      this.highlightLine(this.HIGHLIGHT_TYPE.EXECUTE, this._breakpoint.last.line);
     }
 
     if (this._breakpoint.last === null) {
-      this.removeBreakpointGutters();
+      // this.removeBreakpointLines();
     }
   }
+
 
   /**
    * Returns a file name based on the given ID.
@@ -576,7 +585,7 @@ export default class Session {
    * @return {mixed} Returns the file name as string if exists, undefined otherwise.
    */
   getFileNameById(id) {
-    let f = this._data.find(x => x.id === id);
+    let f = this._models.find(x => x.id === id);
     return f ? f.name : undefined;
   }
 
@@ -587,7 +596,7 @@ export default class Session {
    * @return {mixed} Returns the file id if exists, undefined otherwise.
    */
   getFileIdByName(name) {
-    let f = this._data.find(x => name.endsWith(x.name));
+    let f = this._models.find(x => name.endsWith(x.name));
     return f ? f.id : undefined;
   }
 
@@ -598,18 +607,28 @@ export default class Session {
    * @return {boolean} True if the name is taken, false otherwise.
    */
   isFileNameTaken(name) {
-    return this._data.find(x => name.localeCompare(x.name) === 0) ? true : false;
+    return this._models.find(x => name.localeCompare(x.name) === 0) ? true : false;
   }
 
   /**
-   * Returns a file edit session based on the given id.
+   * Returns a file model based on the given id.
    *
    * @param {integer} id The searched file ID.
    * @return {mixed} Returns the file editSession if exists, undefined otherwise.
    */
-  getFileSessionById(id) {
-    let f = this._data.find(x => x.id === id);
-    return f ? f.editSession : undefined;
+  getFileModelById(id) {
+    let f = this._models.find(x => x.id === id);
+    return f ? f.model : undefined;
+  }
+
+  /**
+   * Returns a file state based on the given id.
+   *
+   * @param {integer} id The searched file ID.
+   */
+  getFileStateById(id) {
+    const f = this._models.find(x => x.id === id);
+    return f ? f.state : undefined;
   }
 
   /**
@@ -620,9 +639,10 @@ export default class Session {
    * @param {mixed} value The value of the attribute.
    */
   deleteFileByAttr(attr, value) {
-    this._data = this._data.filter(x => x[attr] !== value);
+    this._models = this._models.filter(x => x[attr] !== value);
 
-    if (this._data.length === 1) {
+    if (this._models.length === 0) {
+      this._id.active = 0;
       this._surface.toggleButton(false, 'save-file-button');
     }
   }
@@ -645,13 +665,13 @@ export default class Session {
    * @return {mixed} Return the neighbour id if it exists, undefined otherwise.
    */
   getFileNeighbourById(id) {
-    for (let i = 0; i < this._data.length; i++) {
-      if (this._data[i].id === id) {
-        if (this._data[i - 1] !== undefined) {
-          return this._data[i - 1].id;
+    for (let i = 0; i < this._models.length; i++) {
+      if (this._models[i].id === id) {
+        if (this._models[i - 1] !== undefined) {
+          return this._models[i - 1].id;
         }
-        if (this._data[i + 1] !== undefined) {
-          return this._data[i + 1].id;
+        if (this._models[i + 1] !== undefined) {
+          return this._models[i + 1].id;
         }
       }
     }
@@ -666,7 +686,7 @@ export default class Session {
    * @return {mixed} Returns the data if exists, undefined otherwise.
    */
   getFileDataById(id) {
-    return this._data.find(x => x.id === id);
+    return this._models.find(x => x.id === id);
   }
 
   /**
@@ -675,7 +695,7 @@ export default class Session {
    * @return {object} Returns the data array.
    */
   getAllData() {
-    return this._data;
+    return this._models;
   }
 
   /**
@@ -695,7 +715,7 @@ export default class Session {
    * @param {string} content Content of the current source.
    */
   fileContentCheck(filename, content) {
-    return (content === this.getFileSessionById(this.getFileIdByName(filename)).getValue()) ? true : false;
+    return (content === this.getFileModelById(this.getFileIdByName(filename)).getValue()) ? true : false;
   }
 
   /**
@@ -705,41 +725,52 @@ export default class Session {
    * @param {string} content The source from the debugger engine.
    */
   resetFileContent(filename, content) {
-    this.getFileSessionById(this.getFileIdByName(filename)).setValue(content);
+    const file = this.getFileDataById(this.getFileIdByName(filename));
+
+    // Save the view state.
+    file.state = this._environment.editor.saveViewState();
+
+    // Set the new content.
+    file.model.setValue(content);
+
+    // Restore the view state.
+    this._environment.editor.restoreViewState(file.state);
   }
 
   /**
    * Marks every valid, available breakpoint line in the currently opened file.
    *
    * @param {object} debuggerObj Jerry client object.
+   * @param {object} settings Settings module object.
+   * @param {object} transpiler Transpiler module object.
    */
-  markBreakpointGutters(debuggerObj, settings, transpiler) {
+  markBreakpointLines(debuggerObj, settings, transpiler) {
     if (debuggerObj && debuggerObj.getEngineMode() !== ENGINE_MODE.DISCONNECTED) {
-      let lines = this.getLinesFromRawData(debuggerObj.getBreakpointLines());
-
-      if (settings.getValue('debugger.transpileToES5') && !transpiler.isEmpty()) {
-        let newLines = [];
-        for (let i of lines) {
-          let originLine = transpiler.getOriginalPositionFor(this.getFileNameById(this._id.active), i, 0);
-          if (originLine.line) {
-            newLines.push(originLine.line);
-          }
-        }
-
-        lines = newLines.slice();
-      }
+      const lines = this.getLinesFromRawData(debuggerObj.getBreakpointLines(), settings, transpiler);
 
       if (lines.length !== 0) {
         lines.sort((a, b) => {
           return a - b;
         });
 
-        for (let i = this._editor.session.getLength(); i > 0; i--) {
-          if (lines.includes(i) === false) {
-            this._editor.session.removeGutterDecoration(i - 1, 'invalid-gutter-cell');
-            this._editor.session.addGutterDecoration(i - 1, 'invalid-gutter-cell');
+        // Clear the list.
+        this._glyph.default.list = [];
+
+        for (let i = this._environment.editor.getModel().getLineCount(); i > 0; i--) {
+          if (lines.includes(i)) {
+            this._glyph.default.list.push({
+              range: new window.monaco.Range(i, 1, i, 1), options: {
+                glyphMarginClassName: 'inactive-breakpoint-line',
+              },
+            });
           }
         }
+
+        // Decorate the revealed line.
+        this._glyph.default.decorations = this._environment.editor.deltaDecorations(
+          this._glyph.default.decorations,
+          this._glyph.default.list
+        );
       }
     }
   }
@@ -747,9 +778,53 @@ export default class Session {
   /**
    * Removes the invalid gutter cell css class from the editor session.
    */
-  removeBreakpointGutters() {
-    for (let i = this._editor.session.getLength(); i > 0; i--) {
-      this._editor.session.removeGutterDecoration(i - 1, 'invalid-gutter-cell');
+  removeBreakpointLines() {
+    this._glyph.default.decorations = [];
+    this._glyph.default.decorations = this._environment.editor.deltaDecorations(
+      this._glyph.default.decorations,
+      this._glyph.default.list
+    );
+  }
+
+  /**
+   * Enables or disables a breakpoint based on the line information.
+   *
+   * @param {integer} line The selected line where the user wants to enable or disable the breakpoint.
+   * @param {object} debuggerObj The Jerry client object.
+   * @param {object} settings The settings module object.
+   * @param {object} transpiler The transpiler module object.
+   */
+  toggleBreakpoint(line, debuggerObj, settings, transpiler) {
+    const lines = this.getLinesFromRawData(debuggerObj.getBreakpointLines(), settings, transpiler);
+
+    if (lines.includes(line)) {
+      if (this._glyph.active.list.findIndex(obj => obj.range.startLineNumber === line) !== -1) {
+        // The selected breakpoint is alerady activated, so delete it.
+
+        this._glyph.active.list = this._glyph.active.list.filter(obj => obj.range.startLineNumber !== line);
+
+        // Send the breakpoint delete signal to the engine.
+        debuggerObj.deleteBreakpoint(this.getBreakpointID(line));
+      } else {
+        // Activate the selected breakpoint.
+
+        this._glyph.active.list.push({
+          range: new window.monaco.Range(line, 1, line, 1), options: {
+            glyphMarginClassName: 'active-breakpoint-line',
+          },
+        });
+
+        // Store the breakpoint index.
+        this.addBreakpointID(line, debuggerObj.getNextBreakpointIndex());
+
+        // Send the breakpoint activate signal to the engine.
+        debuggerObj.setBreakpoint(`${this.getFileNameById(this.getActiveID())}:${line}`);
+      }
+
+      this._glyph.active.decorations = this._environment.editor.deltaDecorations(
+        this._glyph.active.decorations,
+        this._glyph.active.list
+      );
     }
   }
 
@@ -759,7 +834,7 @@ export default class Session {
    * @param {object} raw Line information from the debuggerObj.
    * @return {array} Array of the file lines.
    */
-  getLinesFromRawData(raw) {
+  getLinesFromRawData(raw, settings, transpiler) {
     let lines = [],
         sessionName = this.getFileNameById(this._id.active);
 
@@ -767,6 +842,18 @@ export default class Session {
       if (raw[i].sourceName.endsWith(sessionName)) {
         lines.push(raw[i].line);
       }
+    }
+
+    if (settings.getValue('debugger.transpileToES5') && !transpiler.isEmpty()) {
+      let newLines = [];
+      for (let i of lines) {
+        let originLine = transpiler.getOriginalPositionFor(this.getFileNameById(this._id.active), i, 0);
+        if (originLine.line) {
+          newLines.push(originLine.line);
+        }
+      }
+
+      lines = newLines.slice();
     }
 
     return lines;
@@ -779,22 +866,27 @@ export default class Session {
    * @param {integer} line Selected line.
    */
   highlightLine(type, line) {
-    let Range = window.ace.require('ace/range').Range;
-
-    let options = {
+    const classOptions = {
       lineName: `${type}-marker`,
-      gutterName: `${type}-gutter-cell-marker`,
+      gutterName: `${type}-gutter-marker`,
     };
 
-    // Remove each kind of highlight.
-    this.unhighlightLine(this.HIGHLIGHT_TYPE.EXECUTE);
-    this.unhighlightLine(this.HIGHLIGHT_TYPE.EXCEPTION);
+    // Remove the previous highlight.
+    this.unhighlightLine();
 
-    this._marker[type].obj = this._editor.session.addMarker(new Range(line, 0, line, 1), options.lineName, 'fullLine');
+    // Reveal and set the right position in the editor.
+    this._environment.editor.revealLineInCenter(line);
 
-    this._editor.session.addGutterDecoration(line, options.gutterName);
-    this._editor.scrollToLine(line, true, true, function() {});
-    this._marker[type].line = line;
+    this._marker.list[type] = {
+      range: new window.monaco.Range(line, 1, line, 1), options: {
+        isWholeLine: true,
+        className: classOptions.lineName,
+        marginClassName: classOptions.gutterName,
+      },
+    };
+
+    // Decorate the revealed line.
+    this._marker.decorations = this._environment.editor.deltaDecorations([], [this._marker.list[type]]);
   }
 
   /**
@@ -802,9 +894,9 @@ export default class Session {
    *
    * @param {integer} type Type of the highlight from the HIGHLIGHT_TYPE.
    */
-  unhighlightLine(type) {
-    this._editor.getSession().removeMarker(this._marker[type].obj);
-    this._editor.session.removeGutterDecoration(this._marker[type].line, `${type}-gutter-cell-marker`);
+  unhighlightLine() {
+    this._marker.list = {};
+    this._marker.decorations = this._environment.editor.deltaDecorations(this._marker.decorations, this._marker.list);
   }
 
   /**
@@ -813,11 +905,13 @@ export default class Session {
   deleteBreakpointsFromEditor() {
     this.setLastBreakpoint(null);
 
-    for (let i in this._breakpoint.IDs) {
-      if (this._breakpoint.IDs.hasOwnProperty(i)) {
-        this._editor.session.clearBreakpoint(i);
-      }
-    }
+    this._glyph.active.decorations = [];
+    this._glyph.active.decorations = this._environment.editor.deltaDecorations(
+      this._glyph.active.decorations,
+      this._glyph.active.list
+    );
+
+    this._breakpoint.IDs = [];
 
     Util.clearElement($('#breakpoints-table-body'));
   }
@@ -838,7 +932,7 @@ export default class Session {
     );
 
     // Update the editor height based on the new header height.
-    this._surface.updateEditorHeight();
+    this._environment.editor.layout(this._surface.getEditorContainerDimensions());
 
     $(`#tab-${id}`).on('click', () => {
       this.switchFile(id);
@@ -882,7 +976,6 @@ export default class Session {
       if (nID !== undefined) {
         this.switchFile(nID);
       } else {
-        this._editor.session.setValue('');
         this._surface.hideEditor();
       }
     }
@@ -891,7 +984,7 @@ export default class Session {
     this.deleteFileByAttr('id', id);
 
     // Update the editor height based on the new header height.
-    this._surface.updateEditorHeight();
+    this._environment.editor.layout(this._surface.getEditorContainerDimensions());
 
     // Remove the session from the upload list if it was selected.
     if (this.isFileInUploadList(id)) {
@@ -910,9 +1003,8 @@ export default class Session {
   reset() {
     Util.clearElement($('#backtrace-table-body'));
     this.deleteBreakpointsFromEditor();
-    this.unhighlightLine(this.HIGHLIGHT_TYPE.EXECUTE);
-    this.unhighlightLine(this.HIGHLIGHT_TYPE.EXCEPTION);
-    this.removeBreakpointGutters();
+    this.unhighlightLine();
+    this.removeBreakpointLines();
 
     this._breakpoint.informationToChart = null;
     this._breakpoint.IDs = [];
@@ -922,10 +1014,9 @@ export default class Session {
     this._upload.allowed = false;
 
 
-    this._marker.execute = this._marker.exception = {
-      obj: null,
-      line: null,
-      active: false,
+    this._marker.execute = {
+      decorations: [],
+      list: {},
     };
 
     if (this.isFileInUploadList(0)) {

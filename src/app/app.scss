@@ -89,6 +89,8 @@ $editor-execute-border: 1px solid rgba(0, 0, 0, 0.25);
 $editor-exception-border: 1px solid $b-red-color;
 $editor-dark-execute-border: 1px solid rgba(255, 255, 255, 0.25);
 $editor-dark-exception-border: 1px solid $d-red-color;
+$editor-exception-color: rgba(242, 119, 122, 0.25);
+$editor-dark-exception-color: rgba(200, 40, 41, 0.25);
 
 /**
  * Default variables.
@@ -101,6 +103,8 @@ $default-modal-color: rgba(0,0,0,0.4);
 $default-transition-time: 0.3s;
 $default-opacity: 0.3;
 $default-popup-shadow: 3px 3px 6px #888888;
+$default-sidenav-extra-height: calc(100% + 25px);
+$default-main-wrapper-height: calc(100% - 25px);
 
 /**
  * Font size variables.
@@ -124,13 +128,16 @@ $z-level-3: 600;
 $z-level-4: 800;
 $z-level-5: 1000;
 $z-level-6: 1200;
+$z-level-7: 1400;
+$z-level-8: 1600;
 
 /**
  * Background variables.
  */
 $resize-handler-background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAKElEQVQYV2NkQAM7duz4z4gsBhLw8PBghAvCBECKwILIAmBBdAGQIADEhBMtfYHnHgAAAABJRU5ErkJggg==) repeat;
 $dark-resize-handler-background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAKElEQVQYV2NkQAOBgYH/GZHFQALr169nhAvCBECKwILIAmBBdAGQIABIMRH4VLPjvAAAAABJRU5ErkJggg==) repeat;
-$editor-breakpoint-background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAPklEQVQoU2NkIBIwoqv7z8DwHybGyMAAl4czkBWgawZpIE0hPtOQnAF2FNxduPwGtppohYQUk+4ZZHfhCkcAqnUSBYlUugcAAAAASUVORK5CYII=) 2px center no-repeat;
+$monaco-active-breakpoint: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAPklEQVQoU2NkIBIwoqv7z8DwHybGyMAAl4czkBWgawZpIE0hPtOQnAF2FNxduPwGtppohYQUk+4ZZHfhCkcAqnUSBYlUugcAAAAASUVORK5CYII=) 2px center no-repeat;
+$monaco-inactive-breakpoint: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAOElEQVQoU2NkIBIwoqsLCQn5DxNbs2YNXB7OQFaArhmkgTSF+EyDmQ42kfoKCZlKumeQgwNXOAIAjVkd/Plon90AAAAASUVORK5CYII=) 2px center no-repeat;
 
 
 /**
@@ -183,12 +190,6 @@ pre {
   margin: 0 20px;
 }
 
-.wrapper {
-  margin-left: $menu-icon-width;
-  padding: 4px;
-  height: 100%;
-}
-
 .data {
   white-space: pre;
 }
@@ -222,18 +223,18 @@ input[type="number"] {
   background-color: $b-red-color;
 }
 
-input[type="text"],
-input[type="number"],
-select {
+input[type="text"].form-control,
+input[type="number"].form-control,
+select.form-control {
   height: 28px !important;
   padding: 2px 2px 2px 4px !important;
   line-height: 24px !important;
 }
 
-input[type="text"],
-input[type="number"],
-select,
-.btn {
+input[type="text"].form-control,
+input[type="number"].form-control,
+select.form-control,
+.btn.form-control {
   border-radius: 2px;
 }
 
@@ -249,7 +250,6 @@ select,
 * Menu rules.
 */
 .sidenav {
-  z-index: $z-level-6;
   background-color: $menu-background-color;
   color: $menu-text-color;
   width: $menu-closed-width;
@@ -258,6 +258,7 @@ select,
   top: 0;
   left: 0;
   overflow-x: hidden;
+  z-index: $z-level-7;
 }
 
 .sidenav ul {
@@ -328,7 +329,6 @@ select,
 }
 
 #sidenav-extra-modal {
-  z-index: $z-level-5;
   background-color: $default-modal-color;
   display: none;
   position: fixed;
@@ -337,21 +337,22 @@ select,
   width: 100%;
   height: 100%;
   overflow: auto;
+  z-index: $z-level-6;
 }
 
 .sidenav-extra {
-  z-index: $z-level-6;
   background-color: $menu-background-color;
   color: $menu-text-color;
   border-left: $menu-border-2;
   border-right: $menu-border-2;
-  height: 100%;
+  height: $default-sidenav-extra-height;
   width: 300px;
   position: absolute;
   top: 0;
   margin-left: -4px;
   overflow-x: hidden;
   display: none;
+  z-index: $z-level-7;
 }
 
 .sidenav-extra div h3 {
@@ -481,6 +482,16 @@ input[type="number"] {
 
 .sidenav-extra #settings-sidenav .control-block .control-item #show_vscroll {
   margin-left: 20px;
+}
+
+/**
+ * Main wrapper rules.
+ */
+#main-wrapper {
+  position: relative;
+  margin-left: $menu-icon-width;
+  padding: 4px 4px 0 4px;
+  height: $default-main-wrapper-height;
 }
 
 /**
@@ -670,6 +681,13 @@ input[type="number"] {
   padding: 0;
 }
 
+#editor-wrapper .panel-body #monaco {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  z-index: $z-level-5;
+}
+
 #editor-wrapper #editor-placeholder {
   display: none;
 }
@@ -693,52 +711,41 @@ input[type="number"] {
   text-decoration: underline;
 }
 
-#editor-wrapper #editor {
-  position: relative;
-  width: 100%;
-  min-width: 100%;
-  height: calc(100% - 34px);
-  margin: 0;
-  padding: 0;
+#editor-wrapper #monaco .inactive-breakpoint-line {
+  background: $monaco-inactive-breakpoint;
+  cursor: pointer;
+  z-index: $z-level-4;
 }
 
-#editor-wrapper #editor .ace_gutter-cell {
-  font-weight: bold;
+#editor-wrapper #monaco .active-breakpoint-line {
+  background: $monaco-active-breakpoint;
+  cursor: pointer;
+  z-index: $z-level-4;
 }
 
-#editor-wrapper #editor .ace_gutter-cell.ace_breakpoint {
-  background: $editor-breakpoint-background;
-}
-
-#editor-wrapper #editor .invalid-gutter-cell {
-  filter: invert(80%);
-}
-
-#editor-wrapper #editor .execute-gutter-cell-marker {
+#editor-wrapper #monaco .execute-gutter-marker {
   border-top: $editor-execute-border;
   border-bottom: $editor-execute-border;
 }
 
-#editor-wrapper #editor .exception-gutter-cell-marker {
+#editor-wrapper #monaco .exception-gutter-marker {
   border-top: $editor-exception-border;
   border-bottom: $editor-exception-border;
-  background-color: #f2dede;
+  background-color: $editor-exception-color;
   filter: none;
 }
 
-#editor-wrapper #editor .execute-marker {
+#editor-wrapper #monaco .execute-marker {
   border-top: $editor-execute-border;
+  border-right: $editor-execute-border;
   border-bottom: $editor-execute-border;
-  position: absolute;
-  z-index: $z-level-3;
 }
 
-#editor-wrapper #editor .exception-marker {
+#editor-wrapper #monaco .exception-marker {
   border-top: $editor-exception-border;
+  border-right: $editor-exception-border;
   border-bottom: $editor-exception-border;
-  position: absolute;
-  background-color: #f2dede;
-  z-index: $z-level-3;
+  background-color: $editor-exception-color;
 }
 
 /**
@@ -1078,6 +1085,12 @@ input[type="number"] {
   font-weight: bold;
 }
 
+footer p {
+  padding: 0;
+  margin: 0;
+  font-size: $font-size-1;
+}
+
 /**
  * Dark theme rules.
  */
@@ -1211,26 +1224,28 @@ body.dark-theme {
     color: $d-blue-color;
   }
 
-  #editor-wrapper #editor .execute-gutter-cell-marker {
+  #editor-wrapper #monaco .execute-gutter-marker {
     border-top: $editor-dark-execute-border;
     border-bottom: $editor-dark-execute-border;
   }
 
-  #editor-wrapper #editor .exception-gutter-cell-marker {
+  #editor-wrapper #monaco .exception-gutter-marker {
     border-top: $editor-dark-exception-border;
     border-bottom: $editor-dark-exception-border;
-    background-color: transparent;
+    background-color: $editor-dark-exception-color;
   }
 
-  #editor-wrapper #editor .execute-marker {
+  #editor-wrapper #monaco .execute-marker {
     border-top: $editor-dark-execute-border;
+    border-right: $editor-dark-execute-border;
     border-bottom: $editor-dark-execute-border;
   }
 
-  #editor-wrapper #editor .exception-marker {
+  #editor-wrapper #monaco .exception-marker {
     border-top: $editor-dark-exception-border;
+    border-right: $editor-dark-exception-border;
     border-bottom: $editor-dark-exception-border;
-    background-color: transparent;
+    background-color: $editor-dark-exception-color;
   }
 
   /**

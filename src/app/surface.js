@@ -378,21 +378,22 @@ export default class Surface {
    * @param {integer} sid Session ID's of the selected item.
    */
   changeUploadColor(color, sid) {
-    let e = $(`li.cupload[data-sid="${sid}"]`);
+    const e = $(`li.cupload[data-sid="${sid}"]`);
+    e.removeClass('bg-danger bg-warning bg-success bg-white');
 
     switch (color) {
       case this.COLOR.RED:
-        e.toggleClass('bg-danger');
+        e.addClass('bg-danger');
         break;
       case this.COLOR.YELLOW:
-        e.toggleClass('bg-warning');
+        e.addClass('bg-warning');
         break;
       case this.COLOR.GREEN:
-        e.toggleClass('bg-success');
+        e.addClass('bg-success');
         break;
       case this.COLOR.WHITE:
       default:
-        e.toggleClass('bg-white');
+        e.addClass('bg-white');
         break;
     }
   }
@@ -791,9 +792,13 @@ export default class Surface {
   /**
    * Updates the ace editor height based on the height of the wrapper and the file tabs header.
    */
-  updateEditorHeight() {
-    const height = ($('#file-tabs').children().length) ? $('#file-tabs').height() : this._editor.minTabHeight;
-    $('#editor').height($('#editor-wrapper').height() - height - 3);
+  getEditorContainerDimensions() {
+    const height = ($('#file-tabs').children().length) ? $('#file-tabs').outerHeight() : this._editor.minTabHeight;
+
+    return {
+      width: $('#editor-panel').width(),
+      height: $('#editor-panel').height() - height,
+    };
   }
 
   /**
@@ -803,7 +808,7 @@ export default class Surface {
     if (!this._editor.active) {
       this._editor.active = true;
 
-      $('#editor').show();
+      $('#monaco').show();
 
       $('#file-tabs-placeholder').hide();
       $('#editor-placeholder').hide();
@@ -817,7 +822,7 @@ export default class Surface {
     if (this._editor.active) {
       this._editor.active = false;
 
-      $('#editor').hide();
+      $('#monaco').hide();
 
       $('#file-tabs-placeholder').show();
       $('#editor-placeholder').show();

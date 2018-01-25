@@ -334,14 +334,14 @@ function onmessage(event) {
       }
 
       // Switch to the the right session.
-      let sID = this._session.getFileIdByName(breakpoint.func.sourceName);
-      if (sID !== undefined && sID !== this._session.getActiveID()) {
-        // Change the session.
-        this._session.switchFile(sID);
+      const fid = this._session.getFileIdByName(breakpoint.func.sourceName);
+      if (fid !== undefined && fid !== this._session.getActiveID()) {
+        // Change the model in the editor.
+        this._session.switchFile(fid);
       }
 
-      // Get the right line, based on whether we use transpiled code or not.
-      let hlLine = breakpoint.line - 1;
+      // Get the right line, which is depends on that if we use transpiled code or not.
+      let hlLine = breakpoint.line;
 
       if (this._settings.getValue('debugger.transpileToES5') && !this._transpiler.isEmpty()) {
         hlLine = this._transpiler.getOriginalPositionFor(sourceName.split('/').pop(), breakpoint.line, 0).line - 1;
@@ -358,9 +358,9 @@ function onmessage(event) {
         }
       } else {
         // Highlight the execute line in the correct session.
-        if (sID !== undefined && sID === this._session.getActiveID()) {
+        if (fid !== undefined && fid === this._session.getActiveID()) {
           this._session.highlightLine(this._session.HIGHLIGHT_TYPE.EXECUTE, hlLine);
-          this._session.markBreakpointGutters(this._debuggerObj, this._settings, this._transpiler);
+          this._session.markBreakpointLines(this._debuggerObj, this._settings, this._transpiler);
         }
       }
 

@@ -22,11 +22,13 @@ The `IoT.js Code` provides you the following features:
   - Open files from the local drive.
   - Create new files.
   - Save files from the editor to the local drive.
-- Edit Javascript code with the integrated [Ace](https://ace.c9.io/) editor.
+- Edit Javascript code with the integrated [Monaco](https://microsoft.github.io/monaco-editor/) editor.
   - Customizable editor settings (e.g.: font size or show invisibles)
   - IoT.js API based autocomplete.
   - Javascript syntax highlight.
   - Multiple tabs.
+  - Go to definition.
+  - Search in the code.
 - Stores the user settings in the browser local storage.
 - Debug features:
   - Error and exception messages.
