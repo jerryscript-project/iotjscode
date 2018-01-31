@@ -15,7 +15,7 @@
  */
 
 import ParseSource from './client-parsesource';
-import { PROTOCOL, ENGINE_MODE } from './client-debugger';
+import { JERRY_DEBUGGER_VERSION, PROTOCOL, ENGINE_MODE } from './client-debugger';
 import Transpiler from './transpiler';
 import Util from './util';
 import Logger from './logger';
@@ -188,16 +188,21 @@ function onmessage(event) {
 
   if (this._debuggerObj.getCPointerSize() === 0) {
     if (message[0] !== PROTOCOL.SERVER.JERRY_DEBUGGER_CONFIGURATION ||
-        message.byteLength !== 4) {
+        message.byteLength !== 5) {
       this._socket.abortConnection('the first message must be configuration.');
     }
 
     this._debuggerObj.setMaxMessageSize(message[1]);
     this._debuggerObj.setCPointerSize(message[2]);
     this._debuggerObj.setLittleEndian((message[3] != 0));
+    this._debuggerObj.setProtocolVersion(message[4]);
 
     if (this._debuggerObj.getCPointerSize() !== 2 && this._debuggerObj.getCPointerSize() !== 4) {
       this._socket.abortConnection('compressed pointer must be 2 or 4 bytes long.');
+    }
+
+    if (this._debuggerObj.getProtocolVersion() !== JERRY_DEBUGGER_VERSION) {
+      this._socket.abortConnection('Incorrect debugger version from target.');
     }
 
     return;
