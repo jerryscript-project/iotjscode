@@ -16,6 +16,20 @@
 
 import iotjs from './constants/iotjs-functions';
 
+/**
+ * These modules can be used without require in IoT.js.
+ */
+const defaultModules = [{
+  link: 'process',
+  mod: 'process',
+}, {
+  link: 'emitter',
+  mod: 'events',
+}, {
+  link: 'timers',
+  mod: 'timers',
+}];
+
 export default class Completer {
 
   constructor() {}
@@ -25,8 +39,39 @@ export default class Completer {
    */
   getCompletionProvider() {
     return {
-      provideCompletionItems: (model) => {
-        return this.getCompletionProposals(iotjs, this.lookingForModules(model.getValue()));
+      // Extend the intelliSense trigger character list.
+      triggerCharacters: ['.'],
+      provideCompletionItems: (model, position) => {
+        // Get editor content before the pointer.
+        const textUntilPosition = model.getValueInRange({
+          startLineNumber: 1,
+          startColumn: 1,
+          endLineNumber: position.lineNumber,
+          endColumn: position.column,
+        });
+
+        // Looking for required modules in the source code.
+        const modules = this.lookingForModules(textUntilPosition);
+
+        // Get the current line based on the pointer.
+        const textInPosition = model.getValueInRange({
+          startLineNumber: position.lineNumber,
+          startColumn: 1,
+          endLineNumber: position.lineNumber,
+          endColumn: position.column,
+        });
+
+        // Get the possible variable name before the pointer.
+        const might = textInPosition.split(/\s/g).pop().replace(/\./g, '');
+        // Get the module information based on the possible variable name.
+        const match = modules.concat(defaultModules).find(m => m.link === might);
+
+        // Returns the completion list based on match.
+        if (match) {
+          return this.getCompletionProposals(iotjs, [match]);
+        } else {
+          return this.getCompletionProposals(iotjs, defaultModules.concat(modules));
+        }
       },
     };
   }
@@ -39,7 +84,7 @@ export default class Completer {
    * @return {object} Function list as JSON object.
    */
   getCompletionProposals(list, modules) {
-    return modules.map(m => list[m]).reduce((a, b) => a.concat(b), []);
+    return modules.map(m => list[m.mod]).reduce((a, b) => a.concat(b), []);
   }
 
   /**
@@ -47,33 +92,20 @@ export default class Completer {
    * extracts the module names from them, then returns with them.
    *
    * @param {string} source The actual opened source code.
-   * @return {array} List of the required module names.
+   * @return {array} List of the required module names and variable names.
    */
   lookingForModules(source) {
-    const expr = /require\([''].+['']\);/g;
-    let array = null;
+    // Require line regex.
+    const rm = /^(var|let|const)?\s*([a-zA-Z0-9$_]+)\s*=[\s|\n]*require\s*\(\s*['"]([a-zA-Z0-9$_]+)['"]\s*\);?$/;
 
-    // Add core modules to the return list. These modules can be used without require in IoT.js.
-    let modules = ['process', 'events', 'timers'];
+    // Return the collected required module names and variable names.
+    return source.split('\n').filter(line => rm.test(line)).map(m => {
+      const match = rm.exec(m);
 
-    while ((array = expr.exec(source)) !== null) {
-      if (array[0]) {
-        // Slice down the require part.
-        let name = array[0].slice(9);
-
-        // Slice down the end of the statement.
-        name = name.slice(0, name.length - 3);
-
-        // Split up the module name and get the last element (which should be the module's name).
-        name = name.split('/');
-        name = name[name.length - 1];
-
-        if (!modules.includes(name)) {
-          modules.push(name.toLowerCase());
-        }
-      }
-    }
-
-    return modules;
+      return {
+        link: match[2],
+        mod: match[3],
+      };
+    });
   }
 }
