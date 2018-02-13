@@ -793,11 +793,9 @@ export default class Surface {
    * Updates the ace editor height based on the height of the wrapper and the file tabs header.
    */
   getEditorContainerDimensions() {
-    const height = ($('#file-tabs').children().length) ? $('#file-tabs').outerHeight() : this._editor.minTabHeight;
-
     return {
-      width: $('#editor-panel').width(),
-      height: $('#editor-panel').height() - height,
+      width: $('#editor-container').width(),
+      height: $('#editor-container').height(),
     };
   }
 

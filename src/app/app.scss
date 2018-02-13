@@ -683,9 +683,25 @@ input[type="number"] {
 
 #editor-wrapper .panel-body #monaco {
   position: absolute;
+  right: 0;
   bottom: 0;
-  left: 0;
   z-index: $z-level-5;
+}
+
+#editor-wrapper #editor-panel {
+  display: flex;
+  flex-flow: column;
+  height: 100%;
+  width: 100%;
+}
+
+#editor-wrapper #editor-panel #file-tabs {
+  flex: 0 1 auto;
+}
+
+#editor-wrapper #editor-panel #editor-container {
+  flex: 1 1 auto;
+  width: 100%;
 }
 
 #editor-wrapper #editor-placeholder {
@@ -776,10 +792,10 @@ input[type="number"] {
   margin-bottom: -5px;
   text-decoration: none;
   width: 120px;
-  height: 32px;
+  height: 31px;
   text-overflow: ellipsis;
   white-space: nowrap;
-  overflow-x: hidden;
+  overflow: hidden;
   display: inline-block;
 }
 
