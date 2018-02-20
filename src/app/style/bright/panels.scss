@@ -1,0 +1,285 @@
+/*
+ * Copyright 2017 Samsung Electronics Co., Ltd. and other contributors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+#info-panels {
+  .panel {
+    .panel-heading {
+      padding: 4px;
+      min-height: 33px;
+
+      .panel-heading-buttons {
+        float: right;
+
+        .btn-xs {
+          padding: 1px 2px;
+        }
+      }
+    }
+
+    .panel-body {
+      position: relative;
+      padding: 0;
+      height: calc(100% - 33px);
+
+      .wrapper {
+        position: relative;
+        width: inherit;
+        height: 100%;
+        padding: 0;
+        margin: 0;
+        overflow: auto;
+      }
+
+      .table {
+        thead {
+          background-color: #fff;
+        }
+
+        tbody td,
+        thead th {
+          padding: 2px 4px 2px 2px !important;
+          word-wrap: break-word;
+        }
+
+        tbody td:not(:last-child),
+        thead th:not(:last-child) {
+          border-right: $default-border-1;
+        }
+
+        thead tr th,
+        tbody tr:last-child {
+          border-bottom: $default-border-1;
+        }
+      }
+    }
+
+    .panel-footer {
+      position: relative;
+      padding: 4px;
+    }
+  }
+
+  .panel,
+  .vertical-resizable,
+  .vertical-resizable .col-md-12 {
+    height: 100%;
+  }
+
+  .hidden-panel {
+    display: none;
+  }
+
+  #watch-content {
+    position: relative;
+    height: 100%;
+    overflow-y: auto;
+
+    #watch-add-wrapper {
+      z-index: $z-level-3;
+      border-bottom: $default-border-1;
+      position: absolute;
+      width: 100%;
+      height: 40px;
+      top: 0;
+      left: 0;
+      padding: 5px;
+      background-color: $b-background-color;
+      display: none;
+
+      #watch-add-input {
+        position: relative;
+        width: 100%;
+      }
+    }
+
+    #watch-list {
+      position: relative;
+      margin: 0;
+      padding: 5px;
+
+      li {
+        position: relative;
+        text-decoration: none;
+        list-style-type: none;
+        padding-left: 5px;
+        &:hover {
+          background-color: #f5f5f5;
+        }
+
+        span {
+          &:first-child {
+            color: $b-purple-color;
+          }
+
+          &:nth-child(2) {
+            color: $b-orange-color;
+          }
+        }
+
+        .watch-li-remove {
+          font-size: $font-size-5;
+          position: absolute;
+          width: 20px;
+          height: 18px;
+          top: 2px;
+          right: 5px;
+          opacity: 0.6;
+          line-height: 18px;
+          text-align: center;
+          &:hover {
+            opacity: 1;
+            cursor: pointer;
+          }
+        }
+      }
+    }
+  }
+
+  #chart-wrapper {
+    .c3 .c3-tooltip-container {
+      z-index: $z-level-5;
+    }
+  }
+
+  #run-panel {
+    position: relative;
+    width: 100%;
+    height: 100%;
+
+    .run-div {
+      position: relative;
+      height: 100%;
+      padding: 5px;
+      float: left;
+
+      &:nth-child(2) {
+        width: 32px;
+        display: flex;
+        align-items: center;
+
+        div {
+          text-align: center;
+
+          .btn:nth-child(2) {
+            margin-top: 5px;
+          }
+        }
+      }
+
+      &:nth-child(odd) {
+        width: calc(50% - 16px);
+
+        p {
+          margin: 0;
+        }
+
+        .selectable {
+          position: relative;
+          border: $default-border-1;
+          height: calc(100% - 24px);
+          margin: 0;
+          padding: 5px;
+          overflow-y: auto;
+
+          .ui-selecting {
+            background-color: $b-yellow-color;
+          }
+
+          .ui-selected {
+            background-color: $b-orange-color;
+            color: #fff;
+          }
+
+          li {
+            border: $default-border-1;
+            position: relative;
+            text-decoration: none;
+            list-style-type: none;
+            padding-left: 5px;
+            cursor: default;
+            &:not(first-child) { margin-top: 5px; }
+            &.sortable { padding-left: 30px; }
+
+            .handle {
+              position: absolute;
+              top: 0;
+              left: 0;
+              bottom: 0;
+              width: 20px;
+              border-bottom-left-radius: 5px;
+              border-top-left-radius: 5px;
+              border-right: 2px dotted $default-border-color;
+              text-align: center;
+              font-size: $font-size-1;
+              line-height: 22px;
+              cursor: pointer;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  #console-wrapper {
+    .panel-body {
+      height: calc(100% - 70px);
+      width: 100%;
+    }
+  }
+
+  #command-line-input {
+    width: 100%;
+  }
+
+  .logger-panel {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: block;
+    overflow: auto;
+    padding: 0 5px;
+
+    span {
+      display: block;
+      margin: 0;
+      padding: 0;
+    }
+
+    .btn-xs {
+      padding: 1px 2px;
+    }
+
+    .log-warning {
+      color: $b-orange-color;
+    }
+
+    .log-error {
+      color: $b-red-color;
+    }
+
+    .log-info,
+    .log-debug {
+      color: $default-text-color;
+    }
+
+    .log-debug-dom {
+      float: left;
+      color: $default-text-color;
+      font-weight: bold;
+    }
+  }
+}

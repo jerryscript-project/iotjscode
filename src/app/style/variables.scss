@@ -1,0 +1,141 @@
+/*
+ * Copyright 2018 Samsung Electronics Co., Ltd. and other contributors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+/**
+ * Bright (Tomorrow) color variables.
+ */
+$b-background-color: #ffffff;
+$b-current-line-color: #efefef;
+$b-selection-color: #d6d6d6;
+$b-foreground-color: #4d4d4c;
+$b-comment-color: #8e908c;
+$b-red-color: #c82829;
+$b-orange-color: #f5871f;
+$b-yellow-color: #eab700;
+$b-green-color: #718c00;
+$b-aqua-color: #3e999f;
+$b-blue-color: #4271ae;
+$b-purple-color: #8959a8;
+
+/**
+ * Dark (Tomorrow Night Eighties) color variables.
+ */
+$d-background-color: #2d2d2d;
+$d-current-line-color: #393939;
+$d-selection-color: #515151;
+$d-foreground-color: #cccccc;
+$d-comment-color: #999999;
+$d-red-color: #f2777a;
+$d-orange-color: #f99157;
+$d-yellow-color: #ffcc66;
+$d-green-color: #99cc99;
+$d-aqua-color: #66cccc;
+$d-blue-color: #6699cc;
+$d-purple-color: #cc99cc;
+
+/**
+ * Dark bootstrap and bootswatch overrides.
+ */
+$dark-button-color: #ddd;
+$dark-button-disabled-color: #555;
+$dark-button-hover-color: #fff;
+$dark-button-border-color: #555;
+$dark-button-box-shadow: 0 0 0 0.2rem rgba(85, 85, 85, 0.5);
+$dark-panel-border-color: #555;
+$dark-panel-header-color: #272727;
+$dark-input-background-color: #adafae;
+
+/**
+ * Menu color variables.
+ */
+$menu-text-color: #818181;
+$menu-background-color: #1d1f21;
+$menu-foreground-color: #c5c8c6;
+$menu-selection-color: #c6c7c9;
+$menu-border-color: #373b41;
+
+/**
+ * Menu border variables.
+ */
+$menu-border-1: 1px solid $menu-border-color;
+$menu-border-2: 2px solid $menu-border-color;
+
+/**
+ * Menu dimension variables.
+ */
+$menu-closed-width: 40px;
+$menu-opened-width: 240px;
+$menu-item-height: 40px;
+$menu-icon-width: 40px;
+$menu-text-width: 200px;
+
+/**
+ * Editor variables.
+ */
+$editor-execute-border: 1px solid rgba(0, 0, 0, 0.25);
+$editor-exception-border: 1px solid $b-red-color;
+$editor-dark-execute-border: 1px solid rgba(255, 255, 255, 0.25);
+$editor-dark-exception-border: 1px solid $d-red-color;
+$editor-exception-color: rgba(242, 119, 122, 0.25);
+$editor-dark-exception-color: rgba(200, 40, 41, 0.25);
+
+/**
+ * Default variables.
+ */
+$default-border-color: #ddd;
+$default-background-color: #ddd;
+$default-text-color: #000;
+$default-border-1: 1px solid $default-border-color;
+$default-modal-color: rgba(0,0,0,0.4);
+$default-transition-time: 0.3s;
+$default-opacity: 0.3;
+$default-popup-shadow: 3px 3px 6px #888888;
+$default-sidenav-extra-height: calc(100% + 25px);
+$default-main-wrapper-height: calc(100% - 25px);
+
+/**
+ * Font size variables.
+ */
+$font-size-1: 10px;
+$font-size-2: 12px;
+$font-size-3: 14px;
+$font-size-4: 16px;
+$font-size-5: 18px;
+$font-size-6: 20px;
+$font-size-7: 22px;
+$font-size-8: 30px;
+
+/**
+ * Z-index level variables.
+ */
+$z-level-0: 0;
+$z-level-1: 200;
+$z-level-2: 400;
+$z-level-3: 600;
+$z-level-4: 800;
+$z-level-5: 1000;
+$z-level-6: 1200;
+$z-level-7: 1400;
+$z-level-8: 1600;
+
+/**
+ * Background variables.
+ */
+$resize-handler-background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAKElEQVQYV2NkQAM7duz4z4gsBhLw8PBghAvCBECKwILIAmBBdAGQIADEhBMtfYHnHgAAAABJRU5ErkJggg==) repeat;
+$dark-resize-handler-background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAKElEQVQYV2NkQAOBgYH/GZHFQALr169nhAvCBECKwILIAmBBdAGQIABIMRH4VLPjvAAAAABJRU5ErkJggg==) repeat;
+$monaco-active-breakpoint: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAPklEQVQoU2NkIBIwoqv7z8DwHybGyMAAl4czkBWgawZpIE0hPtOQnAF2FNxduPwGtppohYQUk+4ZZHfhCkcAqnUSBYlUugcAAAAASUVORK5CYII=) 2px center no-repeat;
+$monaco-inactive-breakpoint: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAOElEQVQoU2NkIBIwoqsLCQn5DxNbs2YNXB7OQFaArhmkgTSF+EyDmQ42kfoKCZlKumeQgwNXOAIAjVkd/Plon90AAAAASUVORK5CYII=) 2px center no-repeat;

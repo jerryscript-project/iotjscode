@@ -1,0 +1,140 @@
+/*
+ * Copyright 2018 Samsung Electronics Co., Ltd. and other contributors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#info-panels {
+  .panel-body {
+    .table {
+      color: $d-foreground-color;
+
+      thead,
+      tbody,
+      tbody tr td {
+        background-color: $d-background-color;
+      }
+
+      tbody td,
+      thead th,
+      thead tr th,
+      tbody tr, {
+        border-color: $dark-panel-border-color;
+      }
+    }
+
+    .table-striped {
+      tbody {
+        tr:nth-child(odd) td,
+        tr:hover td {
+          background-color: $d-current-line-color;
+        }
+      }
+    }
+  }
+
+  #watch-add-wrapper {
+    background-color: $d-background-color !important;
+    border-color: $dark-panel-border-color !important;
+
+    #watch-list {
+      li {
+        &:hover { background-color: $d-current-line-color; }
+        span {
+          &:first-child { color: $d-purple-color; }
+          &:nth-child(2) { color: $d-orange-color; }
+        }
+      }
+    }
+  }
+
+  #run-panel {
+    .run-div:nth-child(odd) {
+      .selectable {
+        border-color: $dark-panel-border-color;
+
+        li {
+          border-color: $dark-panel-border-color;
+          background-color: #dfdfdfb2;
+          color: $default-text-color;
+
+          .handle {
+            border-color: $dark-panel-border-color;
+          }
+        }
+
+        .ui-selecting {
+          background-color: $d-yellow-color;
+        }
+
+        .ui-selected {
+          background-color: $d-orange-color;
+        }
+      }
+    }
+  }
+
+  .c3 {
+    .c3-axis-x path,
+    .c3-axis-x line,
+    .c3-axis-y path,
+    .c3-axis-y line {
+      stroke: $d-foreground-color;
+    }
+
+    .c3-axis-x g,
+    .c3-axis-y g,
+    .c3-legend-item text {
+      fill: $d-foreground-color;
+    }
+
+    .c3-tooltip {
+      color: $d-foreground-color;
+      box-shadow: 7px 7px 12px -9px #555;
+      opacity: 1;
+
+      thead,
+      tbody,
+      tbody tr,
+      tbody tr td {
+        background-color: $d-background-color;
+        border-color: $dark-panel-border-color;
+      }
+
+      tbody tr th {
+        background-color: $dark-panel-header-color;
+        color: $d-foreground-color;
+      }
+    }
+
+  }
+
+  .logger-panel {
+    .log-warning {
+      color: $d-orange-color;
+    }
+
+    .log-error {
+      color: $d-red-color;
+    }
+
+    .log-info,
+    .log-debug {
+      color: $d-foreground-color;
+    }
+
+    .log-debug-dom {
+      color: $d-foreground-color;
+    }
+  }
+}

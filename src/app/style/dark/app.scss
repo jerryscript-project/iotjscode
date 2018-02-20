@@ -1,0 +1,131 @@
+/*
+ * Copyright 2018 Samsung Electronics Co., Ltd. and other contributors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@import '../variables';
+
+body.dark-theme {
+  @import 'editor';
+  @import 'panels';
+
+  background-color: $d-background-color;
+  color: $d-foreground-color;
+
+  input[type="text"],
+  input[type="number"],
+  textarea,
+  select {
+    border: none;
+    color: #000 !important;
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+    -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+    background: #dfdfdfb2;
+  }
+
+  select {
+    background: #DFDFDF;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    text-indent: 0.01px;
+    text-overflow: '';
+    color: #525252;
+  }
+
+
+  input::placeholder {
+    color: $d-background-color;
+  }
+
+  .bg-warning {
+    background-color: $d-yellow-color;
+  }
+
+  .bg-success {
+    background-color: $d-green-color;
+  }
+
+  .bg-danger {
+    background-color: $d-red-color;
+  }
+
+  .sidenav {
+    border-right: 1px solid $menu-border-color;
+  }
+
+  .sidenav-extra {
+    border-left: $menu-border-1;
+  }
+
+  .btn-default {
+    color: $dark-button-color;
+    background-color: transparent;
+    background-image: none;
+    border-color: $dark-button-border-color;
+
+    &:hover {
+      color: $dark-button-hover-color;
+      background-color: $dark-button-disabled-color;
+      border-color: $dark-button-border-color;
+    }
+
+    &:focus,
+    &.focus {
+      box-shadow: $dark-button-box-shadow;
+    }
+
+    &.disabled,
+    &:disabled {
+      color: $dark-button-disabled-color;
+      background-color: transparent;
+    }
+  }
+
+  .panel {
+    background-color: $d-background-color;
+  }
+
+  .panel-default {
+    border-color: $dark-panel-border-color;
+  }
+
+  .panel-default > .panel-heading {
+    color: $d-foreground-color;
+    background-color: $dark-panel-header-color;
+    border-color: $dark-panel-border-color;
+  }
+
+  .panel-default > .panel-footer {
+    background-color: $d-background-color;
+    border-top: 1px solid $dark-panel-border-color;
+  }
+
+  #popup-wrapper {
+    div {
+      box-shadow: none;
+      color: $d-background-color;
+    }
+  }
+
+  .ui-resizable-s {
+    background-color: $d-background-color !important;
+    &:hover { background-color: $menu-background-color !important; }
+    &:after { background: $dark-resize-handler-background !important; }
+  }
+  .ui-resizable-e {
+    background-color: $d-background-color !important;
+    &:hover { background-color: $menu-background-color !important; }
+    &:after { background: $dark-resize-handler-background !important; }
+  }
+}

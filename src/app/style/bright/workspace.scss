@@ -1,0 +1,115 @@
+/*
+ * Copyright 2018 Samsung Electronics Co., Ltd. and other contributors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@import '../variables';
+
+#workspace-wrapper {
+  position: relative;
+  height: 100%;
+  width: inherit;
+
+  .hidden-row {
+    margin: 0;
+  }
+
+  .resizable-columns {
+    position: relative;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: calc(100% - 40px);
+    min-height: 400px;
+
+    .horizontal-resizable {
+      position: relative;
+      width: 50%;
+    }
+
+    #editor-wrapper {
+      position: absolute;
+      top: 0;
+      right: 0;
+      height: 100%;
+      width: 100%;
+      padding-left: 4px;
+    }
+
+    #info-panels {
+      position: absolute;
+      display: none;
+      height: 100%;
+      top: 0;
+      left: 0;
+      margin: 0;
+      padding: 0;
+
+      .vertical-resizable {
+        height: calc(100% / 3);
+        margin: 0;
+        padding: 0;
+        &:not(:first-child) .col-md-12 { padding-top: 4px; }
+
+        .col-md-12 {
+          position: relative;
+          margin: 0;
+          padding: 0;
+        }
+      }
+
+      .ui-resizable-s {
+        background-color: $b-background-color;
+        display: block;
+        touch-action: none;
+        bottom: -4px;
+        height: 4px;
+        &:hover { background-color: $b-current-line-color; }
+        &:after {
+          background: $resize-handler-background;
+          content: "";
+          display: block;
+          position: absolute;
+          top: 2px;
+          left: 48%;
+          margin-top: -2px;
+          width: 25px;
+          height: 4px;
+        }
+      }
+
+      .ui-resizable-e {
+        background-color: $b-background-color;
+        position: absolute;
+        display: block;
+        touch-action: none;
+        width: 4px;
+        right: -4px;
+        &:hover { background-color: $b-current-line-color; }
+        &:after {
+          background: $resize-handler-background;
+          content: "";
+          display: block;
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          margin-top: -10px;
+          width: 4px;
+          height: 25px;
+        }
+      }
+    }
+  }
+}

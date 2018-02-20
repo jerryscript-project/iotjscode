@@ -1,0 +1,175 @@
+/*
+ * Copyright 2018 Samsung Electronics Co., Ltd. and other contributors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@import '../variables';
+
+#sidenav-extra-modal {
+  background-color: $default-modal-color;
+  display: none;
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  z-index: $z-level-6;
+}
+
+.sidenav-extra {
+  background-color: $menu-background-color;
+  color: $menu-text-color;
+  border-left: $menu-border-2;
+  border-right: $menu-border-2;
+  height: $default-sidenav-extra-height;
+  width: 300px;
+  position: absolute;
+  top: 0;
+  margin-left: -4px;
+  overflow-x: hidden;
+  display: none;
+  z-index: $z-level-7;
+
+  div {
+    h3 {
+      height: $menu-item-height;
+      line-height: $menu-item-height;
+      width: inherit;
+      text-align: left;
+      margin: 0 0 0 10px;
+    }
+
+    ul {
+      margin: 0;
+      padding: 0;
+
+      .available-li {
+        transition: $default-transition-time;
+        border-top: $menu-border-1;
+        list-style-type: none;
+        text-decoration: none;
+        padding: 10px 5px;
+        cursor: pointer;
+        &:last-child { border-bottom: $menu-border-1; }
+        &:hover { background-color: $menu-border-color; }
+
+        div:first-child {
+          font-size: $font-size-4;
+          font-weight: bold;
+        }
+
+        .disabled {
+          opacity: $default-opacity;
+          &:hover { cursor: not-allowed; }
+        }
+      }
+    }
+  }
+
+  .sidenav-extra-close {
+    font-size: $font-size-6;
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+    text-align: center;
+    top: 10px;
+    right: 10px;
+  }
+
+  .sidenav-extra-close:hover {
+    cursor: pointer;
+    color: $menu-selection-color;
+  }
+
+  .sidenav-hidden {
+    display: none;
+  }
+
+  .sidenav-cancel-ok-buttons {
+    .btn {
+      text-align: center;
+      width: 49%;
+    }
+  }
+
+  #file-sidenav {
+    #hidden-new-file-info {
+      color: $b-red-color;
+    }
+
+    #hidden-new-file {
+      display: none;
+      margin: 10px;
+
+      ul {
+        list-style-type: disc;
+        margin-left: 15px;
+        margin-bottom: 10px;
+      }
+
+      #new-file-name {
+        cursor: text;
+        width: 100%;
+        margin-bottom: 10px;
+      }
+    }
+  }
+
+  #settings-sidenav {
+    .control-block {
+      margin: 10px 10px 20px 15px;
+
+      h4 {
+        font-weight: bold;
+      }
+
+      .control-item {
+        &:nth-child(n+6) label:hover,
+        &:nth-child(n+3) label:hover, {
+          color: #fff;
+          cursor: pointer;
+        }
+
+        &.disabled {
+          opacity: $default-opacity;
+          &:hover,
+          &:hover input { cursor: not-allowed; }
+
+          label:hover {
+            color: inherit !important;
+            cursor: inherit !important;
+          }
+        }
+
+        label {
+          margin: 0;
+          padding: 0;
+        }
+
+        select,
+        input[type="number"] {
+          width: 100%;
+          margin-bottom: 10px;
+          cursor: pointer;
+        }
+
+        #show_vscroll {
+          margin-left: 20px;
+        }
+      }
+    }
+  }
+}

@@ -19,7 +19,8 @@ import 'jquery-ui-dist/jquery-ui.min.css';
 import 'font-awesome/css/font-awesome.min.css';
 import 'perfect-scrollbar/css/perfect-scrollbar.css';
 import 'c3/c3.min.css';
-import './app.scss';
+import './style/bright/app.scss';
+import './style/dark/app.scss';
 
 import Logger from './logger';
 import Session from './session';
