@@ -243,29 +243,35 @@ function onmessage(event) {
     case PROTOCOL.SERVER.JERRY_DEBUGGER_MEMSTATS_RECEIVE: {
       const messagedata = this._debuggerObj.decodeMessage('IIIII', message, 1);
 
-      if (this._chart.isRecordStarted()) {
-        this._chart.startRecord(false);
-        this._chart.setChartActive(true);
+      // Continue if we have any data.
+      if (messagedata[0] !== 0) {
+        if (this._chart.isRecordStarted()) {
+          this._chart.startRecord(false);
+          this._chart.setChartActive(true);
 
-        this._surface.toggleButton(false, 'chart-reset-button');
-        this._surface.toggleButton(true, 'chart-stop-button');
-        this._surface.toggleButton(false, 'chart-record-button');
-        $('#chart-record-button').css('background-color', '#16e016');
-      }
+          this._surface.toggleButton(false, 'chart-reset-button');
+          this._surface.toggleButton(true, 'chart-stop-button');
+          this._surface.toggleButton(false, 'chart-record-button');
+          $('#chart-record-button').css('background-color', '#16e016');
+        }
 
-      if (this._session.getBreakpointInfoToChart() && this._chart.isChartActive()) {
-        const breakpointLineToChart = 'ln: ' + this._session.getBreakpointInfoToChart().split(':')[1].split(' ')[0];
+        if (this._session.getBreakpointInfoToChart() && this._chart.isChartActive()) {
+          const breakpointInfo = this._session.getBreakpointInfoToChart().split(':')[1].split(' ')[0];
+          let breakpointLineToChart = `ln: ${breakpointInfo}`;
 
-        if (this._debuggerObj.getEngineMode() === ENGINE_MODE.BREAKPOINT) {
-          this._chart.addNewDataPoints(
-            messagedata,
-            '#' +
-            this._session.getBreakpointInfoToChart().split(':')[1].split(' ')[0] + ': ' +
-            new Date().toISOString().slice(14, 21)
-          );
-        } else {
+          if (this._debuggerObj.getEngineMode() === ENGINE_MODE.BREAKPOINT) {
+            breakpointLineToChart = `#${breakpointInfo}: ${new Date().toISOString().slice(14, 21)}`;
+          }
+
           this._chart.addNewDataPoints(messagedata, breakpointLineToChart);
         }
+      } else {
+        // Notify the user about that, propbably the jerry was built without the memory statistic swicth.
+        this._logger.error(
+          'There are no memory statistics available. ' +
+          'If you want to use the memory usage panel check the engine build command first.',
+          true
+        );
       }
 
       return;
