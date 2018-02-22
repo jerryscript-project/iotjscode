@@ -451,7 +451,7 @@ export default class Session {
         !$.isEmptyObject(this._watch.list)) {
       this._watch.work.update = true;
 
-      let expr = Object.keys(this._watch.list)[this._watch.work.counter];
+      const expr = Object.keys(this._watch.list)[this._watch.work.counter];
 
       this._watch.work.inProgress = true;
       this._watch.work.currentExpr = expr;
@@ -483,7 +483,7 @@ export default class Session {
    */
   neutralizeWatchExpressions() {
     if (Object.keys(this._watch.list).length) {
-      for (let expr in this._watch.list) {
+      for (const expr in this._watch.list) {
         if (this._watch.list.hasOwnProperty(expr)) {
           this._watch.list[expr] = '&ltnot available&gt';
         }
@@ -585,7 +585,7 @@ export default class Session {
    * @return {mixed} Returns the file name as string if exists, undefined otherwise.
    */
   getFileNameById(id) {
-    let f = this._models.find(x => x.id === id);
+    const f = this._models.find(x => x.id === id);
     return f ? f.name : undefined;
   }
 
@@ -596,7 +596,7 @@ export default class Session {
    * @return {mixed} Returns the file id if exists, undefined otherwise.
    */
   getFileIdByName(name) {
-    let f = this._models.find(x => name.endsWith(x.name));
+    const f = this._models.find(x => name.endsWith(x.name));
     return f ? f.id : undefined;
   }
 
@@ -617,7 +617,7 @@ export default class Session {
    * @return {mixed} Returns the file editSession if exists, undefined otherwise.
    */
   getFileModelById(id) {
-    let f = this._models.find(x => x.id === id);
+    const f = this._models.find(x => x.id === id);
     return f ? f.model : undefined;
   }
 
@@ -838,16 +838,16 @@ export default class Session {
     let lines = [],
         sessionName = this.getFileNameById(this._id.active);
 
-    for (let i in raw) {
+    for (const i in raw) {
       if (raw[i].sourceName.endsWith(sessionName)) {
         lines.push(raw[i].line);
       }
     }
 
     if (settings.getValue('debugger.transpileToES5') && !transpiler.isEmpty()) {
-      let newLines = [];
-      for (let i of lines) {
-        let originLine = transpiler.getOriginalPositionFor(this.getFileNameById(this._id.active), i, 0);
+      const newLines = [];
+      for (const i of lines) {
+        const originLine = transpiler.getOriginalPositionFor(this.getFileNameById(this._id.active), i, 0);
         if (originLine.line) {
           newLines.push(originLine.line);
         }
@@ -923,7 +923,7 @@ export default class Session {
    * @param {string} name New tab name (aka. file name).
    */
   updateTabs(id, name) {
-    let $tabs = $('#file-tabs');
+    const $tabs = $('#file-tabs');
 
     $tabs.append(
       `<div class="tablinks" id="tab-${id}" title="${name}"> ${name}` +
@@ -950,9 +950,9 @@ export default class Session {
    */
   selectTab(id) {
     // Get all elements with class='tablinks' and remove the class 'active'
-    let tablinks = $('.tablinks');
+    const tablinks = $('.tablinks');
 
-    for (let link of tablinks) {
+    for (const link of tablinks) {
       link.className = link.className.replace(' active', '');
     }
 

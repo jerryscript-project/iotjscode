@@ -105,7 +105,7 @@ export default class ParseSource {
       }
 
       case PROTOCOL.SERVER.JERRY_DEBUGGER_PARSE_FUNCTION: {
-        let position = this._debuggerObj.decodeMessage('II', message, 1);
+        const position = this._debuggerObj.decodeMessage('II', message, 1);
 
         this._stack.push({
           is_func: true,
@@ -142,17 +142,17 @@ export default class ParseSource {
       }
 
       case PROTOCOL.SERVER.JERRY_DEBUGGER_BYTE_CODE_CP: {
-        let func = this._stack.pop();
+        const func = this._stack.pop();
         func.byte_code_cp = this._debuggerObj.decodeMessage('C', message, 1)[0];
 
-        let lines = {};
-        let offsets = {};
+        const lines = {};
+        const offsets = {};
 
         func.firstBreakpointLine = func.lines[0];
         func.firstBreakpointOffset = func.offsets[0];
 
         for (let i = 0; i < func.lines.length; i++) {
-          let breakpoint = { line: func.lines[i], offset: func.offsets[i], func: func, activeIndex: -1 };
+          const breakpoint = { line: func.lines[i], offset: func.offsets[i], func: func, activeIndex: -1 };
 
           lines[breakpoint.line] = breakpoint;
           offsets[breakpoint.offset] = breakpoint;
@@ -173,7 +173,7 @@ export default class ParseSource {
       }
 
       case PROTOCOL.SERVER.JERRY_DEBUGGER_RELEASE_BYTE_CODE_CP: {
-        let byte_code_cp = this._debuggerObj.decodeMessage('C', message, 1)[0];
+        const byte_code_cp = this._debuggerObj.decodeMessage('C', message, 1)[0];
 
         if (byte_code_cp in this._newFunctions) {
           delete this._newFunctions[byte_code_cp];
@@ -189,13 +189,13 @@ export default class ParseSource {
       }
     }
 
-    for (let i in this._newFunctions) {
+    for (const i in this._newFunctions) {
       if (this._newFunctions.hasOwnProperty(i)) {
-        let func = this._newFunctions[i];
+        const func = this._newFunctions[i];
 
         this._debuggerObj.setFunctions(i, func);
 
-        for (let j in func.lines) {
+        for (const j in func.lines) {
           if (func.lines.hasOwnProperty(j)) {
             this._debuggerObj.lineListInsert(j, func);
           }

@@ -161,7 +161,7 @@ export default class Surface {
    * @param {string} extra ID of the menu.
    */
   toggleSidenavExtra(extra) {
-    let splt = extra.split('-')[0];
+    const splt = extra.split('-')[0];
 
     if (this._sidenavExtra.opened) {
       if (this._sidenavExtra.last === extra) {
@@ -410,12 +410,12 @@ export default class Surface {
    * @param {object} session The main Session module instance.
    */
   updateRunPanel(type, debuggerObj, session) {
-    let $src = $('#run-chooser-src');
-    let $dest = $('#run-chooser-dest');
-    let ok = 'run-ok-button';
-    let clear = 'run-clear-button';
-    let right = 'run-right-button';
-    let left = 'run-left-button';
+    const $src = $('#run-chooser-src');
+    const $dest = $('#run-chooser-dest');
+    const ok = 'run-ok-button';
+    const clear = 'run-clear-button';
+    const right = 'run-right-button';
+    const left = 'run-left-button';
 
     if (type === this.RUN_UPDATE_TYPE.ALL || type === this.RUN_UPDATE_TYPE.LIST) {
       // Empty the lists.
@@ -430,12 +430,12 @@ export default class Surface {
       });
 
       // Generate the ordered list and fill the destonation field based on the file state.
-      let list = session.getUploadBackupList();
+      const list = session.getUploadBackupList();
 
       if (list.length) {
-        for (let i in list) {
+        for (const i in list) {
           if (list.hasOwnProperty(i)) {
-            let ss = session.getFileDataById(list[i]);
+            const ss = session.getFileDataById(list[i]);
 
             if (list[i] === 0) {
               this.appendChooserLi($dest, '', 'hidden', 'run-context-reset-sid', 0, 'Context Reset');
@@ -529,7 +529,7 @@ export default class Surface {
     if (list) {
       $('#watch-list').html('');
 
-      for (let expr in list) {
+      for (const expr in list) {
         if (list.hasOwnProperty(expr)) {
           this.appendWatchLi(expr, list[expr]);
         }
@@ -611,7 +611,7 @@ export default class Surface {
    * Returns the view percentage of the editor wrapper.
    */
   editorHorizontalPercentage() {
-    let pw = (this._panel.numberOfInactive === Object.keys(this._panel).length - 2) ? 0 : $('#info-panels').width();
+    const pw = (this._panel.numberOfInactive === Object.keys(this._panel).length - 2) ? 0 : $('#info-panels').width();
     return (($('#workspace-wrapper').width() - pw) / $('#workspace-wrapper').width()) * 100;
   }
 
@@ -693,7 +693,7 @@ export default class Surface {
       );
     }
 
-    let suffix = `() at line: ${position.line}, col: ${position.column}`;
+    const suffix = `() at line: ${position.line}, col: ${position.column}`;
 
     if (!info.func.name && !info.func.is_func) {
       return '-';
@@ -711,9 +711,9 @@ export default class Surface {
    * @param {object} info Breakpoint information from the debuggerObj.
    */
   updateBacktracePanel(frame, info, settings, transpiler) {
-    let sourceName = info.func.sourceName || info;
+    const sourceName = info.func.sourceName || info;
+    const $table = $('#backtrace-table-body');
     let line = info.line || '-';
-    let $table = $('#backtrace-table-body');
 
     if (settings.getValue('debugger.transpileToES5') && !transpiler.isEmpty()) {
       line = transpiler.getOriginalPositionFor(sourceName.split('/').pop(), line, 0).line;
@@ -737,14 +737,14 @@ export default class Surface {
    * @param {array} activeBreakpoints Currently active (inserted) breakpoints list.
    */
   updateBreakpointsPanel(activeBreakpoints, settings, transpiler) {
-    let $table = $('#breakpoints-table-body');
+    const $table = $('#breakpoints-table-body');
     Util.clearElement($table);
 
-    for (let i in activeBreakpoints) {
+    for (const i in activeBreakpoints) {
       if (activeBreakpoints.hasOwnProperty(i)) {
-        let sourceName = activeBreakpoints[i].func.sourceName || '-';
+        const sourceName = activeBreakpoints[i].func.sourceName || '-';
+        const id = activeBreakpoints[i].activeIndex || '-';
         let line = activeBreakpoints[i].line || '-';
-        let id = activeBreakpoints[i].activeIndex || '-';
 
         if (settings.getValue('debugger.transpileToES5') && !transpiler.isEmpty()) {
           line = transpiler.getOriginalPositionFor(sourceName.split('/').pop(), line, 0).line;

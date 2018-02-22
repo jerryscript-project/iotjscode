@@ -180,7 +180,7 @@ function onclose_and_error() {
  * @param {event} event The socket event. This contains the incoming data.
  */
 function onmessage(event) {
-  let message = new Uint8Array(event.data);
+  const message = new Uint8Array(event.data);
 
   if (message.byteLength < 1) {
     this._socket.abortConnection('message too short.');
@@ -241,7 +241,7 @@ function onmessage(event) {
     }
 
     case PROTOCOL.SERVER.JERRY_DEBUGGER_MEMSTATS_RECEIVE: {
-      let messagedata = this._debuggerObj.decodeMessage('IIIII', message, 1);
+      const messagedata = this._debuggerObj.decodeMessage('IIIII', message, 1);
 
       if (this._chart.isRecordStarted()) {
         this._chart.startRecord(false);
@@ -254,7 +254,7 @@ function onmessage(event) {
       }
 
       if (this._session.getBreakpointInfoToChart() && this._chart.isChartActive()) {
-        let breakpointLineToChart = 'ln: ' + this._session.getBreakpointInfoToChart().split(':')[1].split(' ')[0];
+        const breakpointLineToChart = 'ln: ' + this._session.getBreakpointInfoToChart().split(':')[1].split(' ')[0];
 
         if (this._debuggerObj.getEngineMode() === ENGINE_MODE.BREAKPOINT) {
           this._chart.addNewDataPoints(
@@ -275,12 +275,12 @@ function onmessage(event) {
     case PROTOCOL.SERVER.JERRY_DEBUGGER_EXCEPTION_HIT: {
       this._debuggerObj.setEngineMode(ENGINE_MODE.BREAKPOINT);
 
-      let breakpointData = this._debuggerObj.decodeMessage('CI', message, 1);
-      let breakpointRef = this._debuggerObj.getBreakpoint(breakpointData);
-      let breakpoint = breakpointRef.breakpoint;
+      const breakpointData = this._debuggerObj.decodeMessage('CI', message, 1);
+      const breakpointRef = this._debuggerObj.getBreakpoint(breakpointData);
+      const breakpoint = breakpointRef.breakpoint;
+      const sourceName = breakpoint.func.sourceName;
+      const source = this._debuggerObj.getSources()[sourceName];
       let breakpointInfo = '';
-      let sourceName = breakpoint.func.sourceName;
-      let source = this._debuggerObj.getSources()[sourceName];
 
       this._debuggerObj.setLastBreakpointHit(breakpoint);
 
@@ -295,7 +295,7 @@ function onmessage(event) {
       // Source load and reload from Jerry.
       if (sourceName !== '') {
         if (!this._session.fileNameCheck(sourceName, true)) {
-          let groupID = `gid-name-${sourceName.replace(/\//g, '-').replace(/\./g, '-')}-${sourceName.length}`;
+          const groupID = `gid-name-${sourceName.replace(/\//g, '-').replace(/\./g, '-')}-${sourceName.length}`;
 
           this._logger.debug(
             `The file ${sourceName} is missing: `,
@@ -318,7 +318,7 @@ function onmessage(event) {
           // Do not check the code match if the transpile is enabled.
           if (!this._settings.getValue('debugger.transpileToES5') && this._transpiler.isEmpty()) {
             if (!this._session.fileContentCheck(sourceName, source)) {
-              let groupID = `gid-source-${sourceName.replace(/\//g, '-').replace(/\./g, '-')}-${source.length}`;
+              const groupID = `gid-source-${sourceName.replace(/\//g, '-').replace(/\./g, '-')}-${source.length}`;
 
               this._logger.debug(
                 `The opened ${sourceName} source does not match with the source on the device! `,
@@ -381,7 +381,7 @@ function onmessage(event) {
 
       // Add breakpoint information to chart.
       if (this._surface.getPanelProperty('chart.active')) {
-        for (let i in this._debuggerObj.getActiveBreakpoints()) {
+        for (const i in this._debuggerObj.getActiveBreakpoints()) {
           if (this._debuggerObj.getActiveBreakpoints()[i].line ===
               this._debuggerObj.breakpointToString(breakpoint).split(':')[1].split(' ')[0]) {
             this._surface.stopCommand();
@@ -413,7 +413,7 @@ function onmessage(event) {
       Util.clearElement($('#backtrace-table-body'));
 
       for (let i = 1; i < message.byteLength; i += this._debuggerObj.getCPointerSize() + 4) {
-        let breakpointData = this._debuggerObj.decodeMessage('CI', message, i);
+        const breakpointData = this._debuggerObj.decodeMessage('CI', message, i);
 
         this._surface.updateBacktracePanel(
           this._debuggerObj.getBacktraceFrame(),
@@ -436,7 +436,7 @@ function onmessage(event) {
     case PROTOCOL.SERVER.JERRY_DEBUGGER_EVAL_RESULT_END: {
       this._evalResult = this._debuggerObj.concatUint8Arrays(this._evalResult, message);
 
-      let subType = this._evalResult[this._evalResult.length - 1];
+      const subType = this._evalResult[this._evalResult.length - 1];
 
       this._evalResult = this._evalResult.slice(0, -1);
 
@@ -482,7 +482,7 @@ function onmessage(event) {
       this._outputResult = this._debuggerObj.concatUint8Arrays(this._outputResult, message);
 
       if (message[0] === PROTOCOL.SERVER.JERRY_DEBUGGER_OUTPUT_RESULT_END) {
-        let subType = this._outputResult[this._outputResult.length - 1];
+        const subType = this._outputResult[this._outputResult.length - 1];
 
         this._outputResult = this._outputResult.slice(0, -1);
 

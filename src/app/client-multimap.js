@@ -29,7 +29,7 @@ export default class Multimap {
    * @return {mixed} The item array if that is exists, empty array otherwise.
    */
   get(key) {
-    let item = this._map[key];
+    const item = this._map[key];
     return item ? item : [];
   }
 
@@ -40,7 +40,7 @@ export default class Multimap {
    * @param {mixed} value The new value which will be stored as an array.
    */
   insert(key, value) {
-    let item = this._map[key];
+    const item = this._map[key];
 
     if (item) {
       item.push(value);
@@ -57,12 +57,12 @@ export default class Multimap {
    * @param {mixed} key The value which will be removed.
    */
   delete(key, value) {
-    let array = this._map[key];
+    const array = this._map[key];
 
     Util.assert(array);
 
-    let newLength = array.length - 1;
-    let i = array.indexOf(value);
+    const newLength = array.length - 1;
+    const i = array.indexOf(value);
 
     Util.assert(i !== -1);
 

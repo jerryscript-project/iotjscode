@@ -261,9 +261,9 @@ export default class DebuggerClient {
       return nextArray.slice(1);
     }
 
-    let baseLength = baseArray.byteLength;
-    let nextLength = nextArray.byteLength - 1;
-    let result = new Uint8Array(baseLength + nextLength);
+    const baseLength = baseArray.byteLength;
+    const nextLength = nextArray.byteLength - 1;
+    const result = new Uint8Array(baseLength + nextLength);
 
     result.set(nextArray, baseLength - 1);
 
@@ -284,7 +284,7 @@ export default class DebuggerClient {
       return '';
     }
 
-    let length = array.byteLength;
+    const length = array.byteLength;
     let i = 0;
     let result = '';
 
@@ -383,7 +383,7 @@ export default class DebuggerClient {
    * @param {array} values The encrypted values.
    */
   encodeMessage(format, values) {
-    let length = this.getFormatSize(format);
+    const length = this.getFormatSize(format);
     let message = new Uint8Array(length);
     let offset = 0;
 
@@ -463,14 +463,14 @@ export default class DebuggerClient {
    * @param {boolean} pending True if this breakpoint can be a pending breakpoint, false if not.
    */
   setBreakpoint(str, pending) {
-    let line = /^(.+):([1-9][0-9]*)$/.exec(str);
+    const line = /^(.+):([1-9][0-9]*)$/.exec(str);
     let found = false;
 
     if (line) {
       let functionList = this._lineList.get(line[2]);
 
-      for (let func of functionList) {
-        let sourceName = func.sourceName;
+      for (const func of functionList) {
+        const sourceName = func.sourceName;
 
         if (sourceName === line[1] ||
             sourceName.endsWith('/' + line[1]) ||
@@ -480,7 +480,7 @@ export default class DebuggerClient {
         }
       }
     } else {
-      for (let func of this._functions) {
+      for (const func of this._functions) {
 
         if (func.name === str) {
           this.insertBreakpoint(func.lines[func.firstBreakpointLine], this);
@@ -539,7 +539,7 @@ export default class DebuggerClient {
       this._activeBreakpoints[this._nextBreakpointIndex] = breakpoint;
       this._nextBreakpointIndex++;
 
-      let values = [
+      const values = [
         PROTOCOL.CLIENT.JERRY_DEBUGGER_UPDATE_BREAKPOINT,
         1,
         breakpoint.func.byte_code_cp,
@@ -558,12 +558,12 @@ export default class DebuggerClient {
    * @param {integer} index Index of the breakpoint.
    */
   deleteBreakpoint(index) {
-    let breakpoint = this._activeBreakpoints[index];
+    const breakpoint = this._activeBreakpoints[index];
 
     if (index === 'all') {
       let found = false;
 
-      for (let i in this._activeBreakpoints) {
+      for (const i in this._activeBreakpoints) {
         if (this._activeBreakpoints.hasOwnProperty(i)) {
           delete this._activeBreakpoints[i];
           found = true;
@@ -583,7 +583,7 @@ export default class DebuggerClient {
     delete this._activeBreakpoints[index];
     breakpoint.activeIndex = -1;
 
-    let values = [
+    const values = [
       PROTOCOL.CLIENT.JERRY_DEBUGGER_UPDATE_BREAKPOINT,
       0,
       breakpoint.func.byte_code_cp,
@@ -617,7 +617,7 @@ export default class DebuggerClient {
     this._logger.info('List of active breakpoints:');
     let found = false;
 
-    for (let i in this._activeBreakpoints) {
+    for (const i in this._activeBreakpoints) {
       if (this._activeBreakpoints.hasOwnProperty(i)) {
         this._logger.info(`  breakpoint ${i} at ${this.breakpointToString(this._activeBreakpoints[i])}`);
         found = true;
@@ -630,7 +630,7 @@ export default class DebuggerClient {
 
     if (this._pendingBreakpoints.length !== 0) {
       this._logger.info('List of pending breakpoints:');
-      for (let i in this._pendingBreakpoints) {
+      for (const i in this._pendingBreakpoints) {
         if (this._pendingBreakpoints.hasOwnProperty(i)) {
           this._logger.info(`  pending breakpoint ${i} at ${this._pendingBreakpoints[i]}`);
         }
@@ -665,8 +665,8 @@ export default class DebuggerClient {
       return;
     }
 
+    const user_depth = $('#backtrace-depth').val();
     let max_depth = 0;
-    let user_depth = $('#backtrace-depth').val();
 
     if (user_depth !== 0) {
       if (/[1-9][0-9]*/.test(user_depth)) {
@@ -698,7 +698,7 @@ export default class DebuggerClient {
     }
 
     let array = this.stringToCesu8(str);
-    let byteLength = array.byteLength;
+    const byteLength = array.byteLength;
 
     if (byteLength <= this._maxMessageSize) {
       this._connection.send(array);
@@ -734,7 +734,7 @@ export default class DebuggerClient {
 
     this.setEngineMode(ENGINE_MODE.RUN);
 
-    let fid = this._session.getUploadList()[0];
+    const fid = this._session.getUploadList()[0];
 
     if (fid === 0) {
       this.encodeMessage('B', [PROTOCOL.CLIENT.JERRY_DEBUGGER_CONTEXT_RESET]);
@@ -764,7 +764,7 @@ export default class DebuggerClient {
     }
 
     let array = this.stringToCesu8(`${this._session.getFileNameById(fid)}\0${source}`);
-    let byteLength = array.byteLength;
+    const byteLength = array.byteLength;
 
     array[0] = PROTOCOL.CLIENT.JERRY_DEBUGGER_CLIENT_SOURCE;
 
@@ -805,9 +805,9 @@ export default class DebuggerClient {
    * This function will print every breakpoint no matter if it's active or not.
    */
   dump() {
-    for (let i in this._functions) {
+    for (const i in this._functions) {
       if (this._functions.hasOwnProperty(i)) {
-        let func = this._functions[i];
+        const func = this._functions[i];
         let sourceName = func.sourceName;
 
         if (!sourceName) {
@@ -818,7 +818,7 @@ export default class DebuggerClient {
           `Function 0x${Number(i).toString(16)} '${func.name}' at ${sourceName}:${func.line}, ${func.column}`
         );
 
-        for (let j in func.lines) {
+        for (const j in func.lines) {
           if (func.lines.hasOwnProperty(j)) {
             let active = '';
 
@@ -840,10 +840,10 @@ export default class DebuggerClient {
    */
   getBreakpointLines() {
     let result = [];
-    for (let i in this._functions) {
+    for (const i in this._functions) {
       if (this._functions.hasOwnProperty(i)) {
-        let func = this._functions[i];
-        for (let j in func.lines) {
+        const func = this._functions[i];
+        for (const j in func.lines) {
           if (func.lines.hasOwnProperty(j)) {
             result.push( {
               line: parseInt(j),
@@ -883,7 +883,7 @@ export default class DebuggerClient {
     result += `:${line}`;
 
     if (breakpoint.func.is_func) {
-      let f = breakpoint.func;
+      const f = breakpoint.func;
       let position = {
         line: f.line,
         column: f.column,
@@ -933,11 +933,11 @@ export default class DebuggerClient {
   stringToCesu8(string) {
     Util.assert(string != '');
 
-    let length = string.length;
+    const length = string.length;
     let byteLength = length;
 
     for (let i = 0; i < length; i++) {
-      let chr = string.charCodeAt(i);
+      const chr = string.charCodeAt(i);
 
       if (chr >= 0x7ff) {
         byteLength ++;
@@ -948,7 +948,7 @@ export default class DebuggerClient {
       }
     }
 
-    let result = new Uint8Array(byteLength + 1 + 4);
+    const result = new Uint8Array(byteLength + 1 + 4);
 
     result[0] = PROTOCOL.CLIENT.JERRY_DEBUGGER_EVAL;
 
@@ -957,7 +957,7 @@ export default class DebuggerClient {
     let offset = 5;
 
     for (let i = 0; i < length; i++) {
-      let chr = string.charCodeAt(i);
+      const chr = string.charCodeAt(i);
 
       if (chr >= 0x7ff) {
         result[offset] = 0xe0 | (chr >> 12);
@@ -985,7 +985,7 @@ export default class DebuggerClient {
   getFormatSize(format) {
     let length = 0;
 
-    for (let i in format) {
+    for (const i in format) {
       if (format[i] === 'B') {
         length++;
         continue;
@@ -1010,14 +1010,14 @@ export default class DebuggerClient {
    * @param {uitn8} message The byte message.
    */
   releaseFunction(message) {
-    let byte_code_cp = this.decodeMessage('C', message, 1)[0];
-    let func = this._functions[byte_code_cp];
+    const byte_code_cp = this.decodeMessage('C', message, 1)[0];
+    const func = this._functions[byte_code_cp];
 
-    for (let i in func.lines) {
+    for (const i in func.lines) {
       if (func.lines.hasOwnProperty(i)) {
         this._lineList.delete(i, func);
 
-        let breakpoint = func.lines[i];
+        const breakpoint = func.lines[i];
 
         Util.assert(i == breakpoint.line);
 

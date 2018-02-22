@@ -53,21 +53,21 @@ export default function App() {
   /**
    * Core environment variables.
    */
-  let env = {
+  const env = {
     editor: null,
   };
 
   /**
    * Containers for perfect scrollbars.
    */
-  let scrollbars = {
+  const scrollbars = {
     panels: [],
   };
 
   /**
    * Keycodes
    */
-  let keys = {
+  const keys = {
     backspace: 8,
     tab: 9,
     enter: 13,
@@ -134,13 +134,13 @@ export default function App() {
     /**
      * Module objects.
      */
-    let logger = new Logger($('#console-panel'));
-    let surface = new Surface();
-    let session = new Session(env, surface);
-    let chart = new MemoryChart(session, surface);
-    let settings = new Settings(env.editor, surface);
-    let transpiler = new Transpiler();
-    let completer = new Completer();
+    const logger = new Logger($('#console-panel'));
+    const surface = new Surface();
+    const session = new Session(env, surface);
+    const chart = new MemoryChart(session, surface);
+    const settings = new Settings(env.editor, surface);
+    const transpiler = new Transpiler();
+    const completer = new Completer();
 
     /**
      * Editor related events.
@@ -283,16 +283,16 @@ export default function App() {
        */
       $('#hidden-file-input').change((evt) => {
         // FileList object
-        let files = evt.target.files;
+        const files = evt.target.files;
 
-        for (let f of files) {
+        for (const f of files) {
           if (session.fileNameCheck(f.name)) {
             logger.error(f.name + ' is already loaded.', true);
             continue;
           }
 
           ((file) => {
-            let reader = new FileReader();
+            const reader = new FileReader();
 
             reader.onload = (evt) => {
               session.createNewFile(file.name, evt.target.result, true);
@@ -342,10 +342,10 @@ export default function App() {
        * New file name on-the-fly validation.
        */
       $('#new-file-name').keyup((e) => {
-        let info = $('#hidden-new-file-info');
-        let filename = $('#new-file-name').val().trim();
+        const info = $('#hidden-new-file-info');
+        const filename = $('#new-file-name').val().trim();
+        const regex = /^([a-zA-Z0-9_-]{1,}.*)$/;
         let valid = true;
-        let regex = /^([a-zA-Z0-9_-]{1,}.*)$/;
 
         info.empty();
         if (!regex.test(filename)) {
@@ -407,7 +407,7 @@ export default function App() {
           return true;
         }
 
-        let blob = new Blob([session.getFileModelById(session.getActiveID()).getValue()]);
+        const blob = new Blob([session.getFileModelById(session.getActiveID()).getValue()]);
         FileSaver.saveAs(blob, session.getFileNameById(session.getActiveID()));
         $('#tab-' + session.getActiveID()).removeClass('unsaved');
         session.changeFileSavedProperty(session.getActiveID(), true);
@@ -501,7 +501,7 @@ export default function App() {
           return true;
         }
 
-        let address = `${$('#host-ip').val()}:${$('#host-port').val()}`;
+        const address = `${$('#host-ip').val()}:${$('#host-port').val()}`;
         logger.info(`Connect to: ${address}`);
         debuggerObj = new DebuggerClient(address, session, surface, settings, chart);
 
@@ -511,7 +511,7 @@ export default function App() {
       $('#delete-all-button').on('click', () => {
         if (debuggerObj && debuggerObj.getEngineMode() !== ENGINE_MODE.DISCONNECTED) {
           let found = false;
-          let actives = debuggerObj.getActiveBreakpoints();
+          const actives = debuggerObj.getActiveBreakpoints();
 
           for (let i in actives) {
             if (actives.hasOwnProperty(i)) {
@@ -714,7 +714,7 @@ export default function App() {
         handle: '.handle',
         axis: 'y',
         update: (event, ui) => {
-          let sid = parseInt($(ui.item[0]).data('sid'));
+          const sid = parseInt($(ui.item[0]).data('sid'));
           if (session.getFileDataById(sid).scheduled) {
             session.moveFileInUploadList(session.getUploadList().indexOf(sid), $(ui.item[0]).index());
           }
@@ -741,7 +741,7 @@ export default function App() {
           $(e).detach().appendTo('#run-chooser-dest').removeClass('ui-selected').addClass('sortable')
             .children('div').removeClass('hidden');
 
-          let sid = parseInt($(e).data('sid'));
+            const sid = parseInt($(e).data('sid'));
 
           if (!session.getFileDataById(sid).scheduled) {
             session.addFileToUploadList(sid, $(e).index());
@@ -763,7 +763,7 @@ export default function App() {
           $(e).detach().appendTo('#run-chooser-src').removeClass('sortable').removeClass('ui-selected')
             .children('div').addClass('hidden');
 
-          let sid = parseInt($(e).data('sid'));
+            const sid = parseInt($(e).data('sid'));
 
           if (session.getFileDataById(sid).scheduled) {
             session.removeFileFromUploadList(sid);
@@ -875,12 +875,12 @@ export default function App() {
           return true;
         }
 
-        let commandInput = $('#command-line-input');
-        let command = commandInput.val().trim();
+        const commandInput = $('#command-line-input');
+        const command = commandInput.val().trim();
 
         session.addCommandToList(command);
         session.setCommandCounter(session.getCommandList().length);
-        let args = /^([a-zA-Z]+)(?:\s+([^\s].*)|)$/.exec(command);
+        const args = /^([a-zA-Z]+)(?:\s+([^\s].*)|)$/.exec(command);
 
         if (!args) {
           logger.error('Invalid command.');
@@ -921,7 +921,7 @@ export default function App() {
           }
 
           if (ipAddr.match(/.*:\d/)) {
-            let fields = ipAddr.split(':');
+            const fields = ipAddr.split(':');
             ipAddr = fields[0];
             PORT = fields[1];
           }
@@ -931,7 +931,7 @@ export default function App() {
             return true;
           }
 
-          let address = ipAddr + ':' + PORT;
+          const address = ipAddr + ':' + PORT;
           logger.info('Connect to: ' + address);
           debuggerObj = new DebuggerClient(address, session, surface, settings, chart);
 
@@ -1050,7 +1050,7 @@ export default function App() {
           ui.originalElement.startHeight = ui.originalElement.other.height();
         },
         resize: (event, ui) => {
-          let minHeight = ui.element.resizable('option', 'minHeight');
+          const minHeight = ui.element.resizable('option', 'minHeight');
           let diffH = ui.size.height - ui.originalSize.height;
 
           if (diffH > ui.originalElement.startHeight - minHeight) {
@@ -1058,7 +1058,7 @@ export default function App() {
             ui.size.height = ui.originalSize.height + diffH - minHeight;
           }
 
-          let tmpHeight = Math.max(surface.getPanelProperty('height'), ui.originalElement.startHeight - diffH);
+          const tmpHeight = Math.max(surface.getPanelProperty('height'), ui.originalElement.startHeight - diffH);
 
           ui.originalElement.other.height(
             (tmpHeight < surface.getPanelProperty('height')) ? surface.getPanelProperty('height') : tmpHeight

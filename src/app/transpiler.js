@@ -21,7 +21,9 @@ import { SourceMapConsumer } from 'source-map';
 /**
  * Currently available transpiled sources.
  */
-let transpiled = [];
+const global = {
+  transpiled: [],
+};
 
 export default class Transpiler {
 
@@ -36,16 +38,16 @@ export default class Transpiler {
    * @param {string} source The source code which will be transpiled.
    */
   transformToES5(filename, source) {
-    let name = filename.split('.')[0];
+    const name = filename.split('.')[0];
 
     try {
-      transpiled[name] = Babel.transform(source, {
+      global.transpiled[name] = Babel.transform(source, {
         filename: filename,
         presets: ['es2015-loose'],
         sourceMaps: true,
       });
 
-      transpiled[name].smc = new SourceMapConsumer(transpiled[name].map);
+      global.transpiled[name].smc = new SourceMapConsumer(global.transpiled[name].map);
     } catch (error) {
       this._logger.error($(error).get(0).message, true, true);
       return false;
@@ -60,7 +62,7 @@ export default class Transpiler {
    * @param {string} filename Name of the source file.
    */
   getTransformedSource(filename) {
-    return transpiled[filename.split('.')[0]].code;
+    return global.transpiled[filename.split('.')[0]].code;
   }
 
   /**
@@ -69,7 +71,7 @@ export default class Transpiler {
    * @param {string} filename Name of the source file.
    */
   getSingleSourceMap(filename) {
-    return transpiled[filename.split('.')[0]].map;
+    return global.transpiled[filename.split('.')[0]].map;
   }
 
   /**
@@ -80,7 +82,7 @@ export default class Transpiler {
    * @param {number} column Selected column number from the generated source code.
    */
   getOriginalPositionFor(filename, line, column) {
-    let output = transpiled[filename.split('.')[0]].smc.originalPositionFor({ line, column });
+    const output = global.transpiled[filename.split('.')[0]].smc.originalPositionFor({ line, column });
 
     return {
       line: output.line,
@@ -96,7 +98,7 @@ export default class Transpiler {
    * @param {number} column Selected column number from the original source code.
    */
   getGeneratedPositionFor(filename, line, column) {
-    let output = transpiled[filename.split('.')[0]].smc.generatedPositionFor({
+    const output = global.transpiled[filename.split('.')[0]].smc.generatedPositionFor({
       source: filename,
       line: line,
       column: column,
@@ -112,13 +114,13 @@ export default class Transpiler {
    * Checks if the transpiled array is empty.
    */
   isEmpty() {
-    return (transpiled.length ? false : true);
+    return (global.transpiled.length ? false : true);
   }
 
   /**
    * Removes the stored source maps.
    */
   clearTranspiledSources() {
-    transpiled = [];
+    global.transpiled = [];
   }
 }

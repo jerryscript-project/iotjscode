@@ -17,14 +17,16 @@
 import c3 from 'c3';
 import FileSaver from 'file-saver';
 
-let chart;
-let maxDatapointNumber;
-let minimumXIndex;
-let tooltipRelativeYPosition;
-let tooltipRelativeXPosition;
-let xAxisData;
-let checkTime;
-let bytes;
+const global = {
+  chart: null,
+  maxDatapointNumber: null,
+  minimumXIndex: null,
+  tooltipRelativeYPosition: null,
+  tooltipRelativeXPosition: null,
+  xAxisData: null,
+  checkTime: null,
+  bytes: null,
+};
 
 export default class MemoryChart {
 
@@ -41,7 +43,7 @@ export default class MemoryChart {
     this._startRecord = false;
     this._activeChart = false;
 
-    bytes = {
+    global.bytes = {
       byte_code: [],
       string: [],
       property: [],
@@ -92,7 +94,7 @@ export default class MemoryChart {
    * @return {boolean} True if there is any data, false otherwise.
    */
   containsData() {
-    return (chart.data('allocated_bytes')[0].values[maxDatapointNumber - 1].value == null) ? false : true;
+    return (global.chart.data('allocated_bytes')[0].values[global.maxDatapointNumber - 1].value == null) ? false : true;
   }
 
   /**
@@ -106,17 +108,17 @@ export default class MemoryChart {
     if (redraw === undefined) {
       initVariables();
 
-      chart = c3.generate({
+      global.chart = c3.generate({
         data: {
           x: 'x',
           bindto: '#chart',
           columns: [
-            xAxisData,
-            bytes.byte_code,
-            bytes.string,
-            bytes.property,
-            bytes.object,
-            bytes.allocated,
+            global.xAxisData,
+            global.bytes.byte_code,
+            global.bytes.string,
+            global.bytes.property,
+            global.bytes.object,
+            global.bytes.allocated,
           ],
           types: {
             byte_code_bytes: 'area',
@@ -164,8 +166,8 @@ export default class MemoryChart {
         tooltip: {
           position: function() {
             return {
-              top: tooltipRelativeYPosition,
-              left: tooltipRelativeXPosition,
+              top: global.tooltipRelativeYPosition,
+              left: global.tooltipRelativeXPosition,
             };
           },
         },
@@ -179,8 +181,8 @@ export default class MemoryChart {
       });
 
       $('#chart').mousemove((e) => {
-        tooltipRelativeYPosition = e.clientY - $('#chart').offset().top + 10;
-        tooltipRelativeXPosition = e.clientX - $('#chart').offset().left + 10;
+        global.tooltipRelativeYPosition = e.clientY - $('#chart').offset().top + 10;
+        global.tooltipRelativeXPosition = e.clientX - $('#chart').offset().left + 10;
       });
     } else {
       updateScrolledChart();
@@ -191,12 +193,12 @@ export default class MemoryChart {
    * Resets the chart to the default empty state.
    */
   resetChart() {
-    xAxisData = undefined;
-    bytes.byte_code = undefined;
-    bytes.string = undefined;
-    bytes.property = undefined;
-    bytes.object = undefined;
-    bytes.allocated = undefined;
+    global.xAxisData = undefined;
+    global.bytes.byte_code = undefined;
+    global.bytes.string = undefined;
+    global.bytes.property = undefined;
+    global.bytes.object = undefined;
+    global.bytes.allocated = undefined;
 
     this._surface.toggleButton(false, 'chart-reset-button');
     this._surface.toggleButton(false, 'chart-stop-button');
@@ -213,7 +215,7 @@ export default class MemoryChart {
    * @param {integer} width New width dimension in pixel.
    */
   resizeChart(height, width) {
-    chart.resize({
+    global.chart.resize({
       height: (height - 45),
       width: (width - 10),
     });
@@ -224,7 +226,7 @@ export default class MemoryChart {
    */
   disableChartButtons() {
     this._activeChart = false;
-    let list = $('.chart-btn');
+    const list = $('.chart-btn');
 
     for (let i = 0; i < list.length; i++) {
       this._surface.toggleButton(false, $(list[i]).attr('id'));
@@ -260,18 +262,18 @@ export default class MemoryChart {
    * Generates a JSON report about the collected informations and pops up a download window.
    */
   exportChartData() {
-    if (xAxisData.length == 1) {
+    if (global.xAxisData.length == 1) {
       alert('There is nothing to be exported from the memory usage!');
       return;
     }
 
-    let data = [
-      [xAxisData[0]].concat(xAxisData.slice(maxDatapointNumber + 1)),
-      [bytes.byte_code[0]].concat(bytes.byte_code.slice(maxDatapointNumber + 1)),
-      [bytes.string[0]].concat(bytes.string.slice(maxDatapointNumber + 1)),
-      [bytes.property[0]].concat(bytes.property.slice(maxDatapointNumber + 1)),
-      [bytes.object[0]].concat(bytes.object.slice(maxDatapointNumber + 1)),
-      [bytes.allocated[0]].concat(bytes.allocated.slice(maxDatapointNumber + 1)),
+    const data = [
+      [global.xAxisData[0]].concat(global.xAxisData.slice(global.maxDatapointNumber + 1)),
+      [global.bytes.byte_code[0]].concat(global.bytes.byte_code.slice(global.maxDatapointNumber + 1)),
+      [global.bytes.string[0]].concat(global.bytes.string.slice(global.maxDatapointNumber + 1)),
+      [global.bytes.property[0]].concat(global.bytes.property.slice(global.maxDatapointNumber + 1)),
+      [global.bytes.object[0]].concat(global.bytes.object.slice(global.maxDatapointNumber + 1)),
+      [global.bytes.allocated[0]].concat(global.bytes.allocated.slice(global.maxDatapointNumber + 1)),
     ];
 
     data[0][0] = 'Checked at:';
@@ -294,54 +296,54 @@ export default class MemoryChart {
    * @param {array} breakpointInformation Informations about the current breakpoint (e.g.: line).
    */
   addNewDataPoints(data, breakpointInformation) {
-    checkTime.push(breakpointInformation);
+    global.checkTime.push(breakpointInformation);
 
     let counter = 1;
     if (breakpointInformation.includes('ln')) {
-      for (let i = maxDatapointNumber; i < xAxisData.length; i++) {
-        if (xAxisData[i].includes(breakpointInformation)) {
+      for (let i = global.maxDatapointNumber; i < global.xAxisData.length; i++) {
+        if (global.xAxisData[i].includes(breakpointInformation)) {
           counter++;
         }
       }
 
       if (counter == 1) {
-        xAxisData.push(breakpointInformation);
+        global.xAxisData.push(breakpointInformation);
       } else {
-        xAxisData.push('#' + counter + ' ' + breakpointInformation);
+        global.xAxisData.push('#' + counter + ' ' + breakpointInformation);
       }
     } else {
-      let timeToChart = new EstimatedTime();
-      let i = xAxisData.length - 1;
-      xAxisData.push(timeToChart.toString());
+      const timeToChart = new EstimatedTime();
+      let i = global.xAxisData.length - 1;
+      global.xAxisData.push(timeToChart.toString());
 
-      while (i > maxDatapointNumber) {
-        if (!xAxisData[i].includes('ln')) {
+      while (i > global.maxDatapointNumber) {
+        if (!global.xAxisData[i].includes('ln')) {
           timeToChart.increment();
-          xAxisData[i] = timeToChart.toString();
+          global.xAxisData[i] = timeToChart.toString();
         }
         i--;
       }
     }
 
-    bytes.byte_code.push(data[1]);
-    bytes.string.push(data[2]);
-    bytes.property.push(data[4]);
-    bytes.object.push(data[3]);
-    bytes.allocated.push(data[0]);
+    global.bytes.byte_code.push(data[1]);
+    global.bytes.string.push(data[2]);
+    global.bytes.property.push(data[4]);
+    global.bytes.object.push(data[3]);
+    global.bytes.allocated.push(data[0]);
 
-    if (xAxisData.length <= maxDatapointNumber + 1) {
-      chart.load({
+    if (global.xAxisData.length <= global.maxDatapointNumber + 1) {
+      global.chart.load({
         columns: [
-          xAxisData,
-          bytes.byte_code,
-          bytes.string,
-          bytes.property,
-          bytes.object,
-          bytes.allocated,
+          global.xAxisData,
+          global.bytes.byte_code,
+          global.bytes.string,
+          global.bytes.property,
+          global.bytes.object,
+          global.bytes.allocated,
         ],
       });
     } else {
-      minimumXIndex++;
+      global.minimumXIndex++;
       updateScrolledChart();
     }
   }
@@ -360,8 +362,9 @@ function mouseWheelHandler(e) {
  * Backwards scroll range handler. Decrease the minimum X axis range.
  */
 function scrollBack() {
-  if (xAxisData.length >= maxDatapointNumber + 1 && minimumXIndex > maxDatapointNumber + 1) {
-    minimumXIndex--;
+  if (global.xAxisData.length >= global.maxDatapointNumber + 1 &&
+      global.minimumXIndex > global.maxDatapointNumber + 1) {
+    global.minimumXIndex--;
     updateScrolledChart();
   }
 }
@@ -370,8 +373,8 @@ function scrollBack() {
  * Forwards scroll range handler. Increase the minimum X axis range.
  */
 function scrollForward() {
-  if (xAxisData.length > maxDatapointNumber + minimumXIndex) {
-    minimumXIndex++;
+  if (global.xAxisData.length > global.maxDatapointNumber + global.minimumXIndex) {
+    global.minimumXIndex++;
     updateScrolledChart();
   }
 }
@@ -380,14 +383,26 @@ function scrollForward() {
  * Updates the chart by redrawing the dataset based on the new minimum X axis range.
  */
 function updateScrolledChart() {
-  chart.load({
+  global.chart.load({
     columns: [
-      [xAxisData[0]].concat(xAxisData.slice(minimumXIndex, maxDatapointNumber + minimumXIndex)),
-      [bytes.byte_code[0]].concat(bytes.byte_code.slice(minimumXIndex, maxDatapointNumber + minimumXIndex)),
-      [bytes.string[0]].concat(bytes.string.slice(minimumXIndex, maxDatapointNumber + minimumXIndex)),
-      [bytes.property[0]].concat(bytes.property.slice(minimumXIndex, maxDatapointNumber + minimumXIndex)),
-      [bytes.object[0]].concat(bytes.object.slice(minimumXIndex, maxDatapointNumber + minimumXIndex)),
-      [bytes.allocated[0]].concat(bytes.allocated.slice(minimumXIndex, maxDatapointNumber + minimumXIndex)),
+      [global.xAxisData[0]].concat(
+        global.xAxisData.slice(global.minimumXIndex, global.maxDatapointNumber + global.minimumXIndex)
+      ),
+      [global.bytes.byte_code[0]].concat(
+        global.bytes.byte_code.slice(global.minimumXIndex, global.maxDatapointNumber + global.minimumXIndex)
+      ),
+      [global.bytes.string[0]].concat(
+        global.bytes.string.slice(global.minimumXIndex, global.maxDatapointNumber + global.minimumXIndex)
+      ),
+      [global.bytes.property[0]].concat(
+        global.bytes.property.slice(global.minimumXIndex, global.maxDatapointNumber + global.minimumXIndex)
+      ),
+      [global.bytes.object[0]].concat(
+        global.bytes.object.slice(global.minimumXIndex, global.maxDatapointNumber + global.minimumXIndex)
+      ),
+      [global.bytes.allocated[0]].concat(
+        global.bytes.allocated.slice(global.minimumXIndex, global.maxDatapointNumber + global.minimumXIndex)
+      ),
     ],
   });
 }
@@ -396,25 +411,25 @@ function updateScrolledChart() {
  * Inits the chart related variables to their default start values.
  */
 function initVariables() {
-  minimumXIndex = 1;
-  maxDatapointNumber = 40;
-  xAxisData = ['x'];
-  checkTime = ['x'];
-  bytes.byte_code = ['byte_code_bytes'];
-  bytes.string = ['string_bytes'];
-  bytes.property = ['property_bytes'];
-  bytes.object = ['object_bytes'];
-  bytes.allocated = ['allocated_bytes'];
+  global.minimumXIndex = 1;
+  global.maxDatapointNumber = 40;
+  global.xAxisData = ['x'];
+  global.checkTime = ['x'];
+  global.bytes.byte_code = ['byte_code_bytes'];
+  global.bytes.string = ['string_bytes'];
+  global.bytes.property = ['property_bytes'];
+  global.bytes.object = ['object_bytes'];
+  global.bytes.allocated = ['allocated_bytes'];
   let empty_space = ' ';
 
-  for (let i = 0; i < maxDatapointNumber; i++) {
-    xAxisData.push(empty_space);
-    checkTime.push(null);
-    bytes.byte_code.push(null);
-    bytes.string.push(null);
-    bytes.property.push(null);
-    bytes.object.push(null);
-    bytes.allocated.push(null);
+  for (let i = 0; i < global.maxDatapointNumber; i++) {
+    global.xAxisData.push(empty_space);
+    global.checkTime.push(null);
+    global.bytes.byte_code.push(null);
+    global.bytes.string.push(null);
+    global.bytes.property.push(null);
+    global.bytes.object.push(null);
+    global.bytes.allocated.push(null);
     empty_space = empty_space.concat(' ');
   }
 }

@@ -204,8 +204,8 @@ export default class Settings {
 
     // Listen on change.
     $('.control-item select, .control-item input').on('change', (e) => {
-      let section = $(e.target).parent().parent().attr('id').split('-')[0];
-      let id = e.target.id;
+      const section = $(e.target).parent().parent().attr('id').split('-')[0];
+      const id = e.target.id;
 
       switch (this.CONTROLS[section][id][0]) {
         case CONTROL_TYPE.CHECKBOX:
@@ -233,12 +233,12 @@ export default class Settings {
       this._settings = {};
     }
 
-    for (let section of Object.keys(this.CONTROLS)) {
+    for (const section of Object.keys(this.CONTROLS)) {
       if (!reset) {
         this._settings[section] = {};
       }
 
-      for (let item of Object.keys(this.CONTROLS[section])) {
+      for (const item of Object.keys(this.CONTROLS[section])) {
         this._settings[section][item] = this.CONTROLS[section][item][2];
       }
     }
@@ -255,7 +255,7 @@ export default class Settings {
    * If they are not equals, then reinits the settings.
    */
   validityCheck() {
-    let same = Object.keys(this._settings).every((section) => {
+    const same = Object.keys(this._settings).every((section) => {
       if (this.CONTROLS.hasOwnProperty(section)) {
         return Object.keys(this._settings[section]).every((item) => {
           return this.CONTROLS[section].hasOwnProperty(item);
@@ -274,8 +274,8 @@ export default class Settings {
    * Loads the settings into the workspace, fills up the settings items and calls the handler functions of them.
    */
   load() {
-    for (let section of Object.keys(this.CONTROLS)) {
-      for (let item of Object.keys(this.CONTROLS[section])) {
+    for (const section of Object.keys(this.CONTROLS)) {
+      for (const item of Object.keys(this.CONTROLS[section])) {
 
         switch (this.CONTROLS[section][item][0]) {
           case CONTROL_TYPE.CHECKBOX:
