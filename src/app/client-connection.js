@@ -490,11 +490,17 @@ function onmessage(event) {
           case PROTOCOL.SERVER.JERRY_DEBUGGER_OUTPUT_OK:
             this._output.info(this._debuggerObj.cesu8ToString(this._outputResult));
             break;
+          case PROTOCOL.SERVER.JERRY_DEBUGGER_OUTPUT_DEBUG:
+            this._output.debug(this._debuggerObj.cesu8ToString(this._outputResult));
+            break;
           case PROTOCOL.SERVER.JERRY_DEBUGGER_OUTPUT_WARNING:
             this._output.warning(this._debuggerObj.cesu8ToString(this._outputResult));
             break;
           case PROTOCOL.SERVER.JERRY_DEBUGGER_OUTPUT_ERROR:
             this._output.error(this._debuggerObj.cesu8ToString(this._outputResult));
+            break;
+          case PROTOCOL.SERVER.JERRY_DEBUGGER_OUTPUT_TRACE:
+            this._output.info(`TRACE: ${this._debuggerObj.cesu8ToString(this._outputResult)}`);
             break;
         }
 
