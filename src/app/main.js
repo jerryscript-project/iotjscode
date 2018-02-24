@@ -848,6 +848,14 @@ export default function App() {
      */
     (() => {
       /**
+       * Sync source from jerry button.
+       */
+      $('#jerry-sync-source-button').on('click', () => {
+        session.syncSourceFromJerry();
+        surface.toggleButton(false, 'jerry-sync-source-button');
+      });
+
+      /**
        * Command line input field.
        */
       $('#command-line-input').keydown((e) => {

@@ -25,6 +25,14 @@ const welcomeContent = '/**\n' +
                        ' * Browser based IDE including debugger for IoT.js.\n' +
                        ' */\n';
 
+/**
+ * Action types for sync the source code between the client and the engine.
+ */
+export const SOURCE_SNYC_ACTION = {
+  NOP: 0,
+  LOAD: 1,
+  RELOAD: 2,
+};
 
 export default class Session {
 
@@ -89,6 +97,12 @@ export default class Session {
         counter: 0,
       },
       list: {},
+    };
+
+    this._jerrySource = {
+      name: '',
+      source: '',
+      action: SOURCE_SNYC_ACTION.NOP,
     };
 
     this._contextReset = false;
@@ -556,8 +570,7 @@ export default class Session {
     this._id.active = id;
 
     if (last !== 0) {
-      const file = this._models.find(x => x.id === last);
-      file.state = this._environment.editor.saveViewState();
+      this._models.find(x => x.id === id).state = this._environment.editor.saveViewState();
     }
 
     this._environment.editor.setModel(this.getFileModelById(id));
@@ -576,7 +589,6 @@ export default class Session {
       // this.removeBreakpointLines();
     }
   }
-
 
   /**
    * Returns a file name based on the given ID.
@@ -998,6 +1010,48 @@ export default class Session {
   }
 
   /**
+   * Stores the given source for backup.
+   *
+   * @param {string} name Name of the source file.
+   * @param {string} source Source code in text.
+   */
+  storeJerrySource(name, source) {
+    this._jerrySource.name = name.split('/').pop();
+    this._jerrySource.source = source;
+  }
+
+  /**
+   * Sets the given action type in the jerry source object.
+   *
+   * @param {integer} type Type of the new action.
+   */
+  setJerrySourceAction(type) {
+    this._jerrySource.action = type;
+  }
+
+  /**
+   * Sync the stored source code (which is come from the engine).
+   * Loads the source into a new file if that is new or
+   * reloads the source in the current model if that is already loaded.
+   */
+  syncSourceFromJerry() {
+    switch (this._jerrySource.action) {
+      case SOURCE_SNYC_ACTION.LOAD:
+        this.createNewFile(this._jerrySource.name, this._jerrySource.source, true);
+
+        if (this._surface.getPanelProperty('run.active')) {
+          this._surface.updateRunPanel(this._surface.RUN_UPDATE_TYPE.ALL, this._debuggerObj, this._session);
+        }
+        break;
+      case SOURCE_SNYC_ACTION.RELOAD:
+        this.resetFileContent(this._jerrySource.name, this._jerrySource.source);
+        break;
+      default:
+        break;
+    }
+  }
+
+  /**
    * Removes the stored data and sets back the variables to their default values.
    */
   reset() {
@@ -1012,6 +1066,7 @@ export default class Session {
 
     this._upload.list = this._upload.backupList;
     this._upload.allowed = false;
+    this._jerrySource.action = SOURCE_SNYC_ACTION.NOP;
 
 
     this._marker.execute = {

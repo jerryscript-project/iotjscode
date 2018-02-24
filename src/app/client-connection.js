@@ -18,6 +18,7 @@ import ParseSource from './client-parsesource';
 import { JERRY_DEBUGGER_VERSION, PROTOCOL, ENGINE_MODE } from './client-debugger';
 import Transpiler from './transpiler';
 import Util from './util';
+import { SOURCE_SNYC_ACTION } from './session';
 import Logger from './logger';
 
 export default class Connection {
@@ -301,44 +302,18 @@ function onmessage(event) {
       // Source load and reload from Jerry.
       if (sourceName !== '') {
         if (!this._session.fileNameCheck(sourceName, true)) {
-          const groupID = `gid-name-${sourceName.replace(/\//g, '-').replace(/\./g, '-')}-${sourceName.length}`;
+          this._session.storeJerrySource(sourceName, source);
+          this._session.setJerrySourceAction(SOURCE_SNYC_ACTION.LOAD);
 
-          this._logger.debug(
-            `The file ${sourceName} is missing: `,
-            `<div class="btn btn-xs btn-default load-from-jerry ${groupID}">Load from Jerry</div>`,
-            true
-          );
-
-          $('.load-from-jerry').on('click', (e) => {
-            this._session.createNewFile(sourceName.split('/').pop(), source, true);
-
-            if (this._surface.getPanelProperty('run.active')) {
-              this._surface.updateRunPanel(this._surface.RUN_UPDATE_TYPE.ALL, this._debuggerObj, this._session);
-            }
-
-            $(`.${groupID}`).addClass('disabled');
-            $(`.${groupID}`).unbind('click');
-            e.stopImmediatePropagation();
-          });
+          this._logger.error(`The file "${sourceName}" is missing.`, true);
+          this._surface.toggleButton(true, 'jerry-sync-source-button');
         } else {
           // Do not check the code match if the transpile is enabled.
           if (!this._settings.getValue('debugger.transpileToES5') && this._transpiler.isEmpty()) {
             if (!this._session.fileContentCheck(sourceName, source)) {
-              const groupID = `gid-source-${sourceName.replace(/\//g, '-').replace(/\./g, '-')}-${source.length}`;
-
-              this._logger.debug(
-                `The opened ${sourceName} source does not match with the source on the device! `,
-                `<div class="btn btn-xs btn-default reload-from-jerry ${groupID}">Reload from Jerry</div>`,
-                true
-              );
-
-              $('.reload-from-jerry').on('click', (e) => {
-                this._session.resetFileContent(sourceName.split('/').pop(), source);
-
-                $(`.${groupID}`).addClass('disabled');
-                $(`.${groupID}`).unbind('click');
-                e.stopImmediatePropagation();
-              });
+              this._session.setJerrySourceAction(SOURCE_SNYC_ACTION.RELOAD);
+              this._logger.error(`The "${sourceName}" source does not match with the source on the device!`, true);
+              this._surface.toggleButton(true, 'jerry-sync-source-button');
             }
           }
         }
