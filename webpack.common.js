@@ -39,12 +39,28 @@ const plugins = [
       to: `${build_path}/vs`,
     },
   ]),
-  new ExtractTextPlugin('[name].css'),
+  new ExtractTextPlugin('css/[name].css'),
 ];
 
 const rules = [
-  { test: /\.(png|svg|jpg|gif)$/, use: ['file-loader'] },
-  { test: /\.(woff|woff2|eot|ttf|otf)$/, use: ['file-loader'] },
+  {
+    test: /\.(png|svg|jpg|gif)$/,
+    use: [{
+      loader: 'file-loader',
+      options: {
+        name: 'images/[hash].[ext]',
+      },
+    },
+  ]},
+  {
+    test: /\.(woff|woff2|eot|ttf|otf)$/,
+    use: [{
+      loader: 'file-loader',
+      options: {
+        name: 'fonts/[hash].[ext]',
+      },
+    },
+  ]},
   {
     test: /\.js$/,
     exclude: /(node_modules)/,
@@ -68,7 +84,7 @@ const config = {
   },
   output: {
     path: build_path,
-    filename: '[name].[chunkhash].bundle.js',
+    filename: 'js/[name].[chunkhash].bundle.js',
   },
   module: {
     rules,
