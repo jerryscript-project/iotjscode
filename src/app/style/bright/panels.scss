@@ -253,33 +253,42 @@
     overflow: auto;
     padding: 0 5px;
 
-    span {
+    .data {
       display: block;
       margin: 0;
       padding: 0;
-    }
 
-    .btn-xs {
-      padding: 1px 2px;
-    }
+      span {
+        display: inline-block;
+        margin: 0;
+        padding: 0;
+      }
 
-    .log-warning {
-      color: $b-orange-color;
-    }
+      .data-timestamp {
+        color: $b-blue-color;
+      }
 
-    .log-error {
-      color: $b-red-color;
-    }
+      .btn-xs {
+        padding: 1px 2px;
+      }
 
-    .log-info,
-    .log-debug {
-      color: $default-text-color;
-    }
+      .log-warning {
+        color: $b-orange-color;
+      }
 
-    .log-debug-dom {
-      float: left;
-      color: $default-text-color;
-      font-weight: bold;
+      .log-error {
+        color: $b-red-color;
+      }
+
+      .log-info,
+      .log-debug {
+        color: $default-text-color;
+      }
+
+      .log-debug-dom {
+        color: $default-text-color;
+        font-weight: bold;
+      }
     }
   }
 }

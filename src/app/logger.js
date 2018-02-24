@@ -17,16 +17,6 @@
 import Util from './util';
 
 /**
- * A single line html element in the console or output panel.
- */
-const LINE = $('<span class="data"></span>');
-
-/**
- * A single pre html element in the console or output panel.
- */
-const PRE = $('<pre>');
-
-/**
  * The popup window wrapper element and window types enumeration.
  */
 const POPUP = {
@@ -56,9 +46,10 @@ export default class Logger {
    *
    * @param {string} message The message which will appear in the logger panel.
    * @param {boolean} pop Enable the popup window (disabled by default).
+   * @param {boolean} pre Enable the pre html tag before the content.
    */
   info(message, pop = false, pre = false) {
-    this._panel.append(((pre) ? PRE : LINE).clone().addClass('log-info').text(message));
+    this._panel.append(createLine('log-info', message, pre));
     Util.scrollDown(this._panel);
 
     if (pop) {
@@ -71,9 +62,10 @@ export default class Logger {
    *
    * @param {string} message The message which will appear in the popup alert.
    * @param {boolean} pop Enable the popup window (disabled by default).
+   * @param {boolean} pre Enable the pre html tag before the content.
    */
   warning(message, pop = false, pre = false) {
-    this._panel.append(((pre) ? PRE : LINE).clone().addClass('log-warning').text(message));
+    this._panel.append(createLine('log-warning', message, pre));
     Util.scrollDown(this._panel);
 
     if (pop) {
@@ -86,9 +78,10 @@ export default class Logger {
    *
    * @param {string} message The message which will appear in the popup alert.
    * @param {boolean} pop Enable the popup window (disabled by default).
+   * @param {boolean} pre Enable the pre html tag before the content.
    */
   error(message, pop = false, pre = false) {
-    this._panel.append(((pre) ? PRE : LINE).clone().addClass('log-error').text(message));
+    this._panel.append(createLine('log-error', message, pre));
     Util.scrollDown(this._panel);
 
     if (pop) {
@@ -107,11 +100,11 @@ export default class Logger {
    */
   debug(message, data, dom = false) {
     if (dom) {
-      this._panel.append(LINE.clone().addClass('log-debug-dom').text(message));
-      this._panel.append($(data));
+      this._panel.append(createLine('log-debug-dom', message));
+      this._panel.append((data));
     } else {
       message = 'DEBUG LOG: ' + message + JSON.stringify(data);
-      this._panel.append(LINE.clone().addClass('log-debug').text(message));
+      this._panel.append(createLine('log-debug', message));
     }
     Util.scrollDown(this._panel);
   }
@@ -123,9 +116,10 @@ export default class Logger {
  * @param {number} type The type of the alert div.
  * @param {string} strong The strong text in the alert div.
  * @param {string} message The message to the user.
+ * @param {boolean} pre Enable the pre html tag before the content.
  * @return {object} HTML div element.
  */
-function createPopup(type, strong, message, pre = false) {
+const createPopup = (type, strong, message, pre = false) => {
   let icon = '',
       clss = '',
       lrt = null;
@@ -164,4 +158,35 @@ function createPopup(type, strong, message, pre = false) {
   }, 10000);
 
   return lrt;
-}
+};
+
+/**
+ * Creates a new log line from the given message and a timestamp.
+ *
+ * @param {string} classes Stylesheet classes fo the new message text.
+ * @param {string} message The message what will be in the log.
+ * @param {boolean} pre Enable the pre html tag before the content.
+ */
+const createLine = (classes, message, pre = false) => {
+  return $(
+    '<p class="data">' +
+      `<font class="data-timestamp">${getTimestamp()}</font>` +
+      `${pre ? '<pre>' : `<font class="data-message ${classes}">${message}${pre ? '</pre>' : '</font>'}`}` +
+    '</p>'
+  );
+};
+
+/**
+ * Returns the current hour, minute and second in terminal like format.
+ */
+const getTimestamp = () => {
+  const date = new Date();
+  return `[${fixTime(date.getHours())}:${fixTime(date.getMinutes())}:${fixTime(date.getSeconds())}] `;
+};
+
+/**
+ * Appends a zero before a time number if that is less than ten to keep the unified format.
+ */
+const fixTime = (time) => {
+  return time < 10 ? `0${time}` : time;
+};

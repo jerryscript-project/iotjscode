@@ -120,21 +120,27 @@
   }
 
   .logger-panel {
-    .log-warning {
-      color: $d-orange-color;
-    }
+    .data {
+      .data-timestamp {
+        color: $d-blue-color;
+      }
 
-    .log-error {
-      color: $d-red-color;
-    }
+      .log-warning {
+        color: $d-orange-color;
+      }
 
-    .log-info,
-    .log-debug {
-      color: $d-foreground-color;
-    }
+      .log-error {
+        color: $d-red-color;
+      }
 
-    .log-debug-dom {
-      color: $d-foreground-color;
+      .log-info,
+      .log-debug {
+        color: $d-foreground-color;
+      }
+
+      .log-debug-dom {
+        color: $d-foreground-color;
+      }
     }
   }
 }
