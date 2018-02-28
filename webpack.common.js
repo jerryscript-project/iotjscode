@@ -57,7 +57,9 @@ const rules = [
     use: [{
       loader: 'file-loader',
       options: {
-        name: 'fonts/[hash].[ext]',
+        name: '[hash].[ext]',
+        outputPath: 'fonts/',
+        publicPath: '../',
       },
     },
   ]},
