@@ -15,6 +15,7 @@
  */
 
 import { ENGINE_MODE } from './client-debugger';
+import { SURFACE_RUN_UPDATE_TYPE } from './surface';
 import Util from './util';
 
 /**
@@ -32,6 +33,14 @@ export const SOURCE_SNYC_ACTION = {
   NOP: 0,
   LOAD: 1,
   RELOAD: 2,
+};
+
+/**
+ * Types of the line highlight in the editor session.
+ */
+export const EDITOR_HIGHLIGHT_TYPE = {
+  EXECUTE: 'execute',
+  EXCEPTION: 'exception',
 };
 
 export default class Session {
@@ -106,16 +115,6 @@ export default class Session {
     };
 
     this._contextReset = false;
-  }
-
-  /**
-   * Types of the line highlight in the editor session.
-   */
-  get HIGHLIGHT_TYPE() {
-    return {
-      EXECUTE: 'execute',
-      EXCEPTION: 'exception',
-    };
   }
 
   /**
@@ -582,7 +581,7 @@ export default class Session {
     // Refresh the available breakpoint lines in the editor based on the new file/e-session.
     if (this._breakpoint.last !== null &&
       this._breakpoint.last.func.sourceName.endsWith(this.getFileNameById(id))) {
-      this.highlightLine(this.HIGHLIGHT_TYPE.EXECUTE, this._breakpoint.last.line);
+      this.highlightLine(EDITOR_HIGHLIGHT_TYPE.EXECUTE, this._breakpoint.last.line);
     }
 
     if (this._breakpoint.last === null) {
@@ -874,7 +873,7 @@ export default class Session {
   /**
    * Highlights a single line in the editor session.
    *
-   * @param {integer} type Type of the highlight from the HIGHLIGHT_TYPE.
+   * @param {integer} type Type of the highlight from the EDITOR_HIGHLIGHT_TYPE.
    * @param {integer} line Selected line.
    */
   highlightLine(type, line) {
@@ -904,7 +903,7 @@ export default class Session {
   /**
    * Removes the highlight (border) from the last highlighted line.
    *
-   * @param {integer} type Type of the highlight from the HIGHLIGHT_TYPE.
+   * @param {integer} type Type of the highlight from the EDITOR_HIGHLIGHT_TYPE.
    */
   unhighlightLine() {
     this._marker.list = {};
@@ -1005,7 +1004,7 @@ export default class Session {
 
     // Refresh the run panel list.
     if (this._surface.getPanelProperty('run.active')) {
-      this._surface.updateRunPanel(this._surface.RUN_UPDATE_TYPE.ALL, null, this);
+      this._surface.updateRunPanel(SURFACE_RUN_UPDATE_TYPE.ALL, null, this);
     }
   }
 

@@ -19,6 +19,7 @@ import Connection from './client-connection';
 import Transpiler from './transpiler';
 import Util from './util';
 import Logger from './logger';
+import { SURFACE_COLOR } from './surface';
 
 /**
  * Expected Debugger Protocol version.
@@ -740,7 +741,7 @@ export default class DebuggerClient {
       this.encodeMessage('B', [PROTOCOL.CLIENT.JERRY_DEBUGGER_CONTEXT_RESET]);
       this._session.shiftUploadList();
       this._session.setContextReset(true);
-      this._surface.changeUploadColor(this._surface.COLOR.GREEN, fid);
+      this._surface.changeUploadColor(SURFACE_COLOR.GREEN, fid);
       this._session.allowUploadAndRun(false);
       return;
     }
@@ -772,7 +773,7 @@ export default class DebuggerClient {
       this._connection.send(array);
       this._session.shiftUploadList();
       this._session.allowUploadAndRun(false);
-      this._surface.changeUploadColor(this._surface.COLOR.GREEN, fid);
+      this._surface.changeUploadColor(SURFACE_COLOR.GREEN, fid);
       return;
     }
 
@@ -788,7 +789,7 @@ export default class DebuggerClient {
 
     this._session.shiftUploadList();
     this._session.allowUploadAndRun(false);
-    this._surface.changeUploadColor(this._surface.COLOR.GREEN, fid);
+    this._surface.changeUploadColor(SURFACE_COLOR.GREEN, fid);
   }
 
   /**

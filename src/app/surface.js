@@ -17,6 +17,36 @@
 import { ENGINE_MODE } from './client-debugger';
 import Util from './util';
 
+/**
+ * Continue and Stop button state enumerations.
+ */
+export const SURFACE_CSICON = {
+  STOP: 0,
+  CONTINUE: 1,
+};
+
+/**
+ * Colors code for the jquery and bootsrtap elements.
+ */
+export const SURFACE_COLOR = {
+  RED: 0,
+  GREEN: 1,
+  BLUE: 2,
+  YELLOW: 3,
+  WHITE: 4,
+};
+
+/**
+ * Types of the source sending panel update methods.
+ */
+export const SURFACE_RUN_UPDATE_TYPE = {
+  ALL: 0,
+  LIST: 1,
+  BUTTON: 2,
+  CR: 3,
+  JQUI: 4,
+};
+
 export default class Surface {
 
   constructor() {
@@ -68,42 +98,6 @@ export default class Surface {
     this._editor = {
       minTabHeight: 34,
       active: false,
-    };
-  }
-
-  /**
-   * Continue and Stop button state enumerations.
-   */
-  get CSICON() {
-    return {
-      STOP: 0,
-      CONTINUE: 1,
-    };
-  }
-
-  /**
-   * Colors code for the jquery and bootsrtap elements.
-   */
-  get COLOR() {
-    return {
-      RED: 0,
-      GREEN: 1,
-      BLUE: 2,
-      YELLOW: 3,
-      WHITE: 4,
-    };
-  }
-
-  /**
-   * Types of the source sending panel update methods.
-   */
-  get RUN_UPDATE_TYPE() {
-    return {
-      ALL: 0,
-      LIST: 1,
-      BUTTON: 2,
-      CR: 3,
-      JQUI: 4,
     };
   }
 
@@ -417,7 +411,7 @@ export default class Surface {
     const right = 'run-right-button';
     const left = 'run-left-button';
 
-    if (type === this.RUN_UPDATE_TYPE.ALL || type === this.RUN_UPDATE_TYPE.LIST) {
+    if (type === SURFACE_RUN_UPDATE_TYPE.ALL || type === SURFACE_RUN_UPDATE_TYPE.LIST) {
       // Empty the lists.
       $src.html('');
       $dest.html('');
@@ -451,7 +445,7 @@ export default class Surface {
       }
     }
 
-    if (type === this.RUN_UPDATE_TYPE.CR) {
+    if (type === SURFACE_RUN_UPDATE_TYPE.CR) {
       $dest.children('li').each((i, e) => {
         if (!$(e).hasClass('bg-success') && $(e).data('sid') != 0) {
           this.changeUploadColor(this.COLOR.RED, $(e).data('sid'));
@@ -459,7 +453,7 @@ export default class Surface {
       });
     }
 
-    if (type === this.RUN_UPDATE_TYPE.ALL || type === this.RUN_UPDATE_TYPE.BUTTON) {
+    if (type === SURFACE_RUN_UPDATE_TYPE.ALL || type === SURFACE_RUN_UPDATE_TYPE.BUTTON) {
       if (session.isUploadStarted()) {
         // Disable the clear and the run button.
         this.toggleButton(false, ok);
@@ -497,7 +491,7 @@ export default class Surface {
       }
     }
 
-    if (type === this.RUN_UPDATE_TYPE.ALL || type === this.RUN_UPDATE_TYPE.JQUI) {
+    if (type === SURFACE_RUN_UPDATE_TYPE.ALL || type === SURFACE_RUN_UPDATE_TYPE.JQUI) {
       if (session.isUploadStarted()) {
         // Disable the sortable and selectable ul element.
         $dest.sortable('disable');
@@ -619,7 +613,7 @@ export default class Surface {
    * Continue execution releated buttons changes.
    */
   continueCommand() {
-    this.continueStopButtonState(this.CSICON.STOP);
+    this.continueStopButtonState(SURFACE_CSICON.STOP);
     $('#step-button').addClass('disabled');
     $('#next-button').addClass('disabled');
   }
@@ -628,7 +622,7 @@ export default class Surface {
    * Stop execution releated buttons changes.
    */
   stopCommand() {
-    this.continueStopButtonState(this.CSICON.CONTINUE);
+    this.continueStopButtonState(SURFACE_CSICON.CONTINUE);
     $('#step-button').removeClass('disabled');
     $('#next-button').removeClass('disabled');
   }
@@ -655,17 +649,17 @@ export default class Surface {
   /**
    * Sets to the proper state the Continue/Stop action button.
    *
-   * @param {integer} state New state of the continue/stop button (CSICON item).
+   * @param {integer} state New state of the continue/stop button (SURFACE_CSICON item).
    */
   continueStopButtonState(state) {
     switch (state) {
-      case this.CSICON.STOP:
+      case SURFACE_CSICON.STOP:
         {
           $('#continue-stop-button i').removeClass('fa-play');
           $('#continue-stop-button i').addClass('fa-stop');
         }
         break;
-      case this.CSICON.CONTINUE:
+      case SURFACE_CSICON.CONTINUE:
         {
           $('#continue-stop-button i').removeClass('fa-stop');
           $('#continue-stop-button i').addClass('fa-play');

@@ -24,7 +24,7 @@ import './style/dark/app.scss';
 
 import Logger from './logger';
 import Session from './session';
-import Surface from './surface';
+import Surface, { SURFACE_RUN_UPDATE_TYPE } from './surface';
 import DebuggerClient, { PROTOCOL, ENGINE_MODE } from './client-debugger';
 import MemoryChart from './memory-chart';
 import Settings from './settings';
@@ -248,7 +248,7 @@ export default function App() {
         }
 
         if (surface.getPanelProperty('run.active')) {
-          surface.updateRunPanel(surface.RUN_UPDATE_TYPE.ALL, debuggerObj, session);
+          surface.updateRunPanel(SURFACE_RUN_UPDATE_TYPE.ALL, debuggerObj, session);
         }
 
         if (surface.getPanelProperty('watch.active')) {
@@ -298,7 +298,7 @@ export default function App() {
               session.createNewFile(file.name, evt.target.result, true);
 
               if (surface.getPanelProperty('run.active')) {
-                surface.updateRunPanel(surface.RUN_UPDATE_TYPE.ALL, debuggerObj, session);
+                surface.updateRunPanel(SURFACE_RUN_UPDATE_TYPE.ALL, debuggerObj, session);
               }
 
               if ($('#save-file-button').hasClass('disabled')) {
@@ -390,7 +390,7 @@ export default function App() {
         session.createNewFile($('#new-file-name').val().trim(), '', false);
 
         if (surface.getPanelProperty('run.active')) {
-          surface.updateRunPanel(surface.RUN_UPDATE_TYPE.ALL, debuggerObj, session);
+          surface.updateRunPanel(SURFACE_RUN_UPDATE_TYPE.ALL, debuggerObj, session);
         }
 
         $('#new-file-name').val('');
@@ -726,7 +726,7 @@ export default function App() {
        * we have to fill up the files list.
        */
       if (surface.getPanelProperty('run.active')) {
-        surface.updateRunPanel(surface.RUN_UPDATE_TYPE.ALL, debuggerObj, session);
+        surface.updateRunPanel(SURFACE_RUN_UPDATE_TYPE.ALL, debuggerObj, session);
       }
 
       /**
@@ -748,7 +748,7 @@ export default function App() {
           }
         });
 
-        surface.updateRunPanel(surface.RUN_UPDATE_TYPE.BUTTON, debuggerObj, session);
+        surface.updateRunPanel(SURFACE_RUN_UPDATE_TYPE.BUTTON, debuggerObj, session);
       });
 
       /**
@@ -770,7 +770,7 @@ export default function App() {
           }
         });
 
-        surface.updateRunPanel(surface.RUN_UPDATE_TYPE.BUTTON, debuggerObj, session);
+        surface.updateRunPanel(SURFACE_RUN_UPDATE_TYPE.BUTTON, debuggerObj, session);
       });
 
       /**
@@ -794,8 +794,8 @@ export default function App() {
           surface.appendChooserLi($('#run-chooser-dest'), '', 'hidden', 'run-context-reset-sid', 0, 'Context Reset');
         }
 
-        surface.updateRunPanel(surface.RUN_UPDATE_TYPE.JQUI, debuggerObj, session);
-        surface.updateRunPanel(surface.RUN_UPDATE_TYPE.BUTTON, debuggerObj, session);
+        surface.updateRunPanel(SURFACE_RUN_UPDATE_TYPE.JQUI, debuggerObj, session);
+        surface.updateRunPanel(SURFACE_RUN_UPDATE_TYPE.BUTTON, debuggerObj, session);
 
         // Send the source(s) to the debugger.
         debuggerObj.sendClientSource();
@@ -815,7 +815,7 @@ export default function App() {
           }
         });
 
-        surface.updateRunPanel(surface.RUN_UPDATE_TYPE.ALL, debuggerObj, session);
+        surface.updateRunPanel(SURFACE_RUN_UPDATE_TYPE.ALL, debuggerObj, session);
       });
 
       /**
@@ -828,7 +828,7 @@ export default function App() {
 
         // Reset the upload list.
         session.resetUploadList();
-        surface.updateRunPanel(surface.RUN_UPDATE_TYPE.CR, debuggerObj, session);
+        surface.updateRunPanel(SURFACE_RUN_UPDATE_TYPE.CR, debuggerObj, session);
 
         // Remove the unuploaded file placeholders.
         $('#run-chooser-dest li .btn').each((i, el) => {

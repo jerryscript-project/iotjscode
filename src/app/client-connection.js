@@ -16,6 +16,8 @@
 
 import ParseSource from './client-parsesource';
 import { JERRY_DEBUGGER_VERSION, PROTOCOL, ENGINE_MODE } from './client-debugger';
+import { EDITOR_HIGHLIGHT_TYPE } from './session';
+import { SURFACE_CSICON, SURFACE_RUN_UPDATE_TYPE } from './surface';
 import Transpiler from './transpiler';
 import Util from './util';
 import { SOURCE_SNYC_ACTION } from './session';
@@ -113,7 +115,7 @@ function onopen() {
   }
 
   if (this._surface.getPanelProperty('run.active')) {
-    this._surface.updateRunPanel(this._surface.RUN_UPDATE_TYPE.ALL, this._debuggerObj, this._session);
+    this._surface.updateRunPanel(SURFACE_RUN_UPDATE_TYPE.ALL, this._debuggerObj, this._session);
   }
 
   if (this._surface.getPanelProperty('watch.active')) {
@@ -162,7 +164,7 @@ function onclose_and_error() {
   this._surface.reset();
   this._surface.disableActionButtons(true);
   this._surface.toggleButton(true, 'connect-to-button');
-  this._surface.continueStopButtonState(this._surface.CSICON.CONTINUE);
+  this._surface.continueStopButtonState(SURFACE_CSICON.CONTINUE);
 
   if (this._session.isContextReset()) {
     this._session.setContextReset(false);
@@ -296,7 +298,7 @@ function onmessage(event) {
       }
 
       this._session.setLastBreakpoint(breakpoint);
-      this._surface.continueStopButtonState(this._surface.CSICON.CONTINUE);
+      this._surface.continueStopButtonState(SURFACE_CSICON.CONTINUE);
       this._surface.disableActionButtons(false);
 
       // Source load and reload from Jerry.
@@ -335,7 +337,7 @@ function onmessage(event) {
 
       // After we switched to the correct file/session show the exception hint (if exists).
       if (message[0] === PROTOCOL.SERVER.JERRY_DEBUGGER_EXCEPTION_HIT) {
-        this._session.highlightLine(this._session.HIGHLIGHT_TYPE.EXCEPTION, hlLine);
+        this._session.highlightLine(EDITOR_HIGHLIGHT_TYPE.EXCEPTION, hlLine);
         this._logger.error('Exception throw detected!');
 
         if (this._exceptionData) {
@@ -345,7 +347,7 @@ function onmessage(event) {
       } else {
         // Highlight the execute line in the correct session.
         if (fid !== undefined && fid === this._session.getActiveID()) {
-          this._session.highlightLine(this._session.HIGHLIGHT_TYPE.EXECUTE, hlLine);
+          this._session.highlightLine(EDITOR_HIGHLIGHT_TYPE.EXECUTE, hlLine);
           this._session.markBreakpointLines(this._debuggerObj, this._settings, this._transpiler);
         }
       }
@@ -498,7 +500,7 @@ function onmessage(event) {
       this._session.allowUploadAndRun(true);
 
       if (this._surface.getPanelProperty('run.active')) {
-        this._surface.updateRunPanel(this._surface.RUN_UPDATE_TYPE.BUTTON, this._debuggerObj, this._session);
+        this._surface.updateRunPanel(SURFACE_RUN_UPDATE_TYPE.BUTTON, this._debuggerObj, this._session);
       }
 
       this._debuggerObj.sendClientSource();
