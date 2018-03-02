@@ -287,7 +287,7 @@ function onmessage(event) {
       const breakpointData = this._debuggerObj.decodeMessage('CI', message, 1);
       const breakpointRef = this._debuggerObj.getBreakpoint(breakpointData);
       const breakpoint = breakpointRef.breakpoint;
-      const sourceName = breakpoint.func.sourceName;
+      let sourceName = breakpoint.func.sourceName;
       const source = this._debuggerObj.getSources()[sourceName];
       let breakpointInfo = '';
 
@@ -319,10 +319,14 @@ function onmessage(event) {
             }
           }
         }
+      } else {
+        sourceName = this._session.handleUnknownFile(
+          Array.isArray(breakpoint.func.source) ? breakpoint.func.source.join('\n') : breakpoint.func.source
+        );
       }
 
       // Switch to the the right session.
-      const fid = this._session.getFileIdByName(breakpoint.func.sourceName);
+      const fid = this._session.getFileIdByName(sourceName);
       if (fid !== undefined && fid !== this._session.getActiveID()) {
         // Change the model in the editor.
         this._session.switchFile(fid);

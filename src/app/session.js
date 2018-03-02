@@ -59,6 +59,7 @@ export default class Session {
       next: 0,
       last: 0,
       active: 0,
+      uNext: 0,
     };
 
     this._models = [];
@@ -534,6 +535,28 @@ export default class Session {
     this.switchFile(this._id.next);
   }
 
+  /**
+   * Creates or restores 'unknown' file which is comes from an eval.
+   *
+   * @param {string} content Text value of the unknown source.
+   * @returns {string} The temporary name of the unknown source code.
+   */
+  handleUnknownFile(content) {
+    const id = this.getFileIdByContent(content);
+    let name;
+    if (!id) {
+      name = `unknown-${++this._id.uNext}`;
+      this.createNewFile(name, content);
+    } else {
+      name = this.getFileNameById(id);
+      if (!this.fileContentCheck(name, content)) {
+        this.resetFileContent(name, content);
+      }
+    }
+
+    return name;
+  }
+
 
   /**
    * Checks that the welcome file is exists and untouched.
@@ -608,6 +631,17 @@ export default class Session {
    */
   getFileIdByName(name) {
     const f = this._models.find(x => name.endsWith(x.name));
+    return f ? f.id : undefined;
+  }
+
+  /**
+   * Returns a file id based on the given content.
+   *
+   * @param {string} content The searched file content.
+   * @returns {mixed} Returns the file id if exists, undefined otherwise.
+   */
+  getFileIdByContent(content) {
+    const f = this._models.find(x => content === x.model.getValue());
     return f ? f.id : undefined;
   }
 
