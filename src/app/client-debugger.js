@@ -202,6 +202,10 @@ export default class DebuggerClient {
     this._backtraceFrame = frame;
   }
 
+  getFunctions() {
+    return this._functions;
+  }
+
   setFunctions(key, value) {
     this._functions[key] = value;
   }
@@ -481,11 +485,14 @@ export default class DebuggerClient {
         }
       }
     } else {
-      for (const func of this._functions) {
+      for (const key in this._functions) {
+        if (this._functions.hasOwnProperty(key)) {
+          const func = this._functions[key];
 
-        if (func.name === str) {
-          this.insertBreakpoint(func.lines[func.firstBreakpointLine], this);
-          found = true;
+          if (func.name === str) {
+            this.insertBreakpoint(func.lines[func.firstBreakpointLine], this);
+            found = true;
+          }
         }
       }
     }
@@ -493,17 +500,32 @@ export default class DebuggerClient {
     if (!found) {
       this._logger.info('Breakpoint not found');
       if (pending) {
+        if (!this._pendingBreakpoints.length) {
+          this.sendParserConfig(1);
+        }
+
         if (line) {
-          this._pendingBreakpoints.push(Number(line[2]));
+          this._pendingBreakpoints.push({
+            line: line[1],
+            function: '',
+            sourceName: line[0],
+          });
           this._logger.info(`Pending breakpoint index: ${line[0]} added`);
         } else {
-          this._pendingBreakpoints.push(str);
+          this._pendingBreakpoints.push({
+            line: null,
+            function: str,
+            sourceName: null,
+          });
           this._logger.info(`Pending breakpoint function name: ${str} added`);
         }
+      } else {
+        return false;
       }
     }
 
     this._surface.updateBreakpointsPanel(this._activeBreakpoints, this._settings, this._transpiler);
+    return true;
   }
 
   /**
@@ -527,6 +549,20 @@ export default class DebuggerClient {
     }
 
     this.encodeMessage('BB', [PROTOCOL.CLIENT.JERRY_DEBUGGER_EXCEPTION_CONFIG, enable]);
+  }
+
+  /**
+   * Sends the parser configuration flag to the engine.
+   *
+   * @param {boolean} enable True if the parser waiting is enabled, false otherwise.
+   */
+  sendParserConfig(enable) {
+    if (enable === undefined) {
+      this._logger.error('Parser config argument is required.', true);
+      return;
+    }
+
+    this.encodeMessage('BB', [PROTOCOL.CLIENT.JERRY_DEBUGGER_PARSER_CONFIG, enable]);
   }
 
   /**
@@ -633,7 +669,7 @@ export default class DebuggerClient {
       this._logger.info('List of pending breakpoints:');
       for (const i in this._pendingBreakpoints) {
         if (this._pendingBreakpoints.hasOwnProperty(i)) {
-          this._logger.info(`  pending breakpoint ${i} at ${this._pendingBreakpoints[i]}`);
+          this._logger.info(`  pending breakpoint ${i} at ${this.pendingBreakpointToString(this._pendingBreakpoints[i])}`);
         }
       }
     } else {
@@ -902,6 +938,15 @@ export default class DebuggerClient {
     }
 
     return result;
+  }
+
+  /**
+   * Converts a pending breakpoint dataset into a readable format.
+   *
+   * @param {object} breakpoint The pending breakpoint dataset.
+   */
+  pendingBreakpointToString(breakpoint) {
+    return breakpoint.function ? `"${breakpoint.function}"` : `"${breakpoint.sourceName}:${breakpoint.line}"`;
   }
 
   /**

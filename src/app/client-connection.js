@@ -238,6 +238,11 @@ function onmessage(event) {
       return;
     }
 
+    case PROTOCOL.SERVER.JERRY_DEBUGGER_WAITING_AFTER_PARSE: {
+      this._debuggerObj.encodeMessage('B', [PROTOCOL.CLIENT.JERRY_DEBUGGER_PARSER_RESUME]);
+      return;
+    }
+
     case PROTOCOL.SERVER.JERRY_DEBUGGER_RELEASE_BYTE_CODE_CP: {
       this._debuggerObj.releaseFunction(message);
       return;

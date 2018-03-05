@@ -903,6 +903,7 @@ export default function App() {
         if (args[1] == 'help') {
           logger.info('Debugger commands:\n' +
             '  connect <IP address:PORT> - connect to server (default is localhost:5001)\n' +
+            '  pendingbreak|pb <file_name:line>|<function_name> - add pending breakpoint\n' +
             '  pendingdel <id> - delete pending breakpoint\n' +
             '  list - list breakpoints\n' +
             '  stop|st - stop execution\n' +
@@ -955,6 +956,10 @@ export default function App() {
         }
 
         switch (args[1]) {
+          case 'pb':
+          case 'pendingbreak':
+            debuggerObj.setBreakpoint(args[2], true);
+            break;
           case 'pendingdel':
             debuggerObj.deletePendingBreakpoint(args[2]);
             break;

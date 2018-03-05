@@ -185,7 +185,7 @@ export default class ParseSource {
 
       default: {
         this._debuggerObj.abortConnection('unexpected message.');
-        return;
+        break;
       }
     }
 
@@ -201,6 +201,34 @@ export default class ParseSource {
           }
         }
       }
+    }
+
+    const pending = this._debuggerObj.getPendingbreakpoints();
+    const functions = this._debuggerObj.getFunctions();
+    let sourceLines = 0;
+
+    if (pending.length) {
+      pending.forEach((point, index) => {
+        Object.keys(functions).forEach(f => {
+          if (functions[f].sourceName === point.sourceName) {
+            sourceLines = functions[f].source.length;
+          }
+        });
+
+        if (point.line) {
+          if (point.line <= sourceLines) {
+            if (this._debuggerObj.setBreakpoint(`${point.sourceName}:${point.line}`, true)) {
+              this._debuggerObj.deletePendingBreakpoint(index);
+            }
+          }
+        } else if (point.function) {
+          if (this._debuggerObj.setBreakpoint(point.function, true)) {
+            this._debuggerObj.deletePendingBreakpoint(index);
+          }
+        }
+      });
+    } else {
+      this._debuggerObj.sendParserConfig(0);
     }
 
     this._alive = false;
