@@ -16,6 +16,7 @@
 
 import { ENGINE_MODE } from './client-debugger';
 import { SURFACE_RUN_UPDATE_TYPE } from './surface';
+import Glyph, { GLYPH_TYPE } from './modules/session/glyph';
 import Util from './util';
 
 /**
@@ -87,17 +88,7 @@ export default class Session {
       list: {},
     };
 
-    this._glyph = {
-      default: {
-        decorations: [],
-        list: [],
-      },
-      active: {
-        decorations: [],
-        list: [],
-        lines: {},
-      },
-    };
+    this._glyph = new Glyph(this._environment.editor);
 
     this._watch = {
       work: {
@@ -791,44 +782,28 @@ export default class Session {
    */
   markBreakpointLines(debuggerObj, settings, transpiler) {
     if (debuggerObj && debuggerObj.getEngineMode() !== ENGINE_MODE.DISCONNECTED) {
-      const lines = this.getLinesFromRawData(debuggerObj.getBreakpointLines(), settings, transpiler);
+      if (!this._glyph.isFileInitialized(this._id.active)) {
+        const lines = this.getLinesFromRawData(debuggerObj.getBreakpointLines(), settings, transpiler);
 
-      if (lines.length !== 0) {
-        lines.sort((a, b) => {
-          return a - b;
-        });
+        if (lines.length !== 0) {
+          lines.sort((a, b) => {
+            return a - b;
+          });
 
-        // Clear the list.
-        this._glyph.default.list = [];
+          // Clear the list.
+          this._glyph.removeByFile(this._id.active);
 
-        for (let i = this._environment.editor.getModel().getLineCount(); i > 0; i--) {
-          if (lines.includes(i)) {
-            this._glyph.default.list.push({
-              range: new window.monaco.Range(i, 1, i, 1), options: {
-                glyphMarginClassName: 'inactive-breakpoint-line',
-              },
-            });
+          for (let i = this._environment.editor.getModel().getLineCount(); i > 0; i--) {
+            if (lines.includes(i)) {
+              this._glyph.add(GLYPH_TYPE.INACTIVE, this._id.active, i);
+            }
           }
         }
-
-        // Decorate the revealed line.
-        this._glyph.default.decorations = this._environment.editor.deltaDecorations(
-          this._glyph.default.decorations,
-          this._glyph.default.list
-        );
       }
-    }
-  }
 
-  /**
-   * Removes the invalid gutter cell css class from the editor session.
-   */
-  removeBreakpointLines() {
-    this._glyph.default.decorations = [];
-    this._glyph.default.decorations = this._environment.editor.deltaDecorations(
-      this._glyph.default.decorations,
-      this._glyph.default.list
-    );
+      // Decorate the revealed line.
+      this._glyph.renderByFile(this._id.active);
+    }
   }
 
   /**
@@ -843,33 +818,19 @@ export default class Session {
     const lines = this.getLinesFromRawData(debuggerObj.getBreakpointLines(), settings, transpiler);
 
     if (lines.includes(line)) {
-      if (this._glyph.active.list.findIndex(obj => obj.range.startLineNumber === line) !== -1) {
-        // The selected breakpoint is alerady activated, so delete it.
-
-        this._glyph.active.list = this._glyph.active.list.filter(obj => obj.range.startLineNumber !== line);
-
-        // Send the breakpoint delete signal to the engine.
+      // The selected breakpoint is alerady activated, so inactivate it.
+      if (this._glyph.isLineActive(this._id.active, line)) {
+        this._glyph.change(this._id.active, line, GLYPH_TYPE.INACTIVE);
         debuggerObj.deleteBreakpoint(this.getBreakpointID(line));
       } else {
         // Activate the selected breakpoint.
-
-        this._glyph.active.list.push({
-          range: new window.monaco.Range(line, 1, line, 1), options: {
-            glyphMarginClassName: 'active-breakpoint-line',
-          },
-        });
-
-        // Store the breakpoint index.
+        this._glyph.change(this._id.active, line, GLYPH_TYPE.ACTIVE);
         this.addBreakpointID(line, debuggerObj.getNextBreakpointIndex());
-
-        // Send the breakpoint activate signal to the engine.
-        debuggerObj.setBreakpoint(`${this.getFileNameById(this.getActiveID())}:${line}`);
+        debuggerObj.setBreakpoint(`${this.getFileNameById(this._id.active)}:${line}`);
       }
 
-      this._glyph.active.decorations = this._environment.editor.deltaDecorations(
-        this._glyph.active.decorations,
-        this._glyph.active.list
-      );
+      // Render the final version of the glyph list.
+      this._glyph.renderByFile(this._id.active);
     }
   }
 
@@ -942,23 +903,6 @@ export default class Session {
   unhighlightLine() {
     this._marker.list = {};
     this._marker.decorations = this._environment.editor.deltaDecorations(this._marker.decorations, this._marker.list);
-  }
-
-  /**
-   * Deletes the breakpoints from the session and from the editor.
-   */
-  deleteBreakpointsFromEditor() {
-    this.setLastBreakpoint(null);
-
-    this._glyph.active.decorations = [];
-    this._glyph.active.decorations = this._environment.editor.deltaDecorations(
-      this._glyph.active.decorations,
-      this._glyph.active.list
-    );
-
-    this._breakpoint.IDs = [];
-
-    Util.clearElement($('#breakpoints-table-body'));
   }
 
   /**
@@ -1089,9 +1033,8 @@ export default class Session {
    */
   reset() {
     Util.clearElement($('#backtrace-table-body'));
-    this.deleteBreakpointsFromEditor();
     this.unhighlightLine();
-    this.removeBreakpointLines();
+    this._glyph.removeAll();
 
     this._breakpoint.informationToChart = null;
     this._breakpoint.IDs = [];

@@ -826,5 +826,6 @@ export default class Surface {
    */
   reset() {
     this.toggleButton(false, 'run-context-reset-button');
+    Util.clearElement($('#breakpoints-table-body'));
   }
 }
