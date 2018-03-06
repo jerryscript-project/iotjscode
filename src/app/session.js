@@ -103,6 +103,7 @@ export default class Session {
     this._jerrySource = {
       name: '',
       source: '',
+      reset: true,
       action: SOURCE_SNYC_ACTION.NOP,
     };
 
@@ -1007,6 +1008,24 @@ export default class Session {
   }
 
   /**
+   * Checks that the auto source sync is enabled or not.
+   *
+   * @returns {boolean} True if the auto sync is enabled, false otherwise.
+   */
+  isAutoSourceSync() {
+    return this._jerrySource.reset;
+  }
+
+  /**
+   * Changes the value of the auto source sync.
+   *
+   * @param {boolean} value New value of the auto sync option.
+   */
+  setAutoSourceSync(value) {
+    this._jerrySource.reset = value;
+  }
+
+  /**
    * Sync the stored source code (which is come from the engine).
    * Loads the source into a new file if that is new or
    * reloads the source in the current model if that is already loaded.
@@ -1043,6 +1062,7 @@ export default class Session {
     this._upload.list = this._upload.backupList;
     this._upload.allowed = false;
     this._jerrySource.action = SOURCE_SNYC_ACTION.NOP;
+    this._jerrySource.reset = true;
 
 
     this._marker.execute = {

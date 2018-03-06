@@ -312,14 +312,22 @@ function onmessage(event) {
           this._session.storeJerrySource(sourceName, source);
           this._session.setJerrySourceAction(SOURCE_SNYC_ACTION.LOAD);
 
-          this._logger.error(`The file "${sourceName}" is missing.`, true);
-          this._surface.toggleButton(true, 'jerry-sync-source-button');
+          if (this._session.isAutoSourceSync()) {
+            this._session.syncSourceFromJerry();
+            this._session.setAutoSourceSync(false);
+          } else {
+            this._logger.warning(`The file "${sourceName}" is missing.`, true);
+            this._surface.toggleButton(true, 'jerry-sync-source-button');
+          }
         } else {
+          // Disable the auto source sync option in case of valid source.
+          this._session.setAutoSourceSync(false);
+
           // Do not check the code match if the transpile is enabled.
           if (!this._settings.getValue('debugger.transpileToES5') && this._transpiler.isEmpty()) {
             if (!this._session.fileContentCheck(sourceName, source)) {
               this._session.setJerrySourceAction(SOURCE_SNYC_ACTION.RELOAD);
-              this._logger.error(`The "${sourceName}" source does not match with the source on the device!`, true);
+              this._logger.warning(`The "${sourceName}" source does not match with the source on the device!`, true);
               this._surface.toggleButton(true, 'jerry-sync-source-button');
             }
           }
