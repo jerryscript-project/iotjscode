@@ -119,6 +119,10 @@
 
   }
 
+  #jerry-sync-source-button:not(.disabled) {
+    border-color: $d-red-color;
+  }
+
   .logger-panel {
     .data {
       .data-timestamp {

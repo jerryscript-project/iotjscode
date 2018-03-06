@@ -851,6 +851,9 @@ export default function App() {
        * Sync source from jerry button.
        */
       $('#jerry-sync-source-button').on('click', () => {
+        if (surface.buttonIsDisabled('#jerry-sync-source-button')) {
+          return;
+        }
         session.syncSourceFromJerry();
         surface.toggleButton(false, 'jerry-sync-source-button');
       });

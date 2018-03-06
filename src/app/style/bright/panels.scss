@@ -245,6 +245,10 @@
     width: 100%;
   }
 
+  #jerry-sync-source-button:not(.disabled) {
+    border-color: $d-red-color;
+  }
+
   .logger-panel {
     position: relative;
     width: 100%;
