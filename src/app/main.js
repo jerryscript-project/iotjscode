@@ -571,6 +571,14 @@ export default function App() {
 
         debuggerObj.encodeMessage('B', [PROTOCOL.CLIENT.JERRY_DEBUGGER_NEXT]);
       });
+
+      $('#disconnect-button').on('click', (e) => {
+        if (surface.buttonIsDisabled(e.target)) {
+          return true;
+        }
+
+        debuggerObj.closeConnection();
+      });
     })();
 
 

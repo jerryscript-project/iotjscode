@@ -134,8 +134,9 @@ function onopen() {
 function onclose_and_error() {
   if (this._socket) {
     this._socket = null;
-    this._logger.info('Connection closed.');
   }
+
+  this._logger.info('Connection closed.');
 
   this._debuggerObj.setEngineMode(ENGINE_MODE.DISCONNECTED);
 

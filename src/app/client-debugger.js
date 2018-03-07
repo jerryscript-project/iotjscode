@@ -239,6 +239,15 @@ export default class DebuggerClient {
   }
 
   /**
+   * Closes the websocket connection.
+   *
+   * @param {string} message The reason of the close (optional).
+   */
+  closeConnection(message = '') {
+    this._connection.close(message);
+  }
+
+  /**
    * Aborts the sockeet connection through the connection object.
    *
    * @param {string} message The abort message.
