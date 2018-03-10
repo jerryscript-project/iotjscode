@@ -30,6 +30,7 @@ import MemoryChart from './memory-chart';
 import Settings from './settings';
 import Transpiler from './transpiler';
 import Completer from './completer';
+import Util from './util';
 
 import PerfectScrollbar from 'perfect-scrollbar';
 import FileSaver from 'file-saver';
@@ -692,6 +693,18 @@ export default function App() {
       });
     })();
 
+    /**
+     * Output log panel events.
+     */
+    (() => {
+      /**
+       *Clear button click event.
+       */
+      $('#output-clear-button').on('click', () => {
+        Util.clearElement($('#output-panel'));
+      });
+    })();
+
 
     /**
      * Source sending panel events.
@@ -851,6 +864,13 @@ export default function App() {
         }
         session.syncSourceFromJerry();
         surface.toggleButton(false, 'jerry-sync-source-button');
+      });
+
+      /**
+       * Clear button click event.
+       */
+      $('#console-clear-button').on('click', () => {
+        Util.clearElement($('#console-panel'));
       });
 
       /**
