@@ -510,20 +510,7 @@ export default function App() {
 
       $('#delete-all-button').on('click', () => {
         if (debuggerObj && debuggerObj.getEngineMode() !== ENGINE_MODE.DISCONNECTED) {
-          let found = false;
-          const actives = debuggerObj.getActiveBreakpoints();
-
-          for (let i in actives) {
-            if (actives.hasOwnProperty(i)) {
-              debuggerObj.deleteBreakpoint(actives[i].activeIndex);
-              found = true;
-            }
-          }
-
-          if (!found) {
-            logger.info('No active breakpoints.');
-          }
-          session.deleteBreakpointsFromEditor();
+          debuggerObj.deleteBreakpoint('all');
         }
       });
 

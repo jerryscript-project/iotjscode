@@ -70,11 +70,8 @@ export default class Session {
       counter: -1,
     };
 
-    this._breakpoint = {
-      informationToChart: null,
-      IDs: [],
-      last: null,
-    };
+    this._lasBreakpoint = null;
+    this._chartInfo = null;
 
     this._upload = {
       list: [],
@@ -110,6 +107,22 @@ export default class Session {
     this._contextReset = false;
   }
 
+  get lastBreakpoint() {
+    return this._lasBreakpoint;
+  }
+
+  set lastBreakpoint(last) {
+    this._lasBreakpoint = last;
+  }
+
+  get chartInfo() {
+    return this._chartInfo;
+  }
+
+  set chartInfo(info) {
+    this._chartInfo = info;
+  }
+
   /**
    * Returns the current nextID value.
    *
@@ -126,62 +139,6 @@ export default class Session {
    */
   getActiveID() {
     return this._id.active;
-  }
-
-  /**
-   * Stores a new breakpoint row and index information.
-   *
-   * @param {integer} row Breakpoint's row.
-   * @param {integer} index breakpoint number (constantly growing).
-   */
-  addBreakpointID(row, index) {
-    this._breakpoint.IDs[row] = index;
-  }
-
-  /**
-   * Returns a specific breakpoint index.
-   *
-   * @param  {integer} row A row number from the source.
-   * @return {integer} Single stored breakpoint index.
-   */
-  getBreakpointID(row) {
-    return this._breakpoint.IDs[row];
-  }
-
-  /**
-   * Returns the last catched breakpoint's ID.
-   *
-   * @return {integer} A single breakpoint identifier.
-   */
-  getLastBreakpoint() {
-    return this._breakpoint.last;
-  }
-
-  /**
-   * Sets the lastBreakpoint to the given value.
-   *
-   * @param {integer} last A complete breakpoint from the debuggerObj.
-   */
-  setLastBreakpoint(last) {
-    this._breakpoint.last = last;
-  }
-
-  /**
-   * Returns the chart specific breakpoint informations.
-   *
-   * @return {string} Formatted string.
-   */
-  getBreakpointInfoToChart() {
-    return this._breakpoint.informationToChart;
-  }
-
-  /**
-   * Store the chart specific breakpoint informations.
-   *
-   * @param {string} info Breakpoint informations.
-   */
-  setBreakpointInfoToChart(info) {
-    this._breakpoint.informationToChart = info;
   }
 
   /**
@@ -594,13 +551,9 @@ export default class Session {
     this._environment.editor.focus();
 
     // Refresh the available breakpoint lines in the editor based on the new file/e-session.
-    if (this._breakpoint.last !== null &&
-      this._breakpoint.last.func.sourceName.endsWith(this.getFileNameById(id))) {
-      this.highlightLine(EDITOR_HIGHLIGHT_TYPE.EXECUTE, this._breakpoint.last.line);
-    }
-
-    if (this._breakpoint.last === null) {
-      // this.removeBreakpointLines();
+    if (this._lasBreakpoint !== null &&
+      this._lasBreakpoint.func.sourceName.endsWith(this.getFileNameById(id))) {
+      this.highlightLine(EDITOR_HIGHLIGHT_TYPE.EXECUTE, this._lasBreakpoint.line);
     }
   }
 
@@ -822,11 +775,10 @@ export default class Session {
       // The selected breakpoint is alerady activated, so inactivate it.
       if (this._glyph.isLineActive(this._id.active, line)) {
         this._glyph.change(this._id.active, line, GLYPH_TYPE.INACTIVE);
-        debuggerObj.deleteBreakpoint(this.getBreakpointID(line));
+        debuggerObj.deleteBreakpoint(debuggerObj.breakpoints.getActiveBreakpointIndexByLine(line));
       } else {
         // Activate the selected breakpoint.
         this._glyph.change(this._id.active, line, GLYPH_TYPE.ACTIVE);
-        this.addBreakpointID(line, debuggerObj.getNextBreakpointIndex());
         debuggerObj.setBreakpoint(`${this.getFileNameById(this._id.active)}:${line}`);
       }
 
@@ -1055,9 +1007,8 @@ export default class Session {
     this.unhighlightLine();
     this._glyph.removeAll();
 
-    this._breakpoint.informationToChart = null;
-    this._breakpoint.IDs = [];
-    this._breakpoint.last = null;
+    this._lastBreakpoint = null;
+    this._chartInfo = null;
 
     this._upload.list = this._upload.backupList;
     this._upload.allowed = false;

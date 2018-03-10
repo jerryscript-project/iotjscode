@@ -264,8 +264,8 @@ function onmessage(event) {
           $('#chart-record-button').css('background-color', '#16e016');
         }
 
-        if (this._session.getBreakpointInfoToChart() && this._chart.isChartActive()) {
-          const breakpointInfo = this._session.getBreakpointInfoToChart().split(':')[1].split(' ')[0];
+        if (this._session.chartInfo && this._chart.isChartActive()) {
+          const breakpointInfo = this._session.chartInfo.split(':')[1].split(' ')[0];
           let breakpointLineToChart = `ln: ${breakpointInfo}`;
 
           if (this._debuggerObj.getEngineMode() === ENGINE_MODE.BREAKPOINT) {
@@ -297,13 +297,13 @@ function onmessage(event) {
       const source = this._debuggerObj.getSources()[sourceName];
       let breakpointInfo = '';
 
-      this._debuggerObj.setLastBreakpointHit(breakpoint);
+      this._debuggerObj.breakpoints.lastHit = breakpoint;
 
-      if (breakpoint.offset.activeIndex >= 0) {
-        breakpointInfo = ` breakpoint:${breakpoint.offset.activeIndex} `;
+      if (breakpoint.offset.index >= 0) {
+        breakpointInfo = ` breakpoint:${breakpoint.offset.index} `;
       }
 
-      this._session.setLastBreakpoint(breakpoint);
+      this._session.lastBreakpoint = breakpoint;
       this._surface.continueStopButtonState(SURFACE_CSICON.CONTINUE);
       this._surface.disableActionButtons(false);
 
@@ -382,8 +382,8 @@ function onmessage(event) {
 
       // Add breakpoint information to chart.
       if (this._surface.getPanelProperty('chart.active')) {
-        for (const i in this._debuggerObj.getActiveBreakpoints()) {
-          if (this._debuggerObj.getActiveBreakpoints()[i].line ===
+        for (const i in this._debuggerObj.breakpoints.activeBreakpoints) {
+          if (this._debuggerObj.breakpoints.activeBreakpoints[i].line ===
               this._debuggerObj.breakpointToString(breakpoint).split(':')[1].split(' ')[0]) {
             this._surface.stopCommand();
             return;
@@ -391,7 +391,7 @@ function onmessage(event) {
         }
 
         this._debuggerObj.encodeMessage('B', [PROTOCOL.CLIENT.JERRY_DEBUGGER_MEMSTATS]);
-        this._session.setBreakpointInfoToChart(this._debuggerObj.breakpointToString(breakpoint));
+        this._session.chartInfo = this._debuggerObj.breakpointToString(breakpoint);
       }
 
       this._logger.info(

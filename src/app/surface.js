@@ -737,7 +737,7 @@ export default class Surface {
     for (const i in activeBreakpoints) {
       if (activeBreakpoints.hasOwnProperty(i)) {
         const sourceName = activeBreakpoints[i].func.sourceName || '-';
-        const id = activeBreakpoints[i].activeIndex || '-';
+        const id = activeBreakpoints[i].index || '-';
         let line = activeBreakpoints[i].line || '-';
 
         if (settings.getValue('debugger.transpileToES5') && !transpiler.isEmpty()) {

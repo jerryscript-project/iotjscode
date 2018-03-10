@@ -19,6 +19,7 @@ import Connection from './client-connection';
 import Transpiler from './transpiler';
 import Util from './util';
 import Logger from './logger';
+import Breakpoints from './modules/client/breakpoints';
 import { SURFACE_COLOR } from './surface';
 
 /**
@@ -127,10 +128,7 @@ export default class DebuggerClient {
     this._functions = {};
     this._sources = {};
     this._lineList = new Multimap();
-    this._lastBreakpointHit = null;
-    this._activeBreakpoints = {};
-    this._nextBreakpointIndex = 1;
-    this._pendingBreakpoints = [];
+    this._breakpoints = new Breakpoints();
     this._backtraceFrame = 0;
 
     this._alive = false;
@@ -140,6 +138,10 @@ export default class DebuggerClient {
     };
 
     this._connection = new Connection(this, address, this._surface, this._session, this._settings, chart);
+  }
+
+  get breakpoints() {
+    return this._breakpoints;
   }
 
   getProtocolVersion() {
@@ -172,26 +174,6 @@ export default class DebuggerClient {
 
   setLittleEndian(value) {
     this._littleEndian = value;
-  }
-
-  getActiveBreakpoints() {
-    return this._activeBreakpoints;
-  }
-
-  getNextBreakpointIndex() {
-    return this._nextBreakpointIndex;
-  }
-
-  getLastBreakpointHit() {
-    return this._lastBreakpointHit;
-  }
-
-  setLastBreakpointHit(point) {
-    this._lastBreakpointHit = point;
-  }
-
-  getPendingbreakpoints() {
-    return this._pendingBreakpoints;
   }
 
   getBacktraceFrame() {
@@ -489,7 +471,7 @@ export default class DebuggerClient {
         if (sourceName === line[1] ||
             sourceName.endsWith('/' + line[1]) ||
             sourceName.endsWith('\\' + line[1])) {
-          this.insertBreakpoint(func.lines[line[2]], this);
+          this.insertBreakpoint(func.lines[line[2]]);
           found = true;
         }
       }
@@ -499,7 +481,7 @@ export default class DebuggerClient {
           const func = this._functions[key];
 
           if (func.name === str) {
-            this.insertBreakpoint(func.lines[func.firstBreakpointLine], this);
+            this.insertBreakpoint(func.lines[func.firstBreakpointLine]);
             found = true;
           }
         }
@@ -509,19 +491,19 @@ export default class DebuggerClient {
     if (!found) {
       this._logger.info('Breakpoint not found');
       if (pending) {
-        if (!this._pendingBreakpoints.length) {
+        if (!this._breakpoints.pendingBreakpoints.length) {
           this.sendParserConfig(1);
         }
 
         if (line) {
-          this._pendingBreakpoints.push({
+          this._breakpoints.pendingBreakpoints.push({
             line: line[1],
             function: '',
             sourceName: line[0],
           });
           this._logger.info(`Pending breakpoint index: ${line[0]} added`);
         } else {
-          this._pendingBreakpoints.push({
+          this._breakpoints.pendingBreakpoints.push({
             line: null,
             function: str,
             sourceName: null,
@@ -533,7 +515,7 @@ export default class DebuggerClient {
       }
     }
 
-    this._surface.updateBreakpointsPanel(this._activeBreakpoints, this._settings, this._transpiler);
+    this._surface.updateBreakpointsPanel(this._breakpoints.activeBreakpoints, this._settings, this._transpiler);
     return true;
   }
 
@@ -580,10 +562,16 @@ export default class DebuggerClient {
    * @param {object} breakpoint Single breakpoint which will be inserted.
    */
   insertBreakpoint(breakpoint) {
-    if (breakpoint.activeIndex < 0) {
-      breakpoint.activeIndex = this._nextBreakpointIndex;
-      this._activeBreakpoints[this._nextBreakpointIndex] = breakpoint;
-      this._nextBreakpointIndex++;
+    const index = this._breakpoints.nextIndex;
+
+    if (breakpoint.index < 0) {
+      this._breakpoints.addActiveBreakpoint(
+        breakpoint.line,
+        breakpoint.offset,
+        breakpoint.func,
+        index
+      );
+      this._breakpoints.increaseNextIndex();
 
       const values = [
         PROTOCOL.CLIENT.JERRY_DEBUGGER_UPDATE_BREAKPOINT,
@@ -595,7 +583,7 @@ export default class DebuggerClient {
       this.encodeMessage('BBCI', values);
     }
 
-    this._logger.info(`Breakpoint ${breakpoint.activeIndex} at ${this.breakpointToString(breakpoint)}`);
+    this._logger.info(`Breakpoint ${index} at ${this.breakpointToString(breakpoint)}`);
   }
 
   /**
@@ -604,14 +592,15 @@ export default class DebuggerClient {
    * @param {integer} index Index of the breakpoint.
    */
   deleteBreakpoint(index) {
-    const breakpoint = this._activeBreakpoints[index];
+    const breakpoint = this._breakpoints.getActiveBreakpointByIndex(index);
 
     if (index === 'all') {
       let found = false;
+      const actives = this._breakpoints.activeBreakpoints;
 
-      for (const i in this._activeBreakpoints) {
-        if (this._activeBreakpoints.hasOwnProperty(i)) {
-          delete this._activeBreakpoints[i];
+      for (const i in actives) {
+        if (actives.hasOwnProperty(i)) {
+          this.deleteBreakpoint(actives[i].index);
           found = true;
         }
       }
@@ -619,15 +608,16 @@ export default class DebuggerClient {
       if (!found) {
         this._logger.info('No active breakpoints.');
       }
+
+      return;
     } else if (!breakpoint) {
       this._logger.error(`No breakpoint found with index ${index}`, true);
       return;
     }
 
-    Util.assert(breakpoint.activeIndex == index);
+    Util.assert(breakpoint && breakpoint.index === index);
 
-    delete this._activeBreakpoints[index];
-    breakpoint.activeIndex = -1;
+    this._breakpoints.deleteActiveBreakpointByIndex(index);
 
     const values = [
       PROTOCOL.CLIENT.JERRY_DEBUGGER_UPDATE_BREAKPOINT,
@@ -639,7 +629,7 @@ export default class DebuggerClient {
     this.encodeMessage('BBCI', values);
 
     this._logger.info(`Breakpoint ${index} deleted.`);
-    this._surface.updateBreakpointsPanel(this._activeBreakpoints, this._settings, this._transpiler);
+    this._surface.updateBreakpointsPanel(this._breakpoints.activeBreakpoints, this._settings, this._transpiler);
   }
 
   /**
@@ -648,10 +638,10 @@ export default class DebuggerClient {
    * @param {integer} index The index of the pending breakpoint.
    */
   deletePendingBreakpoint(index) {
-    if (index >= this._pendingBreakpoints.length) {
+    if (index >= this._breakpoints.pendingBreakpoints.length) {
       this._logger.info('Pending breakpoint not found');
     } else {
-      this._pendingBreakpoints.splice(index, 1);
+      this._breakpoints.deletePendingBreakpointByIndex(index);
       this._logger.info(`Pending breakpoint ${index} deleted.`);
     }
   }
@@ -663,9 +653,9 @@ export default class DebuggerClient {
     this._logger.info('List of active breakpoints:');
     let found = false;
 
-    for (const i in this._activeBreakpoints) {
-      if (this._activeBreakpoints.hasOwnProperty(i)) {
-        this._logger.info(`  breakpoint ${i} at ${this.breakpointToString(this._activeBreakpoints[i])}`);
+    for (const i in this._breakpoints.activeBreakpoints) {
+      if (this._breakpoints.activeBreakpoints.hasOwnProperty(i)) {
+        this._logger.info(`  breakpoint ${i} at ${this.breakpointToString(this._breakpoints.activeBreakpoints[i])}`);
         found = true;
       }
     }
@@ -674,11 +664,11 @@ export default class DebuggerClient {
       this._logger.info('  no active breakpoints');
     }
 
-    if (this._pendingBreakpoints.length !== 0) {
+    if (this._breakpoints.pendingBreakpoints.length !== 0) {
       this._logger.info('List of pending breakpoints:');
-      for (const i in this._pendingBreakpoints) {
-        if (this._pendingBreakpoints.hasOwnProperty(i)) {
-          this._logger.info(`  pending breakpoint ${i} at ${this.pendingBreakpointToString(this._pendingBreakpoints[i])}`);
+      for (const i in this._breakpoints.pendingBreakpoints) {
+        if (this._breakpoints.pendingBreakpoints.hasOwnProperty(i)) {
+          this._logger.info(`  pending breakpoint ${i} at ${this.pendingBreakpointToString(this._breakpoints.pendingBreakpoints[i])}`);
         }
       }
     } else {
@@ -841,8 +831,8 @@ export default class DebuggerClient {
    * Prints the currently available source code into the logger panel.
    */
   printSource() {
-    if (this._lastBreakpointHit) {
-      this._logger.info(this._lastBreakpointHit.func.source);
+    if (this._breakpoints.lastHit) {
+      this._logger.info(this._breakpoints.lastHit.func.source);
     }
   }
 
@@ -1076,8 +1066,8 @@ export default class DebuggerClient {
 
         Util.assert(i == breakpoint.line);
 
-        if (breakpoint.activeIndex >= 0) {
-          delete this._activeBreakpoints[breakpoint.activeIndex];
+        if (breakpoint.index >= 0) {
+          this._breakpoints.deleteActiveBreakpointByIndex(breakpoint.index);
         }
       }
     }

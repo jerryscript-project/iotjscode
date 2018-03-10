@@ -152,7 +152,7 @@ export default class ParseSource {
         func.firstBreakpointOffset = func.offsets[0];
 
         for (let i = 0; i < func.lines.length; i++) {
-          const breakpoint = { line: func.lines[i], offset: func.offsets[i], func: func, activeIndex: -1 };
+          const breakpoint = { line: func.lines[i], offset: func.offsets[i], func: func, index: -1 };
 
           lines[breakpoint.line] = breakpoint;
           offsets[breakpoint.offset] = breakpoint;
@@ -203,7 +203,7 @@ export default class ParseSource {
       }
     }
 
-    const pending = this._debuggerObj.getPendingbreakpoints();
+    const pending = this._debuggerObj.breakpoints.pendingBreakpoints;
     const functions = this._debuggerObj.getFunctions();
     let sourceLines = 0;
 
