@@ -16,7 +16,7 @@
 
 import ParseSource from './client-parsesource';
 import { JERRY_DEBUGGER_VERSION, PROTOCOL, ENGINE_MODE } from './client-debugger';
-import { EDITOR_HIGHLIGHT_TYPE } from './session';
+import { MARKER_TYPE } from './modules/session/marker';
 import { SURFACE_CSICON, SURFACE_RUN_UPDATE_TYPE } from './surface';
 import Transpiler from './transpiler';
 import Util from './util';
@@ -355,7 +355,7 @@ function onmessage(event) {
 
       // After we switched to the correct file/session show the exception hint (if exists).
       if (message[0] === PROTOCOL.SERVER.JERRY_DEBUGGER_EXCEPTION_HIT) {
-        this._session.highlightLine(EDITOR_HIGHLIGHT_TYPE.EXCEPTION, hlLine);
+        this._session.highlightLine(MARKER_TYPE.EXCEPTION, hlLine);
         this._logger.error('Exception throw detected!');
 
         if (this._exceptionData) {
@@ -365,7 +365,7 @@ function onmessage(event) {
       } else {
         // Highlight the execute line in the correct session.
         if (fid !== undefined && fid === this._session.getActiveID()) {
-          this._session.highlightLine(EDITOR_HIGHLIGHT_TYPE.EXECUTE, hlLine);
+          this._session.highlightLine(MARKER_TYPE.EXECUTE, hlLine);
           this._session.markBreakpointLines(this._debuggerObj, this._settings, this._transpiler);
         }
       }

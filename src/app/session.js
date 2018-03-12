@@ -17,6 +17,7 @@
 import { ENGINE_MODE } from './client-debugger';
 import { SURFACE_RUN_UPDATE_TYPE } from './surface';
 import Glyph, { GLYPH_TYPE } from './modules/session/glyph';
+import Marker, { MARKER_TYPE } from './modules/session/marker';
 import Util from './util';
 
 /**
@@ -34,14 +35,6 @@ export const SOURCE_SNYC_ACTION = {
   NOP: 0,
   LOAD: 1,
   RELOAD: 2,
-};
-
-/**
- * Types of the line highlight in the editor session.
- */
-export const EDITOR_HIGHLIGHT_TYPE = {
-  EXECUTE: 'execute',
-  EXCEPTION: 'exception',
 };
 
 export default class Session {
@@ -70,7 +63,7 @@ export default class Session {
       counter: -1,
     };
 
-    this._lasBreakpoint = null;
+    this._lastBreakpoint = null;
     this._chartInfo = null;
 
     this._upload = {
@@ -80,11 +73,7 @@ export default class Session {
       started: false,
     };
 
-    this._marker = {
-      decorations: [],
-      list: {},
-    };
-
+    this._marker = new Marker(this._environment.editor);
     this._glyph = new Glyph(this._environment.editor);
 
     this._watch = {
@@ -108,11 +97,11 @@ export default class Session {
   }
 
   get lastBreakpoint() {
-    return this._lasBreakpoint;
+    return this._lastBreakpoint;
   }
 
   set lastBreakpoint(last) {
-    this._lasBreakpoint = last;
+    this._lastBreakpoint = last;
   }
 
   get chartInfo() {
@@ -551,9 +540,9 @@ export default class Session {
     this._environment.editor.focus();
 
     // Refresh the available breakpoint lines in the editor based on the new file/e-session.
-    if (this._lasBreakpoint !== null &&
-      this._lasBreakpoint.func.sourceName.endsWith(this.getFileNameById(id))) {
-      this.highlightLine(EDITOR_HIGHLIGHT_TYPE.EXECUTE, this._lasBreakpoint.line);
+    if (this._lastBreakpoint !== null &&
+      this._lastBreakpoint.func.sourceName.endsWith(this.getFileNameById(id))) {
+      this.highlightLine(MARKER_TYPE.EXECUTE, this._lastBreakpoint.line);
     }
   }
 
@@ -821,41 +810,23 @@ export default class Session {
   /**
    * Highlights a single line in the editor session.
    *
-   * @param {integer} type Type of the highlight from the EDITOR_HIGHLIGHT_TYPE.
+   * @param {integer} type Type of the highlight from the MARKER_TYPE.
    * @param {integer} line Selected line.
    */
   highlightLine(type, line) {
-    const classOptions = {
-      lineName: `${type}-marker`,
-      gutterName: `${type}-gutter-marker`,
-    };
-
-    // Remove the previous highlight.
-    this.unhighlightLine();
-
     // Reveal and set the right position in the editor.
     this._environment.editor.revealLineInCenter(line);
 
-    this._marker.list[type] = {
-      range: new window.monaco.Range(line, 1, line, 1), options: {
-        isWholeLine: true,
-        className: classOptions.lineName,
-        marginClassName: classOptions.gutterName,
-      },
-    };
-
-    // Decorate the revealed line.
-    this._marker.decorations = this._environment.editor.deltaDecorations([], [this._marker.list[type]]);
+    // Set the new marker.
+    this._marker.set(type, line);
   }
 
   /**
    * Removes the highlight (border) from the last highlighted line.
-   *
-   * @param {integer} type Type of the highlight from the EDITOR_HIGHLIGHT_TYPE.
    */
   unhighlightLine() {
-    this._marker.list = {};
-    this._marker.decorations = this._environment.editor.deltaDecorations(this._marker.decorations, this._marker.list);
+    // Remove the line marker.
+    this._marker.remove();
   }
 
   /**
@@ -1006,6 +977,7 @@ export default class Session {
     Util.clearElement($('#backtrace-table-body'));
     this.unhighlightLine();
     this._glyph.removeAll();
+    this._marker.remove();
 
     this._lastBreakpoint = null;
     this._chartInfo = null;
@@ -1014,12 +986,6 @@ export default class Session {
     this._upload.allowed = false;
     this._jerrySource.action = SOURCE_SNYC_ACTION.NOP;
     this._jerrySource.reset = true;
-
-
-    this._marker.execute = {
-      decorations: [],
-      list: {},
-    };
 
     if (this.isFileInUploadList(0)) {
       this.removeFileFromUploadList(0);
