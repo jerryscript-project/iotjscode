@@ -547,6 +547,19 @@ export default function App() {
         debuggerObj.encodeMessage('B', [PROTOCOL.CLIENT.JERRY_DEBUGGER_STEP]);
       });
 
+      $('#finish-button').on('click', (e) => {
+        if (surface.buttonIsDisabled(e.target)) {
+          return true;
+        }
+
+        if (debuggerObj.getEngineMode() !== ENGINE_MODE.BREAKPOINT) {
+          logger.error('This action is only available in breakpoint mode.', true);
+          return true;
+        }
+
+        debuggerObj.encodeMessage('B', [PROTOCOL.CLIENT.JERRY_DEBUGGER_FINISH]);
+      });
+
       $('#next-button').on('click', (e) => {
         if (surface.buttonIsDisabled(e.target)) {
           return true;
@@ -927,6 +940,7 @@ export default function App() {
             '  stop|st - stop execution\n' +
             '  continue|c - continue execution\n' +
             '  step|s - step-in execution\n' +
+            '  finish|f - step-out execution\n' +
             '  next|n - execution until the next breakpoint\n' +
             '  eval|e - evaluate expression\n' +
             '  exception <0|1> - turn on/off the exception handler\n' +
@@ -992,6 +1006,10 @@ export default function App() {
           case 's':
           case 'step':
             $('#step-button').click();
+            break;
+          case 'f':
+          case 'finish':
+            $('#finish-button').click();
             break;
           case 'n':
           case 'next':

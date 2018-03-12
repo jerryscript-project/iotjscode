@@ -24,7 +24,7 @@ import { SURFACE_COLOR } from './surface';
 /**
  * Expected Debugger Protocol version.
  */
-export const JERRY_DEBUGGER_VERSION = 1;
+export const JERRY_DEBUGGER_VERSION = 2;
 
 /**
  * Packages sent between the server and the client.
@@ -84,9 +84,10 @@ export const PROTOCOL = {
     JERRY_DEBUGGER_CONTINUE: 12,
     JERRY_DEBUGGER_STEP: 13,
     JERRY_DEBUGGER_NEXT: 14,
-    JERRY_DEBUGGER_GET_BACKTRACE: 15,
-    JERRY_DEBUGGER_EVAL: 16,
-    JERRY_DEBUGGER_EVAL_PART: 17,
+    JERRY_DEBUGGER_FINISH: 15,
+    JERRY_DEBUGGER_GET_BACKTRACE: 16,
+    JERRY_DEBUGGER_EVAL: 17,
+    JERRY_DEBUGGER_EVAL_PART: 18,
   },
 };
 
