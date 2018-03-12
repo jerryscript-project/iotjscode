@@ -3,8 +3,6 @@
   <!-- Connection Inputs -->
   <div class="col-md-12">
     <div class="connection-inputs">
-      <div class="btn btn-default btn-xs" id="connect-to-button">
-        <i class="fa fa-plug" aria-hidden="true"></i> Connect to</div>
       <input type="text" name="host-ip" id="host-ip" class="form-control input-sm" placeholder="address" title="The host ip address." value="localhost">
       <span>:</span>
       <input type="number" name="host-port" id="host-port" class="form-control input-sm" placeholder="port" title="The host port number." min=0 max=65535 value="5001">
@@ -12,11 +10,14 @@
 
     <!-- Debugger actions -->
     <div class="debugger-buttons">
+      <div class="btn btn-default btn-xs" id="connect-to-button" title="Connect">
+        <i class="fa fa-plug" aria-hidden="true"></i>
+      </div>
       <div class="btn btn-default btn-xs debugger-action-button disabled" id="continue-stop-button" title="Continue/Stop">
         <i class="fa fa-play" aria-hidden="true"></i>
       </div>
       <div class="btn btn-default btn-xs debugger-action-button disabled" id="step-button" title="Step-in">
-        <i class="fa fa-step-forward" aria-hidden="true"></i>
+        <i class="fa fa-arrow-down" aria-hidden="true"></i>
       </div>
       <div class="btn btn-default btn-xs debugger-action-button disabled" id="next-button" title="Next">
         <i class="fa fa-arrow-right" aria-hidden="true"></i>
