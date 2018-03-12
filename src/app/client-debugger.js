@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import Multimap from './client-multimap';
 import Connection from './client-connection';
 import Transpiler from './transpiler';
 import Util from './util';
@@ -127,7 +126,7 @@ export default class DebuggerClient {
     this._littleEndian = true;
     this._functions = {};
     this._sources = {};
-    this._lineList = new Multimap();
+    this._lineList = new Map();
     this._breakpoints = new Breakpoints();
     this._backtraceFrame = 0;
 
@@ -142,6 +141,10 @@ export default class DebuggerClient {
 
   get breakpoints() {
     return this._breakpoints;
+  }
+
+  get lineList() {
+    return this._lineList;
   }
 
   getProtocolVersion() {
@@ -198,10 +201,6 @@ export default class DebuggerClient {
 
   setSources(name, source) {
     this._sources[name] = source;
-  }
-
-  lineListInsert(key, value) {
-    this._lineList.insert(key, value);
   }
 
   getEngineMode() {
@@ -463,7 +462,7 @@ export default class DebuggerClient {
     let found = false;
 
     if (line) {
-      let functionList = this._lineList.get(line[2]);
+      const functionList = this._lineList.get(line[2]);
 
       for (const func of functionList) {
         const sourceName = func.sourceName;
@@ -1060,7 +1059,7 @@ export default class DebuggerClient {
 
     for (const i in func.lines) {
       if (func.lines.hasOwnProperty(i)) {
-        this._lineList.delete(i, func);
+        this._lineList.set(i, this._debuggerObj.lineList.get(i).filter(f => !Object.is(f, func)));
 
         const breakpoint = func.lines[i];
 

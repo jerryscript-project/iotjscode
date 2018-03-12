@@ -197,7 +197,8 @@ export default class ParseSource {
 
         for (const j in func.lines) {
           if (func.lines.hasOwnProperty(j)) {
-            this._debuggerObj.lineListInsert(j, func);
+            const value = this._debuggerObj.lineList.get(j);
+            this._debuggerObj.lineList.set(j, value ? [...value, func] : [func]);
           }
         }
       }
