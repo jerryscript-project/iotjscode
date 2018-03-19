@@ -96,17 +96,19 @@ export default class Logger {
    *
    * @param {string} message The message which will appear in the logger panel.
    * @param {mixed} data A complex JSON formatted information object.
-   * @param {boolean} dom A complex HTML formatted text (e.g. a button).
+   * @param {boolean} pop Enable the popup window (disabled by default).
+   * @param {boolean} pre Enable the pre html tag before the content (disabled by default).
    */
-  debug(message, data, dom = false) {
-    if (dom) {
-      this._panel.append(createLine('log-debug-dom', message));
-      this._panel.append((data));
-    } else {
-      message = 'DEBUG LOG: ' + message + JSON.stringify(data);
-      this._panel.append(createLine('log-debug', message));
-    }
+  debug(message, data = undefined, pop = false, pre = false) {
+    message = `DEBUG LOG: ${message}`;
+    if (data) message = `${message} ${JSON.stringify(data)}`;
+
+    this._panel.append(createLine('log-debug', message, pre));
     Util.scrollDown(this._panel);
+
+    if (pop) {
+      POPUP.WRAPPER.append(createPopup(POPUP.TYPE.DANGER, 'Error', message, pre));
+    }
   }
 }
 
