@@ -487,22 +487,15 @@ export default function App() {
           return true;
         }
 
-        if ($('#host-ip').val() === '') {
-          logger.error('IP address expected.', true);
+        const ip = $('#host-ip').val() || 'localhost';
+        const port = $('#host-port').val() || 5001;
+
+        if (port < 0 || port > 65535) {
+          logger.error('Address port must between 0 and 65535.', true);
           return true;
         }
 
-        if ($('#host-port').val() === '') {
-          logger.error('Adress port expected.', true);
-          return true;
-        }
-
-        if ($('#host-port').val() < 0 || $('#host-port').val() > 65535) {
-          logger.error('Adress port must between 0 and 65535.', true);
-          return true;
-        }
-
-        const address = `${$('#host-ip').val()}:${$('#host-port').val()}`;
+        const address = `${ip}:${port}`;
         logger.info(`Connect to: ${address}`);
         debuggerObj = new DebuggerClient(address, session, surface, settings, chart);
 
