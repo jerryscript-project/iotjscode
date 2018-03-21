@@ -63,6 +63,7 @@ export default function App() {
    */
   const scrollbars = {
     panels: [],
+    sidenav: null,
   };
 
   /**
@@ -1041,6 +1042,11 @@ export default function App() {
       $('.perfect-scrollable').each((i, e) => {
         scrollbars.panels.push(new PerfectScrollbar($(e).get(0)));
       });
+
+      /**
+       * Sidenav extra scrollbars.
+       */
+      scrollbars.sidenav = new PerfectScrollbar($('.sidenav-extra').get(0));
     })();
 
 
