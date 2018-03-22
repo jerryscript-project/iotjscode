@@ -216,7 +216,7 @@ export default function App() {
        * Outside click of the sidenav extra.
        */
       $('#sidenav-extra-modal').on('click', () => {
-        surface.toggleSidenavExtra(surface.getLastOpenedSidenavExtra());
+        surface.toggleSidenavExtra(surface.lastOpenedSidenavExtra);
       });
 
       /**
@@ -322,7 +322,7 @@ export default function App() {
         $(evt.target).val('');
 
         // Close the extra sidenav windows after the open finished.
-        if (surface.isSidenavExtraOpened()) {
+        if (surface.isSidenavExtraOpened) {
           surface.toggleSidenavExtra('file-sidenav');
         }
       });
@@ -409,10 +409,10 @@ export default function App() {
           return true;
         }
 
-        const blob = new Blob([session.getFileModelById(session.getActiveID()).getValue()]);
-        FileSaver.saveAs(blob, session.getFileNameById(session.getActiveID()));
-        $('#tab-' + session.getActiveID()).removeClass('unsaved');
-        session.changeFileSavedProperty(session.getActiveID(), true);
+        const blob = new Blob([session.getFileModelById(session.activeID).getValue()]);
+        FileSaver.saveAs(blob, session.getFileNameById(session.activeID));
+        $('#tab-' + session.activeID.removeClass('unsaved'));
+        session.changeFileSavedProperty(session.activeID, true);
         surface.toggleSidenavExtra('file-sidenav');
       });
     })();
@@ -731,7 +731,7 @@ export default function App() {
         update: (event, ui) => {
           const sid = parseInt($(ui.item[0]).data('sid'));
           if (session.getFileDataById(sid).scheduled) {
-            session.moveFileInUploadList(session.getUploadList().indexOf(sid), $(ui.item[0]).index());
+            session.moveFileInUploadList(session.uploadList.indexOf(sid), $(ui.item[0]).index());
           }
         },
       });
@@ -801,11 +801,11 @@ export default function App() {
           return;
         }
 
-        session.setUploadStarted(true);
+        session.uploadStarted = true;
 
         // Add the context reset signal to the upload list.
         if (!session.isFileInUploadList(0)) {
-          session.addFileToUploadList(0, session.getUploadList().length);
+          session.addFileToUploadList(0, session.uploadList.length);
           surface.appendChooserLi($('#run-chooser-dest'), '', 'hidden', 'run-context-reset-sid', 0, 'Context Reset');
         }
 
@@ -885,16 +885,16 @@ export default function App() {
        */
       $('#command-line-input').keydown((e) => {
         if (e.keyCode === keys.upArrow) {
-          if (session.getCommandCounter() - 1 > -1) {
-            session.setCommandCounter(session.getCommandCounter() - 1);
-            $('#command-line-input').val(session.getCommandList()[session.getCommandCounter()]);
+          if (session.commandCounter - 1 > -1) {
+            session.commandCounter = session.commandCounter - 1;
+            $('#command-line-input').val(session.commandList[session.commandCounter]);
           }
         } else if (e.keyCode === keys.downArrow) {
-          if (session.getCommandCounter() + 1 < session.getCommandList().length) {
-            session.setCommandCounter(session.getCommandCounter() + 1);
-            $('#command-line-input').val(session.getCommandList()[session.getCommandCounter()]);
+          if (session.commandCounter + 1 < session.commandList.length) {
+            session.commandCounter = session.commandCounter + 1;
+            $('#command-line-input').val(session.commandList[session.commandCounter]);
           } else {
-            session.setCommandCounter(session.getCommandList().length);
+            session.commandCounter = session.commandList.length;
             $('#command-line-input').val('');
           }
         }
@@ -912,7 +912,7 @@ export default function App() {
         const command = commandInput.val().trim();
 
         session.addCommandToList(command);
-        session.setCommandCounter(session.getCommandList().length);
+        session.commandCounter(session.commandList.length);
         const args = /^([a-zA-Z]+)(?:\s+([^\s].*)|)$/.exec(command);
 
         if (!args) {
@@ -1064,7 +1064,7 @@ export default function App() {
 
           // Resize chart.
           if (surface.getPanelProperty('chart.active')) {
-            surface.setChartPanelWidth($('#chart-wrapper').width());
+            surface.chartPanelWidth($('#chart-wrapper').width());
 
             let tmph = surface.getPanelProperty('chart.height');
 
@@ -1129,8 +1129,8 @@ export default function App() {
 
           if (surface.getPanelProperty('chart.active')) {
             setTimeout(() => {
-              surface.setChartPanelHeight($('#chart-wrapper').height());
-              surface.setChartPanelWidth($('#chart-wrapper').width());
+              surface.chartPanelHeight = $('#chart-wrapper').height();
+              surface.chartPanelWidth = $('#chart-wrapper').width();
               chart.resizeChart(surface.getPanelProperty('chart.height'), surface.getPanelProperty('chart.width'));
             }, 100);
           }

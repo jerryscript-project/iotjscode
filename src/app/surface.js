@@ -106,8 +106,42 @@ export default class Surface {
    *
    * @return {boolean} True if the left side menu is opened, false otherwise.
    */
-  isSidenavOpened() {
+  get isSidenavOpened() {
     return this._sidenav.opened;
+  }
+
+  /**
+   * Returns of the opened state of the sidenav extra panel.
+   *
+   * @return {boolean} True if the extra sidenav opened, flase otherwise.
+   */
+  get isSidenavExtraOpened() {
+    return this._sidenavExtra.opened;
+  }
+
+  /**
+   * Returns the last opened sidenav extra menu identifier.
+   */
+  get lastOpenedSidenavExtra() {
+    return this._sidenavExtra.last;
+  }
+
+  /**
+   * Sets the chart panel width property.
+   *
+   * @param {number} width New width value.
+   */
+  set chartPanelWidth(width) {
+    this._panel.chart.width = width;
+  }
+
+  /**
+   * Sets the chart panel height property.
+   *
+   * @param {number} height New height value.
+   */
+  set chartPanelHeight(height) {
+    this._panel.chart.height = height;
   }
 
   /**
@@ -131,22 +165,6 @@ export default class Surface {
     if (this.getPanelProperty('breakpoints.active')) {
       $('#breakpoints-table').floatThead('reflow');
     }
-  }
-
-  /**
-   * Returns of the opened state of the sidenav extra panel.
-   *
-   * @return {boolean} True if the extra sidenav opened, flase otherwise.
-   */
-  isSidenavExtraOpened() {
-    return this._sidenavExtra.opened;
-  }
-
-  /**
-   * Returns the last opened sidenav extra menu identifier.
-   */
-  getLastOpenedSidenavExtra() {
-    return this._sidenavExtra.last;
   }
 
   /**
@@ -424,7 +442,7 @@ export default class Surface {
       });
 
       // Generate the ordered list and fill the destonation field based on the file state.
-      const list = session.getUploadBackupList();
+      const list = session.uploadBackupList;
 
       if (list.length) {
         for (const i in list) {
@@ -437,7 +455,7 @@ export default class Surface {
               this.appendChooserLi($dest, 'sortable', '', 'run-' + ss.name, ss.id, ss.name);
             }
 
-            if (!session.isFileInUploadList(list[i]) && session.getUploadBackupList().indexOf(list[i]) != -1) {
+            if (!session.isFileInUploadList(list[i]) && session.uploadBackupList.indexOf(list[i]) != -1) {
               this.changeUploadColor(this.COLOR.GREEN, list[i]);
             }
           }
@@ -454,7 +472,7 @@ export default class Surface {
     }
 
     if (type === SURFACE_RUN_UPDATE_TYPE.ALL || type === SURFACE_RUN_UPDATE_TYPE.BUTTON) {
-      if (session.isUploadStarted()) {
+      if (session.isUploadStarted) {
         // Disable the clear and the run button.
         this.toggleButton(false, ok);
         this.toggleButton(false, clear);
@@ -481,8 +499,8 @@ export default class Surface {
         // Enable the run button if there is a connection and a source in the list.
         if (debuggerObj &&
             debuggerObj.getEngineMode() === ENGINE_MODE.CLIENT_SOURCE &&
-            session.isUploadAndRunAllowed() &&
-            !session.isUploadStarted() &&
+            session.isUploadAndRunAllowed &&
+            !session.isUploadStarted &&
             !$dest.is(':empty')) {
           this.toggleButton(true, ok);
         } else {
@@ -492,7 +510,7 @@ export default class Surface {
     }
 
     if (type === SURFACE_RUN_UPDATE_TYPE.ALL || type === SURFACE_RUN_UPDATE_TYPE.JQUI) {
-      if (session.isUploadStarted()) {
+      if (session.isUploadStarted) {
         // Disable the sortable and selectable ul element.
         $dest.sortable('disable');
         $dest.selectable('disable');
@@ -572,31 +590,13 @@ export default class Surface {
   }
 
   /**
-   * Sets the chart panel width property.
-   *
-   * @param {number} width New width value.
-   */
-  setChartPanelWidth(width) {
-    this._panel.chart.width = width;
-  }
-
-  /**
-   * Sets the chart panel height property.
-   *
-   * @param {number} height New height value.
-   */
-  setChartPanelHeight(height) {
-    this._panel.chart.height = height;
-  }
-
-  /**
    * Sets the memory chart dimensions then init and resize that with these dimensions.
    *
    * @param {object} chart The main MemoryChart module instance.
    */
   initChartPanel(chart) {
-    this.setChartPanelWidth($('#chart-wrapper').width());
-    this.setChartPanelHeight($('#chart-wrapper').height());
+    this.chartPanelWidth = $('#chart-wrapper').width();
+    this.chartPanelHeight = $('#chart-wrapper').height();
     chart.initChart();
     chart.resizeChart(this.getPanelProperty('chart.height'), this.getPanelProperty('chart.width'));
   }
@@ -770,7 +770,7 @@ export default class Surface {
    *
    * @return {integer}
    */
-  getPanelsNumber() {
+   getPanelsNumber() {
     return $('#info-panels').children('.vertical-resizable').length;
   }
 

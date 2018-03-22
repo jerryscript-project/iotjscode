@@ -763,21 +763,21 @@ export default class DebuggerClient {
       return;
     }
 
-    if (!this._session.getUploadList().length || !this._session.isUploadStarted()) {
+    if (!this._session.uploadList.length || !this._session.isUploadStarted) {
       this._logger.info('The engine is waiting for a source.', true);
       return;
     }
 
     this.setEngineMode(ENGINE_MODE.RUN);
 
-    const fid = this._session.getUploadList()[0];
+    const fid = this._session.uploadList[0];
 
     if (fid === 0) {
       this.encodeMessage('B', [PROTOCOL.CLIENT.JERRY_DEBUGGER_CONTEXT_RESET]);
       this._session.shiftUploadList();
-      this._session.setContextReset(true);
+      this._session.contextReset = true;
       this._surface.changeUploadColor(SURFACE_COLOR.GREEN, fid);
-      this._session.allowUploadAndRun(false);
+      this._session.allowUploadAndRun = false;
       return;
     }
 
@@ -793,8 +793,8 @@ export default class DebuggerClient {
         this.encodeMessage('B', [PROTOCOL.CLIENT.JERRY_DEBUGGER_CONTEXT_RESET]);
         this._session.resetUploadList();
         this._session.shiftUploadList();
-        this._session.setContextReset(true);
-        this._session.allowUploadAndRun(false);
+        this._session.contextReset = true;
+        this._session.allowUploadAndRun = false;
         return;
       }
     }
@@ -807,7 +807,7 @@ export default class DebuggerClient {
     if (byteLength <= this._maxMessageSize) {
       this._connection.send(array);
       this._session.shiftUploadList();
-      this._session.allowUploadAndRun(false);
+      this._session.allowUploadAndRun = false;
       this._surface.changeUploadColor(SURFACE_COLOR.GREEN, fid);
       return;
     }
@@ -823,7 +823,7 @@ export default class DebuggerClient {
     }
 
     this._session.shiftUploadList();
-    this._session.allowUploadAndRun(false);
+    this._session.allowUploadAndRun = false;
     this._surface.changeUploadColor(SURFACE_COLOR.GREEN, fid);
   }
 
@@ -910,7 +910,7 @@ export default class DebuggerClient {
 
     if (this._settings.getValue('debugger.transpileToES5') && !this._transpiler.isEmpty()) {
       line = this._transpiler.getOriginalPositionFor(
-        this._session.getFileNameById(this._session.getActiveID()),
+        this._session.getFileNameById(this._session.activeID),
         line,
         0
       ).line;
@@ -927,7 +927,7 @@ export default class DebuggerClient {
 
       if (this._settings.getValue('debugger.transpileToES5') && !this._transpiler.isEmpty()) {
         position = this._transpiler.getOriginalPositionFor(
-          this._session.getFileNameById(this._session.getActiveID()),
+          this._session.getFileNameById(this._session.activeID),
           position.line,
           position.column
         );

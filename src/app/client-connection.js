@@ -156,8 +156,8 @@ function onclose_and_error() {
     this._transpiler.clearTranspiledSources();
   }
 
-  if (this._session.isUploadStarted()) {
-    this._session.setUploadStarted(false);
+  if (this._session.isUploadStarted) {
+    this._session.uploadStarted = false;
   }
 
   // Reset the editor.
@@ -167,8 +167,8 @@ function onclose_and_error() {
   this._surface.toggleButton(true, 'connect-to-button');
   this._surface.continueStopButtonState(SURFACE_CSICON.CONTINUE);
 
-  if (this._session.isContextReset()) {
-    this._session.setContextReset(false);
+  if (this._session.isContextReset) {
+    this._session.contextReset = false;
 
     // Try to reconnect once.
     setTimeout(() => {
@@ -256,7 +256,7 @@ function onmessage(event) {
       if (messagedata[0] !== 0) {
         if (this._chart.isRecordStarted()) {
           this._chart.startRecord(false);
-          this._chart.setChartActive(true);
+          this._chart.chartActive = true;
 
           this._surface.toggleButton(false, 'chart-reset-button');
           this._surface.toggleButton(true, 'chart-stop-button');
@@ -311,23 +311,23 @@ function onmessage(event) {
       if (sourceName !== '') {
         if (!this._session.fileNameCheck(sourceName, true)) {
           this._session.storeJerrySource(sourceName, source);
-          this._session.setJerrySourceAction(SOURCE_SNYC_ACTION.LOAD);
+          this._session.jerrySourceAction = SOURCE_SNYC_ACTION.LOAD;
 
-          if (this._session.isAutoSourceSync()) {
+          if (this._session.isAutoSourceSync) {
             this._session.syncSourceFromJerry();
-            this._session.setAutoSourceSync(false);
+            this._session.autoSourceSync = false;
           } else {
             this._logger.warning(`The file "${sourceName}" is missing.`, true);
             this._surface.toggleButton(true, 'jerry-sync-source-button');
           }
         } else {
           // Disable the auto source sync option in case of valid source.
-          this._session.setAutoSourceSync(false);
+          this._session.autoSourceSync = false;
 
           // Do not check the code match if the transpile is enabled.
           if (!this._settings.getValue('debugger.transpileToES5') && this._transpiler.isEmpty()) {
             if (!this._session.fileContentCheck(sourceName, source)) {
-              this._session.setJerrySourceAction(SOURCE_SNYC_ACTION.RELOAD);
+              this._session.jerrySourceAction = SOURCE_SNYC_ACTION.RELOAD;
               this._logger.warning(`The "${sourceName}" source does not match with the source on the device!`, true);
               this._surface.toggleButton(true, 'jerry-sync-source-button');
             }
@@ -341,7 +341,7 @@ function onmessage(event) {
 
       // Switch to the the right session.
       const fid = this._session.getFileIdByName(sourceName);
-      if (fid !== undefined && fid !== this._session.getActiveID()) {
+      if (fid !== undefined && fid !== this._session.activeID) {
         // Change the model in the editor.
         this._session.switchFile(fid);
       }
@@ -364,7 +364,7 @@ function onmessage(event) {
         }
       } else {
         // Highlight the execute line in the correct session.
-        if (fid !== undefined && fid === this._session.getActiveID()) {
+        if (fid !== undefined && fid === this._session.activeID) {
           this._session.highlightLine(MARKER_TYPE.EXECUTE, hlLine);
           this._session.markBreakpointLines(this._debuggerObj, this._settings, this._transpiler);
         }
@@ -442,11 +442,11 @@ function onmessage(event) {
       this._evalResult = this._evalResult.slice(0, -1);
 
       if (subType === PROTOCOL.SERVER.JERRY_DEBUGGER_EVAL_OK) {
-        if (this._surface.getPanelProperty('watch.active') && this._session.isWatchInProgress()) {
+        if (this._surface.getPanelProperty('watch.active') && this._session.isWatchInProgress) {
           this._session.stopWatchProgress();
           this._session.addWatchExpressionValue(
             this._debuggerObj,
-            this._session.getWatchCurrentExpr(),
+            this._session.watchCurrentExpr,
             this._debuggerObj.cesu8ToString(this._evalResult)
           );
         } else {
@@ -459,11 +459,11 @@ function onmessage(event) {
       }
 
       if (subType === PROTOCOL.SERVER.JERRY_DEBUGGER_EVAL_ERROR) {
-        if (this._surface.getPanelProperty('watch.active') && this._session.isWatchInProgress()) {
+        if (this._surface.getPanelProperty('watch.active') && this._session.isWatchInProgress) {
           this._session.stopWatchProgress();
           this._session.addWatchExpressionValue(
             this._debuggerObj,
-            this._session.getWatchCurrentExpr(),
+            this._session.watchCurrentExpr,
             ''
           );
         } else {
@@ -515,7 +515,7 @@ function onmessage(event) {
       this._debuggerObj.setEngineMode(ENGINE_MODE.CLIENT_SOURCE);
 
       this._surface.disableActionButtons(true);
-      this._session.allowUploadAndRun(true);
+      this._session.allowUploadAndRun = true;
 
       if (this._surface.getPanelProperty('run.active')) {
         this._surface.updateRunPanel(SURFACE_RUN_UPDATE_TYPE.BUTTON, this._debuggerObj, this._session);

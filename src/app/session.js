@@ -117,7 +117,7 @@ export default class Session {
    *
    * @return {integer}
    */
-  getNextID() {
+  get nextID() {
     return this._id.next;
   }
 
@@ -126,7 +126,7 @@ export default class Session {
    *
    * @return {integer}
    */
-  getActiveID() {
+  get activeID() {
     return this._id.active;
   }
 
@@ -135,7 +135,7 @@ export default class Session {
    *
    * @return {integer}
    */
-  getCommandCounter() {
+  get commandCounter() {
     return this._command.counter;
   }
 
@@ -144,7 +144,7 @@ export default class Session {
    *
    * @param {integer} count New value of the counter.
    */
-  setCommandCounter(count) {
+  set commandCounter(count) {
     this._command.counter = count;
   }
 
@@ -153,8 +153,131 @@ export default class Session {
    *
    * @return {array} String array.
    */
-  getCommandList() {
+  get commandList() {
     return this._command.list;
+  }
+
+  /**
+   * Returns the actual state of the contextReset.
+   *
+   * @return {boolean} True if the context reset request is active, false otherwise.
+   */
+  get isContextReset() {
+    return this._contextReset;
+  }
+
+  /**
+   * Sets the value of the contextReset.
+   *
+   * @param {boolean} value The new true or false value.
+   */
+  set contextReset(value) {
+    this._contextReset = value;
+  }
+
+  /**
+   * Returns the state of the upload and run availability.
+   *
+   * @return {true} True, if the uplaod and run is activated, false otherwise.
+   */
+  get isUploadAndRunAllowed() {
+    return this._upload.allowed;
+  }
+
+  /**
+   * Changes the state of the upload and run.
+   *
+   * @param {boolean} value The new true or false value.
+   */
+  set allowUploadAndRun(value) {
+    this._upload.allowed = value;
+  }
+
+  /**
+   * Returns the state of the upload.started.
+   *
+   * @return {true} True, if the uplaod is started by the user, false otherwise.
+   */
+  get isUploadStarted() {
+    return this._upload.started;
+  }
+
+  /**
+   * Changes the state of the upload.started.
+   *
+   * @param {boolean} value The new true or false value.
+   */
+  set uploadStarted(value) {
+    this._upload.started = value;
+  }
+
+  /**
+   * Returns the upload backup list.
+   *
+   * @return {array} Array of file id list.
+   */
+  get uploadBackupList() {
+    return this._upload.backupList;
+  }
+
+  /**
+   * Returns the array of the file ids from the upload list.
+   *
+   * @return {array} The id list.
+   */
+  get uploadList() {
+    return this._upload.list;
+  }
+
+  /**
+   * Returns the watch section progress value.
+   *
+   * @return {boolean} True if a watch expression eval is in progress, false otherwise.
+   */
+  get isWatchInProgress() {
+    return this._watch.work.inProgress;
+  }
+  /**
+   * Change the watch section progress flag to false.
+   */
+  stopWatchProgress() {
+    this._watch.work.inProgress = false;
+  }
+
+  /**
+   * Returns that expression which is under evaluation at the moment.
+   *
+   * @return {string} Watch Expression.
+   */
+  get watchCurrentExpr() {
+    return this._watch.work.currentExpr;
+  }
+
+  /**
+   * Sets the given action type in the jerry source object.
+   *
+   * @param {integer} type Type of the new action.
+   */
+  set jerrySourceAction(type) {
+    this._jerrySource.action = type;
+  }
+
+  /**
+   * Checks that the auto source sync is enabled or not.
+   *
+   * @returns {boolean} True if the auto sync is enabled, false otherwise.
+   */
+  get isAutoSourceSync() {
+    return this._jerrySource.reset;
+  }
+
+  /**
+   * Changes the value of the auto source sync.
+   *
+   * @param {boolean} value New value of the auto sync option.
+   */
+  set autoSourceSync(value) {
+    this._jerrySource.reset = value;
   }
 
   /**
@@ -164,60 +287,6 @@ export default class Session {
    */
   addCommandToList(comm) {
     this._command.list.push(comm);
-  }
-
-  /**
-   * Returns the actual state of the contextReset.
-   *
-   * @return {boolean} True if the context reset request is active, false otherwise.
-   */
-  isContextReset() {
-    return this._contextReset;
-  }
-
-  /**
-   * Sets the value of the contextReset.
-   *
-   * @param {boolean} value The new true or false value.
-   */
-  setContextReset(value) {
-    this._contextReset = value;
-  }
-
-  /**
-   * Returns the state of the upload and run availability.
-   *
-   * @return {true} True, if the uplaod and run is activated, false otherwise.
-   */
-  isUploadAndRunAllowed() {
-    return this._upload.allowed;
-  }
-
-  /**
-   * Changes the state of the upload and run.
-   *
-   * @param {boolean} value The new true or false value.
-   */
-  allowUploadAndRun(value) {
-    this._upload.allowed = value;
-  }
-
-  /**
-   * Returns the state of the upload.started.
-   *
-   * @return {true} True, if the uplaod is started by the user, false otherwise.
-   */
-  isUploadStarted() {
-    return this._upload.started;
-  }
-
-  /**
-   * Changes the state of the upload.started.
-   *
-   * @param {boolean} value The new true or false value.
-   */
-  setUploadStarted(value) {
-    this._upload.started = value;
   }
 
   /**
@@ -290,53 +359,10 @@ export default class Session {
   }
 
   /**
-   * Returns the upload backup list.
-   *
-   * @return {array} Array of file id list.
-   */
-  getUploadBackupList() {
-    return this._upload.backupList;
-  }
-
-  /**
-   * Returns the array of the file ids from the upload list.
-   *
-   * @return {array} The id list.
-   */
-  getUploadList() {
-    return this._upload.list;
-  }
-
-  /**
    * Removes the first element of the upload list.
    */
   shiftUploadList() {
     this._upload.list.shift();
-  }
-
-  /**
-   * Returns the watch section progress value.
-   *
-   * @return {boolean} True if a watch expression eval is in progress, false otherwise.
-   */
-  isWatchInProgress() {
-    return this._watch.work.inProgress;
-  }
-
-  /**
-   * Change the watch section progress flag to false.
-   */
-  stopWatchProgress() {
-    this._watch.work.inProgress = false;
-  }
-
-  /**
-   * Returns that expression which is under evaluation at the moment.
-   *
-   * @return {string} Watch Expression.
-   */
-  getWatchCurrentExpr() {
-    return this._watch.work.currentExpr;
   }
 
   /**
@@ -919,33 +945,6 @@ export default class Session {
   storeJerrySource(name, source) {
     this._jerrySource.name = name.split('/').pop();
     this._jerrySource.source = source;
-  }
-
-  /**
-   * Sets the given action type in the jerry source object.
-   *
-   * @param {integer} type Type of the new action.
-   */
-  setJerrySourceAction(type) {
-    this._jerrySource.action = type;
-  }
-
-  /**
-   * Checks that the auto source sync is enabled or not.
-   *
-   * @returns {boolean} True if the auto sync is enabled, false otherwise.
-   */
-  isAutoSourceSync() {
-    return this._jerrySource.reset;
-  }
-
-  /**
-   * Changes the value of the auto source sync.
-   *
-   * @param {boolean} value New value of the auto sync option.
-   */
-  setAutoSourceSync(value) {
-    this._jerrySource.reset = value;
   }
 
   /**

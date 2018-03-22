@@ -84,7 +84,7 @@ export default class MemoryChart {
    *
    * @param {boolean} value True if the chart should be active, false otherwise.
    */
-  setChartActive(value) {
+  set chartActive(value) {
     this._activeChart = value;
   }
 
