@@ -31,7 +31,7 @@ const welcomeContent = '/**\n' +
 /**
  * Action types for sync the source code between the client and the engine.
  */
-export const SOURCE_SNYC_ACTION = {
+export const SOURCE_SYNC_ACTION = {
   NOP: 0,
   LOAD: 1,
   RELOAD: 2,
@@ -90,7 +90,7 @@ export default class Session {
       name: '',
       source: '',
       reset: true,
-      action: SOURCE_SNYC_ACTION.NOP,
+      action: SOURCE_SYNC_ACTION.NOP,
     };
 
     this._contextReset = false;
@@ -732,14 +732,14 @@ export default class Session {
   resetFileContent(filename, content) {
     const file = this.getFileDataById(this.getFileIdByName(filename));
 
-    // Save the view state.
-    file.state = this._environment.editor.saveViewState();
-
     // Set the new content.
     file.model.setValue(content);
 
-    // Restore the view state.
-    this._environment.editor.restoreViewState(file.state);
+    // Sets the breakpoints.
+    this._glyph.renderByFile(this._id.active);
+
+    // Sets the marker.
+    this.highlightLine(MARKER_TYPE.EXECUTE, this._lastBreakpoint.line);
   }
 
   /**
@@ -954,14 +954,14 @@ export default class Session {
    */
   syncSourceFromJerry() {
     switch (this._jerrySource.action) {
-      case SOURCE_SNYC_ACTION.LOAD:
+      case SOURCE_SYNC_ACTION.LOAD:
         this.createNewFile(this._jerrySource.name, this._jerrySource.source, true);
 
         if (this._surface.getPanelProperty('run.active')) {
           this._surface.updateRunPanel(this._surface.RUN_UPDATE_TYPE.ALL, this._debuggerObj, this._session);
         }
         break;
-      case SOURCE_SNYC_ACTION.RELOAD:
+      case SOURCE_SYNC_ACTION.RELOAD:
         this.resetFileContent(this._jerrySource.name, this._jerrySource.source);
         break;
       default:
@@ -983,7 +983,7 @@ export default class Session {
 
     this._upload.list = this._upload.backupList;
     this._upload.allowed = false;
-    this._jerrySource.action = SOURCE_SNYC_ACTION.NOP;
+    this._jerrySource.action = SOURCE_SYNC_ACTION.NOP;
     this._jerrySource.reset = true;
 
     if (this.isFileInUploadList(0)) {

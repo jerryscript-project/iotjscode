@@ -20,7 +20,7 @@ import { MARKER_TYPE } from './modules/session/marker';
 import { SURFACE_CSICON, SURFACE_RUN_UPDATE_TYPE } from './surface';
 import Transpiler from './transpiler';
 import Util from './util';
-import { SOURCE_SNYC_ACTION } from './session';
+import { SOURCE_SYNC_ACTION } from './session';
 import Logger from './logger';
 
 export default class Connection {
@@ -309,9 +309,9 @@ function onmessage(event) {
 
       // Source load and reload from Jerry.
       if (sourceName !== '') {
+        this._session.storeJerrySource(sourceName, source);
         if (!this._session.fileNameCheck(sourceName, true)) {
-          this._session.storeJerrySource(sourceName, source);
-          this._session.jerrySourceAction = SOURCE_SNYC_ACTION.LOAD;
+          this._session.jerrySourceAction = SOURCE_SYNC_ACTION.LOAD;
 
           if (this._session.isAutoSourceSync) {
             this._session.syncSourceFromJerry();
@@ -327,7 +327,7 @@ function onmessage(event) {
           // Do not check the code match if the transpile is enabled.
           if (!this._settings.getValue('debugger.transpileToES5') && this._transpiler.isEmpty()) {
             if (!this._session.fileContentCheck(sourceName, source)) {
-              this._session.jerrySourceAction = SOURCE_SNYC_ACTION.RELOAD;
+              this._session.jerrySourceAction = SOURCE_SYNC_ACTION.RELOAD;
               this._logger.warning(`The "${sourceName}" source does not match with the source on the device!`, true);
               this._surface.toggleButton(true, 'jerry-sync-source-button');
             }
