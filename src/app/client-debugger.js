@@ -328,44 +328,46 @@ export default class DebuggerClient {
     }
 
     for (let i in format) {
-      if (format[i] === 'B') {
-        result.push(message[offset]);
-        offset++;
-        continue;
-      }
+      if (format.hasOwnProperty(i)) {
+        if (format[i] === 'B') {
+          result.push(message[offset]);
+          offset++;
+          continue;
+        }
 
-      if (format[i] === 'C' && this._cpointerSize === 2) {
+        if (format[i] === 'C' && this._cpointerSize === 2) {
+          if (this._littleEndian) {
+            value = message[offset] | (message[offset + 1] << 8);
+          } else {
+            value = (message[offset] << 8) | message[offset + 1];
+          }
+
+          result.push(value);
+          offset += 2;
+          continue;
+        }
+
+        Util.assert(format[i] === 'I' || (format[i] === 'C' && this._cpointerSize === 4));
+
         if (this._littleEndian) {
-          value = message[offset] | (message[offset + 1] << 8);
+          value = (
+            message[offset] |
+            (message[offset + 1] << 8) |
+            (message[offset + 2] << 16) |
+            (message[offset + 3] << 24)
+          );
         } else {
-          value = (message[offset] << 8) | message[offset + 1];
+          value = (
+            (message[offset] << 24) |
+            (message[offset + 1] << 16) |
+            (message[offset + 2] << 8) |
+            (message[offset + 3] << 24)
+          );
         }
 
         result.push(value);
-        offset += 2;
-        continue;
+        offset += 4;
       }
-
-      Util.assert(format[i] === 'I' || (format[i] === 'C' && this._cpointerSize === 4));
-
-      if (this._littleEndian) {
-        value = (
-          message[offset] |
-          (message[offset + 1] << 8) |
-          (message[offset + 2] << 16) |
-          (message[offset + 3] << 24)
-        );
-      } else {
-        value = (
-          (message[offset] << 24) |
-          (message[offset + 1] << 16) |
-          (message[offset + 2] << 8) |
-          (message[offset + 3] << 24)
-        );
-      }
-
-      result.push(value);
-      offset += 4;
     }
 
     return result;
@@ -1031,19 +1033,21 @@ export default class DebuggerClient {
     let length = 0;
 
     for (const i in format) {
-      if (format[i] === 'B') {
-        length++;
-        continue;
+      if (format.hasOwnProperty(i)) {
+        if (format[i] === 'B') {
+          length++;
+          continue;
+        }
+
+        if (format[i] === 'C') {
+          length += this._cpointerSize;
+          continue;
+        }
+
+        Util.assert(format[i] == 'I');
+
+        length += 4;
       }
-
-      if (format[i] === 'C') {
-        length += this._cpointerSize;
-        continue;
-      }
-
-      Util.assert(format[i] == 'I');
-
-      length += 4;
     }
 
     return length;
