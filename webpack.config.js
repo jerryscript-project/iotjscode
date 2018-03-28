@@ -4,6 +4,7 @@ const path = require('path');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CleanWebpackPlugin = require('clean-webpack-plugin');
 
 const source_path = path.resolve(__dirname, 'src');
 const build_path = path.resolve(__dirname, 'dist');
@@ -40,6 +41,7 @@ const plugins = [
     },
   ]),
   new ExtractTextPlugin('css/[name].css'),
+  new CleanWebpackPlugin(['dist']),
 ];
 
 const rules = [
@@ -53,16 +55,29 @@ const rules = [
     },
   ]},
   {
-    test: /\.(woff|woff2|eot|ttf|otf)$/,
+    test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
+    use: [{
+      loader: 'url-loader',
+      options: {
+        name: 'fonts/[hash].[ext]',
+      },
+    }],
+  }, {
+    test: /\.(eot|ttf|otf)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
     use: [{
       loader: 'file-loader',
       options: {
-        name: '[hash].[ext]',
-        outputPath: 'fonts/',
-        publicPath: '../',
+        name: 'fonts/[hash].[ext]',
       },
-    },
-  ]},
+    }],
+  },
+  {
+    test: /\.(scss|css)$/,
+    use: ExtractTextPlugin.extract({
+      fallback: 'style-loader',
+      use: 'css-loader!sass-loader',
+    }),
+  },
   {
     test: /\.js$/,
     exclude: /(node_modules)/,
@@ -75,7 +90,7 @@ const rules = [
   },
   {
     test: /\.ejs$/,
-    loader: 'ejs-render-loader',
+    loader: 'ejs-compiled-loader',
   },
 ];
 
@@ -87,12 +102,17 @@ const config = {
   output: {
     path: build_path,
     filename: 'js/[name].[chunkhash].bundle.js',
+    chunkFilename: 'js/[name].bundle.js',
+    publicPath: '/',
   },
   module: {
     rules,
   },
   plugins,
   resolve,
+  node: {
+    fs: 'empty',
+  },
 };
 
 module.exports = config;
