@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-import Connection from './client-connection';
-import Transpiler from './transpiler';
-import Util from './util';
-import Logger from './logger';
-import Breakpoints from './modules/client/breakpoints';
-import { SURFACE_COLOR } from './surface';
+import Connection from './connection';
+import Breakpoints from './breakpoints';
+import assert from 'assert';
+import { EventEmitter } from 'events';
 
 /**
  * Expected Debugger Protocol version.
@@ -102,23 +100,38 @@ export const ENGINE_MODE = {
   CLIENT_SOURCE: 3,
 };
 
+/**
+ * Type of the possible functions return.
+ */
+export const DEBUGGER_RETURN_TYPES = {
+  COMMON: {
+    SUCCESS: 0,
+    FAIL: 1,
+    ALLOWED_IN_BREAKPOINT_MODE: 2,
+    ARGUMENT_REQUIRED: 3,
+    ARGUMENT_INVALID: 4,
+  },
+  SOURCE_SENDING: {
+    ALLOWED_IN_SOURCE_SENDING_MODE: 100,
+    CONTEXT_RESET_SENDED: 101,
+    SOURCE_SENDED: 102,
+    MULTIPLE_SOURCE_SENDED: 103,
+  },
+  EXCEPTION_CONFIG: {
+    ENABLED: 200,
+    DISABLED: 201,
+  },
+};
+
 export default class DebuggerClient {
 
   /**
    * Constructor.
    *
    * @param {string} address Connection address (ip and port).
-   * @param {object} session Session module object.
-   * @param {object} surface Surface module object.
-   * @param {object} settings Settings module object.
-   * @param {object} chart MemoryChart module object.
    */
-  constructor(address, session, surface, settings, chart) {
-    this._logger = new Logger($('#console-panel'));
-    this._transpiler = new Transpiler();
-    this._session = session;
-    this._surface = surface;
-    this._settings = settings;
+  constructor(address) {
+    this._eventEmitter = new EventEmitter();
 
     this._verison = 0;
 
@@ -137,7 +150,11 @@ export default class DebuggerClient {
       last: null,
     };
 
-    this._connection = new Connection(this, address, this._surface, this._session, this._settings, chart);
+    this._connection = new Connection(this, address);
+  }
+
+  get connection() {
+    return this._connection;
   }
 
   get breakpoints() {
@@ -148,94 +165,86 @@ export default class DebuggerClient {
     return this._lineList;
   }
 
-  getProtocolVersion() {
+  get version() {
     return this._verison;
   }
 
-  setProtocolVersion(version) {
+  set version(version) {
     this._verison = version;
   }
 
-  getMaxMessageSize() {
+  get maxMessageSize() {
     return this._maxMessageSize;
   }
 
-  setMaxMessageSize(size) {
-    this._maxMessageSize = size;
+  set maxMessageSize(max) {
+    this._maxMessageSize = max;
   }
 
-  getCPointerSize() {
+  get cPointerSize() {
     return this._cpointerSize;
   }
 
-  setCPointerSize(size) {
+  set cPointerSize(size) {
     this._cpointerSize = size;
   }
 
-  isLittleEndian() {
+  get littleEndian() {
     return this._littleEndian;
   }
 
-  setLittleEndian(value) {
+  set littleEndian(value) {
     this._littleEndian = value;
   }
 
-  getBacktraceFrame() {
+  get backtraceFrame() {
     return this._backtraceFrame;
   }
 
-  setBacktraceFrame(frame) {
+  set backtraceFrame(frame) {
     this._backtraceFrame = frame;
   }
 
-  getFunctions() {
+  get functions() {
     return this._functions;
   }
 
-  setFunctions(key, value) {
-    this._functions[key] = value;
+  set functions(pair) {
+    this._functions[pair.key] = pair.value;
   }
 
-  getSources() {
+  get sources() {
     return this._sources;
   }
 
-  setSources(name, source) {
-    this._sources[name] = source;
+  set sources(pair) {
+    this._sources[pair.key] = pair.value;
   }
 
-  getEngineMode() {
+  get engineMode() {
     return this._mode.current;
   }
 
-  setEngineMode(mode) {
+  set engineMode(mode) {
     this._mode.last = this._mode.current;
     this._mode.current = mode;
 
-    if (mode === ENGINE_MODE.CLIENT_SOURCE ||
-        mode === ENGINE_MODE.DISCONNECTED) {
-      this._surface.toggleSettingItem(true, 'transpileToES5');
-    } else {
-      this._surface.toggleSettingItem(false, 'transpileToES5');
-    }
+    this._eventEmitter.emit('engineModeChange', [mode]);
   }
 
   /**
-   * Closes the websocket connection.
+   * Debugger client related event handler.
    *
-   * @param {string} message The reason of the close (optional).
+   * @param {string} event The selected event name.
+   * @value "engineModeChange" - Emitted on engineMode property change.
+   * @value "setBreakpoint" - Emitted on setBreakpoint function call.
+   * @value "insertBreakpoint" - Emitted on insertBreakpoint function call.
+   * @value "deleteBreakpoint" - Emitted on deleteBreakpoint function call.
+   * @value "deletePendingBreakpoint" - Emitted on deletePendingBreakpoint function call.
+   * @param {function} callback The event listener function.
    */
-  closeConnection(message = '') {
-    this._connection.close(message);
-  }
-
-  /**
-   * Aborts the sockeet connection through the connection object.
-   *
-   * @param {string} message The abort message.
-   */
-  abortConnection(message) {
-    this._connection.abort(message);
+  on(event, callback) {
+    this._eventEmitter.on(event, args => callback(...args));
   }
 
   /**
@@ -314,6 +323,7 @@ export default class DebuggerClient {
    * @param {char} format Format type.
    * @param {uint8} message Recieved message.
    * @param {number} offset Offset inside the message.
+   * @return {array} The decode message data.
    */
   decodeMessage(format, message, offset) {
     let result = [];
@@ -347,7 +357,7 @@ export default class DebuggerClient {
           continue;
         }
 
-        Util.assert(format[i] === 'I' || (format[i] === 'C' && this._cpointerSize === 4));
+        assert.ok(format[i] === 'I' || (format[i] === 'C' && this._cpointerSize === 4));
 
         if (this._littleEndian) {
           value = (
@@ -490,8 +500,10 @@ export default class DebuggerClient {
       }
     }
 
+    let messages = [];
+
     if (!found) {
-      this._logger.info('Breakpoint not found');
+      messages.push('Breakpoint not found');
       if (pending) {
         if (!this._breakpoints.pendingBreakpoints.length) {
           this.sendParserConfig(1);
@@ -503,59 +515,60 @@ export default class DebuggerClient {
             function: '',
             sourceName: line[0],
           });
-          this._logger.info(`Pending breakpoint index: ${line[0]} added`);
+          messages.push(`Pending breakpoint index: ${line[0]} added`);
         } else {
           this._breakpoints.pendingBreakpoints.push({
             line: null,
             function: str,
             sourceName: null,
           });
-          this._logger.info(`Pending breakpoint function name: ${str} added`);
+          messages.push(`Pending breakpoint function name: ${str} added`);
         }
-      } else {
-        return false;
       }
     }
 
-    this._surface.updateBreakpointsPanel(this._breakpoints.activeBreakpoints, this._settings, this._transpiler);
-    return true;
+    this._eventEmitter.emit('setBreakpoint', [messages]);
+
+    return !found && !pending ? false : true;
   }
 
   /**
    * Sends the exeption catch configuration byte to the engine.
    *
    * @param {boolean} enable True if the exeption catch is enabled, false otherwise.
+   * @returns {object} Returns with a success and with a message parameter.
    */
   sendExceptionConfig(enable) {
     if (enable === '') {
-      this._logger.error('Argument required', true);
-      return;
+      return DEBUGGER_RETURN_TYPES.COMMON.ARGUMENT_REQUIRED;
     }
 
-    if (enable === 1) {
-      this._logger.info('Stop at exception enabled');
-    } else if (enable === 0) {
-      this._logger.info('Stop at exception disabled');
-    } else {
-      this._logger.info('Invalid input. Usage 1: [Enable] or 0: [Disable].');
-      return;
+    if (enable === 1 || enable === 0) {
+      this.encodeMessage('BB', [PROTOCOL.CLIENT.JERRY_DEBUGGER_EXCEPTION_CONFIG, enable]);
+      return enable === 1 ? (
+        DEBUGGER_RETURN_TYPES.EXCEPTION_CONFIG.ENABLED
+      ) : (
+        DEBUGGER_RETURN_TYPES.EXCEPTION_CONFIG.DISABLED
+      );
     }
 
-    this.encodeMessage('BB', [PROTOCOL.CLIENT.JERRY_DEBUGGER_EXCEPTION_CONFIG, enable]);
+    return DEBUGGER_RETURN_TYPES.COMMON.ARGUMENT_INVALID;
   }
 
   /**
    * Sends the parser configuration flag to the engine.
    *
    * @param {boolean} enable True if the parser waiting is enabled, false otherwise.
+   * @returns {object} Returns with a success and with a message parameter.
    */
   sendParserConfig(enable) {
     if (enable === undefined) {
-      this._logger.error('Parser config argument is required.', true);
-      return;
+      return DEBUGGER_RETURN_TYPES.COMMON.ARGUMENT_REQUIRED;
     }
 
     this.encodeMessage('BB', [PROTOCOL.CLIENT.JERRY_DEBUGGER_PARSER_CONFIG, enable]);
+
+    return DEBUGGER_RETURN_TYPES.COMMON.SUCCESS;
   }
 
   /**
@@ -585,7 +598,7 @@ export default class DebuggerClient {
       this.encodeMessage('BBCI', values);
     }
 
-    this._logger.info(`Breakpoint ${index} at ${this.breakpointToString(breakpoint)}`);
+    this._eventEmitter.emit('insertBreakpoint', [index, breakpoint]);
   }
 
   /**
@@ -595,6 +608,7 @@ export default class DebuggerClient {
    */
   deleteBreakpoint(index) {
     const breakpoint = this._breakpoints.getActiveBreakpointByIndex(index);
+    let message = '';
 
     if (index === 'all') {
       let found = false;
@@ -608,30 +622,28 @@ export default class DebuggerClient {
       }
 
       if (!found) {
-        this._logger.info('No active breakpoints.');
+        message = 'No active breakpoints.';
       }
+    } else if (breakpoint) {
+      assert.ok(breakpoint && breakpoint.index === index);
 
-      return;
-    } else if (!breakpoint) {
-      this._logger.error(`No breakpoint found with index ${index}`, true);
-      return;
+      this._breakpoints.deleteActiveBreakpointByIndex(index);
+
+      const values = [
+        PROTOCOL.CLIENT.JERRY_DEBUGGER_UPDATE_BREAKPOINT,
+        0,
+        breakpoint.func.byte_code_cp,
+        breakpoint.offset,
+      ];
+
+      this.encodeMessage('BBCI', values);
+
+      message = `Breakpoint ${index} deleted.`;
+    } else {
+      message = `No breakpoint found with index ${index}`;
     }
 
-    Util.assert(breakpoint && breakpoint.index === index);
-
-    this._breakpoints.deleteActiveBreakpointByIndex(index);
-
-    const values = [
-      PROTOCOL.CLIENT.JERRY_DEBUGGER_UPDATE_BREAKPOINT,
-      0,
-      breakpoint.func.byte_code_cp,
-      breakpoint.offset,
-    ];
-
-    this.encodeMessage('BBCI', values);
-
-    this._logger.info(`Breakpoint ${index} deleted.`);
-    this._surface.updateBreakpointsPanel(this._breakpoints.activeBreakpoints, this._settings, this._transpiler);
+    this._eventEmitter.emit('deleteBreakpoint', [message]);
   }
 
   /**
@@ -640,42 +652,50 @@ export default class DebuggerClient {
    * @param {integer} index The index of the pending breakpoint.
    */
   deletePendingBreakpoint(index) {
+    let message = '';
+
     if (index >= this._breakpoints.pendingBreakpoints.length) {
-      this._logger.info('Pending breakpoint not found');
+      message = 'Pending breakpoint not found';
     } else {
       this._breakpoints.deletePendingBreakpointByIndex(index);
-      this._logger.info(`Pending breakpoint ${index} deleted.`);
+      message = `Pending breakpoint ${index} deleted.`;
     }
+
+    this._eventEmitter.emit('deletePendingBreakpoint', [message]);
   }
 
   /**
-   * Lists the active breakpoint into the logger panel.
+   * Returns with the List of the active breakpoint in console friendly way.
+   *
+   * @return {array} List of the breakpoints in readable format.
    */
   listBreakpoints() {
-    this._logger.info('List of active breakpoints:');
+    let list = ['List of active breakpoints:'];
     let found = false;
 
     for (const i in this._breakpoints.activeBreakpoints) {
       if (this._breakpoints.activeBreakpoints.hasOwnProperty(i)) {
-        this._logger.info(`  breakpoint ${i} at ${this.breakpointToString(this._breakpoints.activeBreakpoints[i])}`);
+        list.push(`  breakpoint ${i} at ${this.breakpointToString(this._breakpoints.activeBreakpoints[i])}`);
         found = true;
       }
     }
 
     if (!found) {
-      this._logger.info('  no active breakpoints');
+      list.push('  no active breakpoints');
     }
 
+    list.push('List of pending breakpoints:');
     if (this._breakpoints.pendingBreakpoints.length !== 0) {
-      this._logger.info('List of pending breakpoints:');
       for (const i in this._breakpoints.pendingBreakpoints) {
         if (this._breakpoints.pendingBreakpoints.hasOwnProperty(i)) {
-          this._logger.info(`  pending breakpoint ${i} at ${this.pendingBreakpointToString(this._breakpoints.pendingBreakpoints[i])}`);
+          list.push(`  pending breakpoint ${i} at ${this.pendingBreakpointToString(this._breakpoints.pendingBreakpoints[i])}`);
         }
       }
     } else {
-      this._logger.info('No pending breakpoints');
+      list.push('  no pending breakpoints');
     }
+
+    return list;
   }
 
   /**
@@ -684,134 +704,115 @@ export default class DebuggerClient {
    * @param {PROTOCOL} command The execution resume package command.
    */
   sendResumeExec(command) {
-    if (this._mode.current !== ENGINE_MODE.BREAKPOINT) {
-      this._logger.error('This command is allowed only if JavaScript execution is stopped at a breakpoint.');
-      return;
+    if (this._mode.current === ENGINE_MODE.BREAKPOINT) {
+      this.encodeMessage('B', [command]);
+      this._lastBreakpointHit = null;
+
+      return DEBUGGER_RETURN_TYPES.COMMON.SUCCESS;
     }
 
-    this.encodeMessage('B', [command]);
-
-    this._lastBreakpointHit = null;
+    return DEBUGGER_RETURN_TYPES.COMMON.ALLOWED_IN_BREAKPOINT_MODE;
   }
 
   /**
    * Gets the backtrace depth options from the settings page and send that to the debugger.
+   * This signal can be sended to the engine only in breakpoint mode.
+   *
+   * @return {DEBUGGER_RETURN_TYPES} COMMON.SUCCESS in case of successful signal send and
+   *                                 COMMON.ALLOWED_IN_BREAKPOINT_MODE in case of invalid engine mode.
    */
-  getBacktrace() {
-    if (this._mode.current !== ENGINE_MODE.BREAKPOINT) {
-      this._logger.error('This command is allowed only if JavaScript execution is stopped at a breakpoint.', true);
-      return;
-    }
-
-    const user_depth = $('#backtrace-depth').val();
-    let max_depth = 0;
-
-    if (user_depth !== 0) {
-      if (/[1-9][0-9]*/.test(user_depth)) {
-        max_depth = parseInt(user_depth);
-      }
-    }
-
+  sendGetBacktrace(userDepth) {
     if (this._mode.current === ENGINE_MODE.BREAKPOINT) {
+      let max_depth = 0;
+
+      if (userDepth !== 0) {
+        if (/[1-9][0-9]*/.test(userDepth)) {
+          max_depth = parseInt(userDepth);
+        }
+      }
+
       this.encodeMessage('BI', [PROTOCOL.CLIENT.JERRY_DEBUGGER_GET_BACKTRACE, max_depth]);
+
+      return DEBUGGER_RETURN_TYPES.COMMON.SUCCESS;
     }
+
+    return DEBUGGER_RETURN_TYPES.COMMON.ALLOWED_IN_BREAKPOINT_MODE;
   }
 
   /**
    * Sends an eval message to the engine which should be evaluated.
    * If the eval message can not fit into one message this function will slice it
    * and send it in pieces to the engine.
+   * This request can be sended to the engine only in breakpoint mode.
    *
    * @param {string} str The eval code string.
+   * @return {DEBUGGER_RETURN_TYPE} COMMON.ARGUMENT_REQUIRED in case of missing argument,
+   *                                COMMON.ALLOWED_IN_BREAKPOINT_MODE in case of invalid engine mode and
+   *                                COMMON.SUCCESS in case of successful send.
    */
   sendEval(str) {
-    if (this._mode.current !== ENGINE_MODE.BREAKPOINT) {
-      this._logger.error('This command is allowed only if JavaScript execution is stopped at a breakpoint.', true);
-      return;
-    }
-
-    if (str === '') {
-      this._logger.error('Argument required', true);
-      return;
-    }
-
-    let array = this.stringToCesu8(str);
-    const byteLength = array.byteLength;
-
-    if (byteLength <= this._maxMessageSize) {
-      this._connection.send(array);
-      return;
-    }
-
-    this._connection.send(array.slice(0, this._maxMessageSize));
-
-    let offset = this._maxMessageSize - 1;
-
-    while (offset < byteLength) {
-      array[offset] = PROTOCOL.CLIENT.JERRY_DEBUGGER_EVAL_PART;
-      this._connection.send(array.slice(offset, offset + this._maxMessageSize));
-      offset += this._maxMessageSize - 1;
-    }
-  }
-
-  /**
-   * Sends one or more source file(s) to the engine which should be executed.
-   * If the source code message can not fit into one message this function will slice it
-   * and send it in pieces to the engine.
-   */
-  sendClientSource() {
-    if (this._mode.current !== ENGINE_MODE.CLIENT_SOURCE) {
-      this._logger.error('This command is allowed only if the engine is waiting for a source.', true);
-      return;
-    }
-
-    if (!this._session.uploadList.length || !this._session.isUploadStarted) {
-      this._logger.info('The engine is waiting for a source.', true);
-      return;
-    }
-
-    this.setEngineMode(ENGINE_MODE.RUN);
-
-    const fid = this._session.uploadList[0];
-
-    if (fid === 0) {
-      this.encodeMessage('B', [PROTOCOL.CLIENT.JERRY_DEBUGGER_CONTEXT_RESET]);
-      this._session.shiftUploadList();
-      this._session.contextReset = true;
-      this._surface.changeUploadColor(SURFACE_COLOR.GREEN, fid);
-      this._session.allowUploadAndRun = false;
-      return;
-    }
-
-    // Turn on the action buttons and turn off run button.
-    this._surface.disableActionButtons(false);
-
-    let source = this._session.getFileModelById(fid).getValue();
-
-    if (this._settings.getValue('debugger.transpileToES5') && !this._transpiler.isEmpty()) {
-      if (this._transpiler.transformToES5(this._session.getFileNameById(fid), this._session.getFileModelById(fid))) {
-        source = this._transpiler.getTransformedSource(this._session.getFileNameById(fid));
+    if (this._mode.current === ENGINE_MODE.BREAKPOINT) {
+      if (str === '') {
+        return DEBUGGER_RETURN_TYPES.COMMON.ARGUMENT_REQUIRED;
       } else {
-        this.encodeMessage('B', [PROTOCOL.CLIENT.JERRY_DEBUGGER_CONTEXT_RESET]);
-        this._session.resetUploadList();
-        this._session.shiftUploadList();
-        this._session.contextReset = true;
-        this._session.allowUploadAndRun = false;
-        return;
+        let array = this.stringToCesu8(str);
+        const byteLength = array.byteLength;
+
+        if (byteLength <= this._maxMessageSize) {
+          this._connection.send(array);
+        } else {
+          this._connection.send(array.slice(0, this._maxMessageSize));
+
+          let offset = this._maxMessageSize - 1;
+
+          while (offset < byteLength) {
+            array[offset] = PROTOCOL.CLIENT.JERRY_DEBUGGER_EVAL_PART;
+            this._connection.send(array.slice(offset, offset + this._maxMessageSize));
+            offset += this._maxMessageSize - 1;
+          }
+        }
+
+        return DEBUGGER_RETURN_TYPES.COMMON.SUCCESS;
       }
     }
 
-    let array = this.stringToCesu8(`${this._session.getFileNameById(fid)}\0${source}`);
+    return DEBUGGER_RETURN_TYPES.COMMON.ALLOWED_IN_BREAKPOINT_MODE;
+  }
+
+  /**
+   * Sends one source file to the engine which should be executed.
+   * If the source code message can not fit into one message this function will slice it
+   * and send it in pieces to the engine.
+   * This request can be sended to the engine only in source waiting mode.
+   *
+   * @param {integer} fileID The identifier of the file. This is needed to manage the context reset.
+   * @param {string} fileName Name of the source file.
+   * @param {string} fileSource The source of the file.
+   * @return {DEBUGGER_RETURN_TYPES} SOURCE_SENDING.ALLOWED_IN_SOURCE_SENDING_MODE in case of invalid engine mode,
+   *                                 SOURCE_SENDING.CONTEXT_RESET_SENDED in case of processed context reset,
+   *                                 SOURCE_SENDING.SOURCE_SENDED in case of finished file sending and
+   *                                 SOURCE_SENDING.MULTIPLE_SOURCE_SENDED in case of finsihed multiple sending.
+   */
+  sendClientSource(fileID, fileName, fileSource) {
+    if (this._mode.current !== ENGINE_MODE.CLIENT_SOURCE) {
+      return DEBUGGER_RETURN_TYPES.SOURCE_SENDING.ALLOWED_IN_SOURCE_SENDING_MODE;
+    }
+
+    this.engineMode = ENGINE_MODE.RUN;
+
+    if (fileID === 0) {
+      this.encodeMessage('B', [PROTOCOL.CLIENT.JERRY_DEBUGGER_CONTEXT_RESET]);
+      return DEBUGGER_RETURN_TYPES.SOURCE_SENDING.CONTEXT_RESET_SENDED;
+    }
+
+    let array = this.stringToCesu8(`${fileName}\0${fileSource}`);
     const byteLength = array.byteLength;
 
     array[0] = PROTOCOL.CLIENT.JERRY_DEBUGGER_CLIENT_SOURCE;
 
     if (byteLength <= this._maxMessageSize) {
       this._connection.send(array);
-      this._session.shiftUploadList();
-      this._session.allowUploadAndRun = false;
-      this._surface.changeUploadColor(SURFACE_COLOR.GREEN, fid);
-      return;
+      return DEBUGGER_RETURN_TYPES.SOURCE_SENDING.SOURCE_SENDED;
     }
 
     this._connection.send(array.slice(0, this._maxMessageSize));
@@ -824,25 +825,17 @@ export default class DebuggerClient {
       offset += this._maxMessageSize - 1;
     }
 
-    this._session.shiftUploadList();
-    this._session.allowUploadAndRun = false;
-    this._surface.changeUploadColor(SURFACE_COLOR.GREEN, fid);
+    return DEBUGGER_RETURN_TYPES.ALLOWED_IN_SOURCE_SENDING_MODE;
   }
 
   /**
-   * Prints the currently available source code into the logger panel.
-   */
-  printSource() {
-    if (this._breakpoints.lastHit) {
-      this._logger.info(this._breakpoints.lastHit.func.source);
-    }
-  }
-
-  /**
-   * Prints every information about the breakpoints into the logger panel.
-   * This function will print every breakpoint no matter if it's active or not.
+   * This function will parse every breakpoint no matter if it's active or not.
+   *
+   * @return {array} Array of string which contains every breakpoint data.
    */
   dump() {
+    let result = [];
+
     for (const i in this._functions) {
       if (this._functions.hasOwnProperty(i)) {
         const func = this._functions[i];
@@ -852,7 +845,7 @@ export default class DebuggerClient {
           sourceName = '<unknown>';
         }
 
-        this._logger.info(
+        result.push(
           `Function 0x${Number(i).toString(16)} '${func.name}' at ${sourceName}:${func.line}, ${func.column}`
         );
 
@@ -864,11 +857,13 @@ export default class DebuggerClient {
               active = ` (active: ${func.lines[j].active})`;
             }
 
-            this._logger.info(`  Breakpoint line: ${j} at memory offset: ${func.lines[j].offset} ${active}`);
+            result.push(`  Breakpoint line: ${j} at memory offset: ${func.lines[j].offset} ${active}`);
           }
         }
       }
     }
+
+    return result;
   }
 
   /**
@@ -899,7 +894,7 @@ export default class DebuggerClient {
    * Converts a breakpoint dataset into a readable format.
    *
    * @param {object} breakpoint Breakpoint dataset.
-   * @return {string} Readable informations.
+   * @return {string} Readable informations about the breakpoint.
    */
   breakpointToString(breakpoint) {
     let result = breakpoint.func.sourceName;
@@ -908,32 +903,14 @@ export default class DebuggerClient {
       result = '[unknown]';
     }
 
-    let line = breakpoint.line;
-
-    if (this._settings.getValue('debugger.transpileToES5') && !this._transpiler.isEmpty()) {
-      line = this._transpiler.getOriginalPositionFor(
-        this._session.getFileNameById(this._session.activeID),
-        line,
-        0
-      ).line;
-    }
-
-    result += `:${line}`;
+    result += `:${breakpoint.line}`;
 
     if (breakpoint.func.is_func) {
       const f = breakpoint.func;
-      let position = {
+      const position = {
         line: f.line,
         column: f.column,
       };
-
-      if (this._settings.getValue('debugger.transpileToES5') && !this._transpiler.isEmpty()) {
-        position = this._transpiler.getOriginalPositionFor(
-          this._session.getFileNameById(this._session.activeID),
-          position.line,
-          position.column
-        );
-      }
 
       result += ` (in ${(f.name ? f.name : 'function')}() at line:${position.line}, col:${position.column})`;
     }
@@ -945,6 +922,7 @@ export default class DebuggerClient {
    * Converts a pending breakpoint dataset into a readable format.
    *
    * @param {object} breakpoint The pending breakpoint dataset.
+   * @return {string} The readable breakpoint informations.
    */
   pendingBreakpointToString(breakpoint) {
     return breakpoint.function ? `"${breakpoint.function}"` : `"${breakpoint.sourceName}:${breakpoint.line}"`;
@@ -978,7 +956,7 @@ export default class DebuggerClient {
    * @return {array} Cesu8 array.
    */
   stringToCesu8(string) {
-    Util.assert(string != '');
+    assert.ok(string != '');
 
     const length = string.length;
     let byteLength = length;
@@ -1044,7 +1022,7 @@ export default class DebuggerClient {
           continue;
         }
 
-        Util.assert(format[i] == 'I');
+        assert.ok(format[i] == 'I');
 
         length += 4;
       }
@@ -1064,11 +1042,11 @@ export default class DebuggerClient {
 
     for (const i in func.lines) {
       if (func.lines.hasOwnProperty(i)) {
-        this._lineList.set(i, this._debuggerObj.lineList.get(i).filter(f => !Object.is(f, func)));
+        this._lineList.set(i, this._lineList.get(i).filter(f => !Object.is(f, func)));
 
         const breakpoint = func.lines[i];
 
-        Util.assert(i == breakpoint.line);
+        assert.ok(i == breakpoint.line);
 
         if (breakpoint.index >= 0) {
           this._breakpoints.deleteActiveBreakpointByIndex(breakpoint.index);

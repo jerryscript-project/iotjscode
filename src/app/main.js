@@ -23,9 +23,10 @@ import './style/bright/app.scss';
 import './style/dark/app.scss';
 
 import Logger from './logger';
-import Session from './session';
-import Surface, { SURFACE_RUN_UPDATE_TYPE } from './surface';
-import DebuggerClient, { PROTOCOL, ENGINE_MODE } from './client-debugger';
+import Session, { SOURCE_SYNC_ACTION } from './session';
+import { MARKER_TYPE } from './modules/session/marker';
+import Surface, { SURFACE_CSICON, SURFACE_RUN_UPDATE_TYPE, SURFACE_COLOR } from './surface';
+import DebuggerClient, { PROTOCOL, ENGINE_MODE, DEBUGGER_RETURN_TYPES } from './modules/client/debugger';
 import MemoryChart from './memory-chart';
 import Settings from './settings';
 import Transpiler from './transpiler';
@@ -137,12 +138,442 @@ export default function App() {
      * Module objects.
      */
     const logger = new Logger($('#console-panel'));
+    const output = new Logger($('#output-panel'));
     const surface = new Surface();
     const session = new Session(env, surface);
     const chart = new MemoryChart(session, surface);
     const settings = new Settings(env.editor, surface);
     const transpiler = new Transpiler();
     const completer = new Completer();
+
+    /**
+     * Inits the debugger client and inits the related event listeners.
+     *
+     * @param {string} address The websocket connection address.
+     */
+    const initDebuggerClient = (address) => {
+      debuggerObj = new DebuggerClient(address);
+
+      /**
+       * Listener for onopen event.
+       */
+      debuggerObj.connection.on('open', () => {
+        logger.info(`ws://${address}/jerry-debugger`);
+        logger.info('Connection created.');
+
+        if (surface.getPanelProperty('chart.active')) {
+          surface.toggleButton(true, 'chart-record-button');
+        }
+
+        if (surface.getPanelProperty('run.active')) {
+          surface.updateRunPanel(SURFACE_RUN_UPDATE_TYPE.ALL, debuggerObj, session);
+        }
+
+        if (surface.getPanelProperty('watch.active')) {
+          surface.updateWatchPanelButtons(debuggerObj);
+        }
+
+        surface.disableActionButtons(false);
+        surface.toggleButton(false, 'connect-to-button');
+      });
+
+      /**
+       * Listener for onabort event.
+       */
+      debuggerObj.connection.on('abort', message => {
+        logger.error(`Connection aborted: ${message}`, true);
+      });
+
+      /**
+       * Listener for onclose and onerror event.
+       */
+      debuggerObj.connection.on('close', () => {
+        logger.info('Connection closed.');
+
+        if (surface.getPanelProperty('chart.active')) {
+          chart.disableChartButtons();
+          if (chart.containsData()) {
+            surface.toggleButton(true, 'chart-reset-button');
+          }
+        }
+
+        if (surface.getPanelProperty('watch.active')) {
+          surface.updateWatchPanelButtons(debuggerObj);
+          session.neutralizeWatchExpressions();
+        }
+
+        if (settings.getValue('debugger.transpileToES5') && !transpiler.isEmpty()) {
+          transpiler.clearTranspiledSources();
+        }
+
+        if (session.isUploadStarted) {
+          session.uploadStarted = false;
+        }
+
+        // Reset the editor.
+        session.reset();
+        surface.reset();
+        surface.disableActionButtons(true);
+        surface.toggleButton(true, 'connect-to-button');
+        surface.continueStopButtonState(SURFACE_CSICON.CONTINUE);
+
+        if (session.isContextReset) {
+          session.contextReset = false;
+
+          // Try to reconnect once.
+          setTimeout(() => {
+            $('#connect-to-button').trigger('click');
+          }, 1000);
+        }
+      });
+
+      /**
+       * Listener for mem stat receive event.
+       */
+      debuggerObj.connection.on('memStatReceive', (event, data) => {
+        // Continue if we have any data.
+        if (data[0] !== 0) {
+          if (chart.isRecordStarted()) {
+            chart.startRecord(false);
+            chart.chartActive = true;
+
+            surface.toggleButton(false, 'chart-reset-button');
+            surface.toggleButton(true, 'chart-stop-button');
+            surface.toggleButton(false, 'chart-record-button');
+            $('#chart-record-button').css('background-color', '#16e016');
+          }
+
+          if (session.chartInfo && chart.isChartActive()) {
+            const breakpointInfo = session.chartInfo.split(':')[1].split(' ')[0];
+            let breakpointLineToChart = `ln: ${breakpointInfo}`;
+
+            if (debuggerObj.engineMode === ENGINE_MODE.BREAKPOINT) {
+              breakpointLineToChart = `#${breakpointInfo}: ${new Date().toISOString().slice(14, 21)}`;
+            }
+
+            chart.addNewDataPoints(data, breakpointLineToChart);
+          }
+        } else {
+          // Notify the user about that, propbably the jerry was built without the memory statistic swicth.
+          logger.error(
+            'There are no memory statistics available. ' +
+            'If you want to use the memory usage panel check the engine build command first.',
+            true
+          );
+        }
+      });
+
+      /**
+       * Listener for breakpoint hit event.
+       */
+      debuggerObj.connection.on('breakpointOrExceptionHit', (event, data, breakpoint, sourceName, source) => {
+        session.lastBreakpoint = breakpoint;
+        surface.continueStopButtonState(SURFACE_CSICON.CONTINUE);
+        surface.disableActionButtons(false);
+
+        // Source load and reload from Jerry.
+        if (sourceName !== '') {
+          if (!session.fileNameCheck(sourceName, true)) {
+            session.storeJerrySource(sourceName, source);
+            session.jerrySourceAction = SOURCE_SYNC_ACTION.LOAD;
+
+            if (session.isAutoSourceSync) {
+              session.syncSourceFromJerry();
+              session.autoSourceSync = false;
+            } else {
+              logger.warning(`The file "${sourceName}" is missing.`, true);
+              surface.toggleButton(true, 'jerry-sync-source-button');
+            }
+          } else {
+            // Disable the auto source sync option in case of valid source.
+            session.autoSourceSync = false;
+
+            // Do not check the code match if the transpile is enabled.
+            if (!settings.getValue('debugger.transpileToES5') && transpiler.isEmpty()) {
+              if (!session.fileContentCheck(sourceName, source)) {
+                session.jerrySourceAction = SOURCE_SYNC_ACTION.RELOAD;
+                logger.warning(`The "${sourceName}" source does not match with the source on the device!`, true);
+                surface.toggleButton(true, 'jerry-sync-source-button');
+              }
+            }
+          }
+        } else {
+          sourceName = session.handleUnknownFile(
+            Array.isArray(breakpoint.func.source) ? breakpoint.func.source.join('\n') : breakpoint.func.source
+          );
+        }
+
+        // Switch to the the right session.
+        const fid = session.getFileIdByName(sourceName);
+        if (fid !== undefined && fid !== session.activeID) {
+          // Change the model in the editor.
+          session.switchFile(fid);
+        }
+
+        // Get the right line, which is depends on that if we use transpiled code or not.
+        let hlLine = breakpoint.line;
+
+        if (settings.getValue('debugger.transpileToES5') && !transpiler.isEmpty()) {
+          hlLine = transpiler.getOriginalPositionFor(sourceName.split('/').pop(), breakpoint.line, 0).line - 1;
+        }
+
+        // After we switched to the correct file/session show the exception hint (if exists).
+        if (data[0] === PROTOCOL.SERVER.JERRY_DEBUGGER_EXCEPTION_HIT) {
+          session.highlightLine(MARKER_TYPE.EXCEPTION, hlLine);
+          logger.error('Exception throw detected!');
+
+          if (debuggerObj.connection.exceptionData) {
+            logger.error('Exception hint: ' + debuggerObj.cesu8ToString(debuggerObj.connection.exceptionData), true);
+            debuggerObj.connection.exceptionData = null;
+          }
+        } else {
+          // Highlight the execute line in the correct session.
+          if (fid !== undefined && fid === session.activeID) {
+            session.highlightLine(MARKER_TYPE.EXECUTE, hlLine);
+            session.markBreakpointLines(debuggerObj, settings, transpiler);
+          }
+        }
+
+        // Show the backtrace on the panel.
+        if (surface.getPanelProperty('backtrace.active')) {
+          if (debuggerObj.sendGetBacktrace(settings.getValue('debugger.backtraceDepth')) ===
+              DEBUGGER_RETURN_TYPES.COMMON.ALLOWED_IN_BREAKPOINT_MODE) {
+            logger.error('This command is allowed only if JavaScript execution is stopped at a breakpoint.');
+          }
+        }
+
+        // Updates the watched expression list if the watch panel is active.
+        if (surface.getPanelProperty('watch.active')) {
+          session.updateWatchExpressions(debuggerObj);
+        }
+
+        // Add breakpoint information to chart.
+        if (surface.getPanelProperty('chart.active')) {
+          for (const i in debuggerObj.breakpoints.activeBreakpoints) {
+            if (debuggerObj.breakpoints.activeBreakpoints[i].line ===
+                debuggerObj.breakpointToString(breakpointTranspile(breakpoint)).split(':')[1].split(' ')[0]) {
+              surface.stopCommand();
+              return;
+            }
+          }
+
+          debuggerObj.encodeMessage('B', [PROTOCOL.CLIENT.JERRY_DEBUGGER_MEMSTATS]);
+          session.chartInfo = debuggerObj.breakpointToString(breakpointTranspile(breakpoint));
+        }
+
+        logger.info(
+          `Stopped ${breakpoint.at ? 'at ' : 'around '}` +
+          (breakpoint.offset.index >= 0 ? ` breakpoint:${breakpoint.offset.index} ` : '') +
+          debuggerObj.breakpointToString((breakpoint))
+        );
+      });
+
+      debuggerObj.connection.on('backtrace', (event, backtrace) => {
+        Util.clearElement($('#backtrace-table-body'));
+
+        surface.updateBacktracePanel(backtrace, settings, transpiler);
+      });
+
+      /**
+       * Listener for eval result event.
+       */
+      debuggerObj.connection.on('eval', (event, type, result) => {
+        if (type === PROTOCOL.SERVER.JERRY_DEBUGGER_EVAL_OK) {
+          if (surface.getPanelProperty('watch.active') && session.isWatchInProgress) {
+            session.stopWatchProgress();
+            session.addWatchExpressionValue(
+              debuggerObj,
+              session.watchCurrentExpr,
+              debuggerObj.cesu8ToString(result)
+            );
+          } else {
+            logger.info(debuggerObj.cesu8ToString(result));
+          }
+        }
+
+        if (type === PROTOCOL.SERVER.JERRY_DEBUGGER_EVAL_ERROR) {
+          if (surface.getPanelProperty('watch.active') && session.isWatchInProgress) {
+            session.stopWatchProgress();
+            session.addWatchExpressionValue(
+              debuggerObj,
+              session.watchCurrentExpr,
+              ''
+            );
+          } else {
+            logger.info(`Uncaught exception: ${debuggerObj.cesu8ToString(result)}`);
+          }
+        }
+      });
+
+      /**
+       * Listener for output result event.
+       */
+      debuggerObj.connection.on('output', (event, subtype, result) => {
+        switch (subtype) {
+          case PROTOCOL.SERVER.JERRY_DEBUGGER_OUTPUT_OK:
+            output.info(debuggerObj.cesu8ToString(result));
+            break;
+          case PROTOCOL.SERVER.JERRY_DEBUGGER_OUTPUT_DEBUG:
+            output.debug(debuggerObj.cesu8ToString(result));
+            break;
+          case PROTOCOL.SERVER.JERRY_DEBUGGER_OUTPUT_WARNING:
+            output.warning(debuggerObj.cesu8ToString(result));
+            break;
+          case PROTOCOL.SERVER.JERRY_DEBUGGER_OUTPUT_ERROR:
+            output.error(debuggerObj.cesu8ToString(result));
+            break;
+          case PROTOCOL.SERVER.JERRY_DEBUGGER_OUTPUT_TRACE:
+            output.info(`TRACE: ${debuggerObj.cesu8ToString(result)}`);
+            break;
+        }
+      });
+
+      /**
+       * Listener for wait for source event.
+       * This will be called when the client gets the waiting message.
+       */
+      debuggerObj.connection.on('waitForSource', () => {
+        surface.disableActionButtons(true);
+        session.allowUploadAndRun = true;
+
+        if (surface.getPanelProperty('run.active')) {
+          surface.updateRunPanel(SURFACE_RUN_UPDATE_TYPE.BUTTON, debuggerObj, session);
+        }
+
+        sendSourceToTheEngine();
+      });
+
+      /**
+       * Listener for the engine mode changes.
+       */
+      debuggerObj.on('engineModeChange', mode => {
+        if (mode === ENGINE_MODE.CLIENT_SOURCE ||
+          mode === ENGINE_MODE.DISCONNECTED) {
+          surface.toggleSettingItem(true, 'transpileToES5');
+        } else {
+          surface.toggleSettingItem(false, 'transpileToES5');
+        }
+      });
+
+      /**
+       * Listener for the breakpoint set event.
+       * This will be called when the user dispatch new breakpoint set in the editor.
+       */
+      debuggerObj.on('setBreakpoint', messages => {
+        messages.forEach(message => {
+          logger.info(message);
+        });
+
+        surface.updateBreakpointsPanel(debuggerObj.breakpoints.activeBreakpoints, settings, transpiler);
+      });
+
+      /**
+       * Listener for the breakpoint insert event.
+       * This will be called when the engine inserted the breakpoint into the right position.
+       */
+      debuggerObj.on('insertBreakpoint', (index, breakpoint) => {
+        logger.info(`Breakpoint ${index} at ${debuggerObj.breakpointToString(breakpointTranspile(breakpoint))}`);
+      });
+
+      /**
+       * Listener for the delete breakpoint event.
+       * This will be called when the enginde deleted a breakpoint.
+       */
+      debuggerObj.on('deleteBreakpoint', message => {
+        logger.info(message);
+
+        surface.updateBreakpointsPanel(debuggerObj.breakpoints.activeBreakpoints, settings, transpiler);
+      });
+
+      /**
+       * Listener for the delete pending breakpoint event.
+       * This will be called when the client deleted a pending breakpoint.
+       */
+      debuggerObj.on('deletePendingBreakpoint', message => {
+        logger.info(message);
+      });
+    };
+
+    /**
+     * Handler for the source sending.
+     * This will send the selected files one by one to the engine when that is possible.
+     */
+    const sendSourceToTheEngine = () => {
+      if (!session.uploadList.length || !session.isUploadStarted) {
+        logger.info('The engine is waiting for a source.', true);
+      } else {
+        surface.disableActionButtons(false);
+
+
+        const fileID = session.uploadList[0];
+        let fileName = '';
+        let fileSource = '';
+
+        if (fileID !== 0) {
+          fileName = session.getFileNameById(fileID);
+          fileSource = session.getFileModelById(fileID).getValue();
+
+          if (settings.getValue('debugger.transpileToES5') &&
+              !transpiler.isEmpty() &&
+              transpiler.transformToES5(fileName, fileSource)) {
+            fileSource = transpiler.getTransformedSource(fileName);
+          }
+        }
+
+        const result = debuggerObj.sendClientSource(fileID, fileName, fileSource);
+
+        switch (result) {
+          case DEBUGGER_RETURN_TYPES.SOURCE_SENDING.ALLOWED_IN_SOURCE_SENDING_MODE: {
+            logger.error('This command is allowed only if the engine is waiting for a source.', true);
+          } break;
+          case DEBUGGER_RETURN_TYPES.SOURCE_SENDING.CONTEXT_RESET_SENDED: {
+            session.shiftUploadList();
+            session.contextReset = true;
+            surface.changeUploadColor(SURFACE_COLOR.GREEN, fileID);
+            session.allowUploadAndRun = false;
+          } break;
+          case DEBUGGER_RETURN_TYPES.SOURCE_SENDING.SOURCE_SENDED: {
+            session.shiftUploadList();
+            session.allowUploadAndRun = false;
+            surface.changeUploadColor(SURFACE_COLOR.GREEN, fileID);
+          } break;
+          case DEBUGGER_RETURN_TYPES.SOURCE_SENDING.MULTIPLE_SOURCE_SENDED: {
+            session.shiftUploadList();
+            session.allowUploadAndRun = false;
+            surface.changeUploadColor(SURFACE_COLOR.GREEN, fileID);
+          } break;
+        }
+      }
+    };
+
+    /**
+     * Handler for the breakpoint transpiler to get the right position of a breakpoint if the transpile is enabled.
+     * @param {object} data The breakpoint which will be transpiled.
+     */
+    const breakpointTranspile = data => {
+      let breakpoint = data;
+
+      if (settings.getValue('debugger.transpileToES5') && !transpiler.isEmpty()) {
+        breakpoint.line = this._transpiler.getOriginalPositionFor(
+          this._session.getFileNameById(session.activeID),
+          data.line,
+          0
+        ).line;
+
+        if (breakpoint.func.is_func) {
+          const position = this._transpiler.getOriginalPositionFor(
+            this._session.getFileNameById(this._session.activeID),
+            breakpoint.func.line,
+            breakpoint.func.column
+          );
+
+          breakpoint.func.line = position.line;
+          breakpoint.func.column = position.column;
+        }
+      }
+
+      return breakpoint;
+    };
 
     /**
      * Editor related events.
@@ -161,7 +592,7 @@ export default function App() {
        * Model change event.
        */
       env.editor.onDidChangeModel(() => {
-        if (debuggerObj && debuggerObj.getEngineMode() !== ENGINE_MODE.DISCONNECTED) {
+        if (debuggerObj && debuggerObj.engineMode !== ENGINE_MODE.DISCONNECTED) {
           session.markBreakpointLines(debuggerObj, settings, transpiler);
         }
       });
@@ -171,7 +602,7 @@ export default function App() {
        */
       env.editor.onMouseDown((e) => {
         if (e.target.type === window.monaco.editor.MouseTargetType.GUTTER_GLYPH_MARGIN) {
-          if (debuggerObj && debuggerObj.getEngineMode() !== ENGINE_MODE.DISCONNECTED) {
+          if (debuggerObj && debuggerObj.engineMode !== ENGINE_MODE.DISCONNECTED) {
             session.toggleBreakpoint(e.target.position.lineNumber, debuggerObj, settings, transpiler);
           }
         }
@@ -238,7 +669,7 @@ export default function App() {
         );
 
         if (surface.getPanelProperty('chart.active')) {
-          if (debuggerObj && debuggerObj.getEngineMode() !== ENGINE_MODE.DISCONNECTED) {
+          if (debuggerObj && debuggerObj.engineMode !== ENGINE_MODE.DISCONNECTED) {
             surface.toggleButton(true, 'chart-record-button');
           }
 
@@ -483,7 +914,7 @@ export default function App() {
           return true;
         }
 
-        if (debuggerObj && debuggerObj.getEngineMode() !== ENGINE_MODE.DISCONNECTED) {
+        if (debuggerObj && debuggerObj.engineMode !== ENGINE_MODE.DISCONNECTED) {
           logger.info('Debugger is connected.');
           return true;
         }
@@ -498,13 +929,13 @@ export default function App() {
 
         const address = `${ip}:${port}`;
         logger.info(`Connect to: ${address}`);
-        debuggerObj = new DebuggerClient(address, session, surface, settings, chart);
+        initDebuggerClient(address);
 
         return true;
       });
 
       $('#delete-all-button').on('click', () => {
-        if (debuggerObj && debuggerObj.getEngineMode() !== ENGINE_MODE.DISCONNECTED) {
+        if (debuggerObj && debuggerObj.engineMode !== ENGINE_MODE.DISCONNECTED) {
           debuggerObj.deleteBreakpoint('all');
         }
       });
@@ -514,9 +945,13 @@ export default function App() {
           return true;
         }
 
-        if (debuggerObj.getEngineMode() === ENGINE_MODE.BREAKPOINT) {
+        if (debuggerObj.engineMode === ENGINE_MODE.BREAKPOINT) {
           surface.continueCommand();
-          debuggerObj.sendResumeExec(PROTOCOL.CLIENT.JERRY_DEBUGGER_CONTINUE);
+
+          if (debuggerObj.sendResumeExec(PROTOCOL.CLIENT.JERRY_DEBUGGER_CONTINUE) ===
+              DEBUGGER_RETURN_TYPES.COMMON.ALLOWED_IN_BREAKPOINT_MODE) {
+            logger.error('This command is allowed only if JavaScript execution is stopped at a breakpoint.');
+          }
         } else {
           surface.stopCommand();
 
@@ -533,7 +968,7 @@ export default function App() {
           return true;
         }
 
-        if (debuggerObj.getEngineMode() !== ENGINE_MODE.BREAKPOINT) {
+        if (debuggerObj.engineMode !== ENGINE_MODE.BREAKPOINT) {
           logger.error('This action is only available in breakpoint mode.', true);
           return true;
         }
@@ -546,7 +981,7 @@ export default function App() {
           return true;
         }
 
-        if (debuggerObj.getEngineMode() !== ENGINE_MODE.BREAKPOINT) {
+        if (debuggerObj.engineMode !== ENGINE_MODE.BREAKPOINT) {
           logger.error('This action is only available in breakpoint mode.', true);
           return true;
         }
@@ -559,7 +994,7 @@ export default function App() {
           return true;
         }
 
-        if (debuggerObj.getEngineMode() !== ENGINE_MODE.BREAKPOINT) {
+        if (debuggerObj.engineMode !== ENGINE_MODE.BREAKPOINT) {
           logger.error('This action is only available in breakpoint mode.', true);
           return true;
         }
@@ -572,7 +1007,7 @@ export default function App() {
           return true;
         }
 
-        debuggerObj.closeConnection();
+        debuggerObj.connection.close();
       });
     })();
 
@@ -601,7 +1036,7 @@ export default function App() {
           return true;
         }
 
-        if (debuggerObj && debuggerObj.getEngineMode() === ENGINE_MODE.BREAKPOINT) {
+        if (debuggerObj && debuggerObj.engineMode === ENGINE_MODE.BREAKPOINT) {
           session.updateWatchExpressions(debuggerObj);
         }
       });
@@ -812,8 +1247,7 @@ export default function App() {
         surface.updateRunPanel(SURFACE_RUN_UPDATE_TYPE.JQUI, debuggerObj, session);
         surface.updateRunPanel(SURFACE_RUN_UPDATE_TYPE.BUTTON, debuggerObj, session);
 
-        // Send the source(s) to the debugger.
-        debuggerObj.sendClientSource();
+        sendSourceToTheEngine();
       });
 
       /**
@@ -944,7 +1378,7 @@ export default function App() {
         }
 
         if (args[1] == 'connect') {
-          if (debuggerObj && debuggerObj.getEngineMode() !== ENGINE_MODE.DISCONNECTED) {
+          if (debuggerObj && debuggerObj.engineMode !== ENGINE_MODE.DISCONNECTED) {
             logger.info('Debugger is connected');
             return true;
           }
@@ -968,14 +1402,14 @@ export default function App() {
 
           const address = ipAddr + ':' + PORT;
           logger.info('Connect to: ' + address);
-          debuggerObj = new DebuggerClient(address, session, surface, settings, chart);
+          initDebuggerClient(address);
 
           commandInput.val('');
 
           return true;
         }
 
-        if (!debuggerObj || debuggerObj.getEngineMode() === ENGINE_MODE.DISCONNECTED) {
+        if (!debuggerObj || debuggerObj.engineMode === ENGINE_MODE.DISCONNECTED) {
           logger.error('Debugger is NOT connected.');
           commandInput.val('');
           return true;
@@ -1010,17 +1444,35 @@ export default function App() {
             $('#next-button').click();
             break;
           case 'e':
-          case 'eval':
-            debuggerObj.sendEval(args[2]);
-            break;
-          case 'exception':
-            debuggerObj.sendExceptionConfig(args[2]);
-            break;
+          case 'eval': {
+            const result = debuggerObj.sendEval(args[2]);
+            if (result === DEBUGGER_RETURN_TYPES.COMMON.ARGUMENT_REQUIRED) {
+              logger.error('Argument required.');
+            } else if (result === DEBUGGER_RETURN_TYPES.COMMON.ALLOWED_IN_BREAKPOINT_MODE) {
+              logger.error('This command is allowed only if JavaScript execution is stopped at a breakpoint.');
+            }
+          } break;
+          case 'exception': {
+            const result = debuggerObj.sendExceptionConfig(parseInt(args[2]));
+            if (result === DEBUGGER_RETURN_TYPES.COMMON.ARGUMENT_REQUIRED) {
+              logger.error('Argument required.');
+            } else if (result === DEBUGGER_RETURN_TYPES.COMMON.ARGUMENT_INVALID) {
+              logger.error('Invalid argument. Usage: exception <0|1>');
+            } else if (result === DEBUGGER_RETURN_TYPES.EXCEPTION_CONFIG.ENABLED) {
+              logger.info('Stop at exception enabled.');
+            } else {
+              logger.info('Stop at exception disabled.');
+            }
+          } break;
           case 'list':
-            debuggerObj.listBreakpoints();
+            debuggerObj.listBreakpoints().forEach(log => {
+              logger.info(log);
+            });
             break;
           case 'dump':
-            debuggerObj.dump();
+            debuggerObj.dump().forEach(log => {
+              logger.info(log);
+            });
             break;
           default:
             logger.error('Unknown command: ' + args[1]);

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { ENGINE_MODE } from './client-debugger';
+import { ENGINE_MODE } from './modules/client/debugger';
 import Util from './util';
 
 /**
@@ -394,16 +394,16 @@ export default class Surface {
     e.removeClass('bg-danger bg-warning bg-success bg-white');
 
     switch (color) {
-      case this.COLOR.RED:
+      case SURFACE_COLOR.RED:
         e.addClass('bg-danger');
         break;
-      case this.COLOR.YELLOW:
+      case SURFACE_COLOR.YELLOW:
         e.addClass('bg-warning');
         break;
-      case this.COLOR.GREEN:
+      case SURFACE_COLOR.GREEN:
         e.addClass('bg-success');
         break;
-      case this.COLOR.WHITE:
+      case SURFACE_COLOR.WHITE:
       default:
         e.addClass('bg-white');
         break;
@@ -498,7 +498,7 @@ export default class Surface {
 
         // Enable the run button if there is a connection and a source in the list.
         if (debuggerObj &&
-            debuggerObj.getEngineMode() === ENGINE_MODE.CLIENT_SOURCE &&
+            debuggerObj.engineMode === ENGINE_MODE.CLIENT_SOURCE &&
             session.isUploadAndRunAllowed &&
             !session.isUploadStarted &&
             !$dest.is(':empty')) {
@@ -575,7 +575,7 @@ export default class Surface {
    */
   updateWatchPanelButtons(debuggerObj) {
     if (debuggerObj &&
-        debuggerObj.getEngineMode() === ENGINE_MODE.BREAKPOINT &&
+        debuggerObj.engineMode === ENGINE_MODE.BREAKPOINT &&
         !$('#watch-list').is(':empty')) {
       this.toggleButton(true, 'watch-refresh-button');
     } else {
@@ -704,25 +704,28 @@ export default class Surface {
    * @param {integer} frame Frame number information.
    * @param {object} info Breakpoint information from the debuggerObj.
    */
-  updateBacktracePanel(frame, info, settings, transpiler) {
-    const sourceName = info.func.sourceName || info;
+  updateBacktracePanel(backtrace, settings, transpiler) {
     const $table = $('#backtrace-table-body');
-    let line = info.line || '-';
 
-    if (settings.getValue('debugger.transpileToES5') && !transpiler.isEmpty()) {
-      line = transpiler.getOriginalPositionFor(sourceName.split('/').pop(), line, 0).line;
-    }
+    backtrace.forEach(trace => {
+      const sourceName = trace.data.func.sourceName || trace.data;
+      let line = trace.data.line || '-';
 
-    $table.append(
-      '<tr>' +
-        `<td>${frame}</td>` +
-        `<td>${sourceName}</td>` +
-        `<td>${line}</td>` +
-        `<td>${this.generateFunctionLog(info, settings, transpiler)}</td>` +
-      '</tr>'
-    );
+      if (settings.getValue('debugger.transpileToES5') && !transpiler.isEmpty()) {
+        line = transpiler.getOriginalPositionFor(sourceName.split('/').pop(), line, 0).line;
+      }
 
-    Util.scrollDown($table);
+      $table.append(
+        '<tr>' +
+          `<td>${trace.frame}</td>` +
+          `<td>${sourceName}</td>` +
+          `<td>${line}</td>` +
+          `<td>${this.generateFunctionLog(trace.data, settings, transpiler)}</td>` +
+        '</tr>'
+      );
+
+      Util.scrollDown($table);
+    });
   }
 
   /**

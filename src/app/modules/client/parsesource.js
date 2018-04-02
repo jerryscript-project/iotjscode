@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { PROTOCOL } from './client-debugger';
+import { PROTOCOL } from './debugger';
 
 export default class ParseSource {
 
@@ -50,17 +50,8 @@ export default class ParseSource {
    *
    * @return {boolean} True if the module is alive, false otherwise.
    */
-  isAlive() {
+  get alive() {
     return this._alive;
-  }
-
-  /**
-   * Sets the alive status of the module.
-   *
-   * @param {boolean} value True if the module is alive, false otherwise.
-   */
-  setAlive(value) {
-    this._alive = value;
   }
 
   /**
@@ -83,7 +74,10 @@ export default class ParseSource {
         if (message[0] === PROTOCOL.SERVER.JERRY_DEBUGGER_SOURCE_CODE_END) {
           this._source = this._debuggerObj.cesu8ToString(this._sourceData);
 
-          this._debuggerObj.setSources(this._sourceName, this._source);
+          this._debuggerObj.sources = {
+            key: this._sourceName,
+            value: this._source,
+          };
         }
         return;
       }
@@ -126,7 +120,7 @@ export default class ParseSource {
         let array;
 
         if (message.byteLength < 1 + 4) {
-          this._debuggerObj.abortConnection('message too short.');
+          this._debuggerObj.connection.abort('message too short.');
         }
 
         if (message[0] === PROTOCOL.SERVER.JERRY_DEBUGGER_BREAKPOINT_LIST) {
@@ -184,7 +178,7 @@ export default class ParseSource {
       }
 
       default: {
-        this._debuggerObj.abortConnection('unexpected message.');
+        this._debuggerObj.connection.abort('unexpected message.');
         break;
       }
     }
@@ -193,7 +187,10 @@ export default class ParseSource {
       if (this._newFunctions.hasOwnProperty(i)) {
         const func = this._newFunctions[i];
 
-        this._debuggerObj.setFunctions(i, func);
+        this._debuggerObj.functions = {
+          key: i,
+          value: func,
+        };
 
         for (const j in func.lines) {
           if (func.lines.hasOwnProperty(j)) {
@@ -205,7 +202,7 @@ export default class ParseSource {
     }
 
     const pending = this._debuggerObj.breakpoints.pendingBreakpoints;
-    const functions = this._debuggerObj.getFunctions();
+    const functions = this._debuggerObj.functions;
     let sourceLines = 0;
 
     if (pending.length) {

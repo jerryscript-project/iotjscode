@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { ENGINE_MODE } from './client-debugger';
+import { ENGINE_MODE } from './modules/client/debugger';
 import { SURFACE_RUN_UPDATE_TYPE } from './surface';
 import Glyph, { GLYPH_TYPE } from './modules/session/glyph';
 import Marker, { MARKER_TYPE } from './modules/session/marker';
@@ -376,7 +376,7 @@ export default class Session {
   addWatchExpression(debuggerObj, expr) {
     this._watch.list[expr] = '&ltnot available&gt';
 
-    if (debuggerObj && debuggerObj.getEngineMode() === ENGINE_MODE.BREAKPOINT) {
+    if (debuggerObj && debuggerObj.engineMode === ENGINE_MODE.BREAKPOINT) {
       this._watch.work.inProgress = true;
       this._watch.work.currentExpr = expr;
       debuggerObj.sendEval(expr);
@@ -425,7 +425,7 @@ export default class Session {
    */
   updateWatchExpressions(debuggerObj) {
     if (debuggerObj &&
-        debuggerObj.getEngineMode() === ENGINE_MODE.BREAKPOINT &&
+        debuggerObj.engineMode === ENGINE_MODE.BREAKPOINT &&
         !$.isEmptyObject(this._watch.list)) {
       this._watch.work.update = true;
 
@@ -750,7 +750,7 @@ export default class Session {
    * @param {object} transpiler Transpiler module object.
    */
   markBreakpointLines(debuggerObj, settings, transpiler) {
-    if (debuggerObj && debuggerObj.getEngineMode() !== ENGINE_MODE.DISCONNECTED) {
+    if (debuggerObj && debuggerObj.engineMode !== ENGINE_MODE.DISCONNECTED) {
       if (!this._glyph.isFileInitialized(this._id.active)) {
         const lines = this.getLinesFromRawData(debuggerObj.getBreakpointLines(), settings, transpiler);
 
@@ -958,7 +958,7 @@ export default class Session {
         this.createNewFile(this._jerrySource.name, this._jerrySource.source, true);
 
         if (this._surface.getPanelProperty('run.active')) {
-          this._surface.updateRunPanel(this._surface.RUN_UPDATE_TYPE.ALL, this._debuggerObj, this._session);
+          this._surface.updateRunPanel(SURFACE_RUN_UPDATE_TYPE.ALL, this._debuggerObj, this._session);
         }
         break;
       case SOURCE_SYNC_ACTION.RELOAD:
