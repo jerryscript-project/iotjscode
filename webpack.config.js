@@ -17,7 +17,7 @@ const resolve = {
   alias: {
     c3$: 'c3/c3.min',
     d3$: 'd3/d3.min',
-    vs: monaco_editor_path,
+    vs$: monaco_editor_path,
     jquery$: 'jquery/src/jquery',
     jqueryui$: 'jquery-ui-dist/jquery-ui.min',
     thead$: 'floatthead',
@@ -28,6 +28,7 @@ const resolve = {
 
 const plugins = [
   new HtmlWebpackPlugin({
+    filename: 'index.html',
     template: `${source_path}/index.ejs`,
     title: html_title,
   }),
@@ -103,7 +104,7 @@ const config = {
     path: build_path,
     filename: 'js/[name].[chunkhash].bundle.js',
     chunkFilename: 'js/[name].bundle.js',
-    publicPath: '/',
+    publicPath: './',
   },
   module: {
     rules,

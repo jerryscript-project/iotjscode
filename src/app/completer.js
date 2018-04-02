@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import iotjs from './constants/iotjs-functions';
+import iotjs from './constants/iotjs-functions.json';
 
 /**
  * These modules can be used without require in IoT.js.
