@@ -497,8 +497,9 @@ export default class Surface {
         }
 
         // Enable the run button if there is a connection and a source in the list.
-        if (debuggerObj &&
-            debuggerObj.engineMode === ENGINE_MODE.CLIENT_SOURCE &&
+        if (((debuggerObj &&
+            debuggerObj.engineMode === ENGINE_MODE.CLIENT_SOURCE) ||
+            (typeof debuggerObj === 'undefined')) &&
             session.isUploadAndRunAllowed &&
             !session.isUploadStarted &&
             !$dest.is(':empty')) {

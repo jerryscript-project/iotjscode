@@ -932,7 +932,7 @@ export default class Session {
 
     // Refresh the run panel list.
     if (this._surface.getPanelProperty('run.active')) {
-      this._surface.updateRunPanel(SURFACE_RUN_UPDATE_TYPE.ALL, null, this);
+      this._surface.updateRunPanel(SURFACE_RUN_UPDATE_TYPE.ALL, undefined, this);
     }
   }
 
