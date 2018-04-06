@@ -463,7 +463,7 @@ export default function App() {
         messages.forEach(message => {
           logger.info(message);
         });
-
+        surface.toggleButton(true, 'delete-all-button');
         surface.updateBreakpointsPanel(debuggerObj.breakpoints.activeBreakpoints, settings, transpiler);
       });
 
@@ -936,7 +936,10 @@ export default function App() {
 
       $('#delete-all-button').on('click', () => {
         if (debuggerObj && debuggerObj.engineMode !== ENGINE_MODE.DISCONNECTED) {
-          debuggerObj.deleteBreakpoint('all');
+          debuggerObj.breakpoints.activeBreakpoints.forEach((activeBreakpoint) => {
+            session.toggleBreakpoint(activeBreakpoint._line, debuggerObj, settings, transpiler);
+          });
+          surface.toggleButton(false, 'delete-all-button');
         }
       });
 
@@ -960,6 +963,7 @@ export default function App() {
           }
 
           debuggerObj.encodeMessage('B', [PROTOCOL.CLIENT.JERRY_DEBUGGER_STOP]);
+          surface.toggleButton(false, 'continue-stop-button');
         }
       });
 
@@ -974,6 +978,7 @@ export default function App() {
         }
 
         debuggerObj.encodeMessage('B', [PROTOCOL.CLIENT.JERRY_DEBUGGER_STEP]);
+        surface.toggleButton(false, 'step-button');
       });
 
       $('#finish-button').on('click', (e) => {
@@ -987,6 +992,7 @@ export default function App() {
         }
 
         debuggerObj.encodeMessage('B', [PROTOCOL.CLIENT.JERRY_DEBUGGER_FINISH]);
+        surface.toggleButton(false, 'finish-button');
       });
 
       $('#next-button').on('click', (e) => {
@@ -1000,6 +1006,7 @@ export default function App() {
         }
 
         debuggerObj.encodeMessage('B', [PROTOCOL.CLIENT.JERRY_DEBUGGER_NEXT]);
+        surface.toggleButton(false, 'next-button');
       });
 
       $('#disconnect-button').on('click', (e) => {

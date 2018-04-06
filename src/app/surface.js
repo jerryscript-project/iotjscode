@@ -295,8 +295,10 @@ export default class Surface {
   toggleButton(enabled, element) {
     if (enabled) {
       $('#' + element).removeClass('disabled');
+      $('#' + element).attr('disabled', false);
     } else {
       $('#' + element).addClass('disabled');
+      $('#' + element).attr('disabled', true);
     }
   }
 
@@ -638,11 +640,13 @@ export default class Surface {
       // Disable the debugger action buttons.
       $('.debugger-action-button').each((i, e) => {
         $(e).addClass('disabled');
+        $(e).attr('disabled', true);
       });
     } else {
       // Enable the debugger action buttons.
       $('.debugger-action-button').each((i, e) => {
         $(e).removeClass('disabled');
+        $(e).attr('disabled', false);
       });
     }
   }
@@ -737,6 +741,10 @@ export default class Surface {
   updateBreakpointsPanel(activeBreakpoints, settings, transpiler) {
     const $table = $('#breakpoints-table-body');
     Util.clearElement($table);
+
+    if (activeBreakpoints.length == 0) {
+      this.toggleButton(false, 'delete-all-button');
+    }
 
     for (const i in activeBreakpoints) {
       if (activeBreakpoints.hasOwnProperty(i)) {
