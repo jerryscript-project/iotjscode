@@ -49,15 +49,15 @@ body.dark-theme {
   }
 
   .bg-warning {
-    background-color: $d-yellow-color;
+    background-color: $d-yellow-color !important;
   }
 
   .bg-success {
-    background-color: $d-green-color;
+    background-color: $d-green-color !important;
   }
 
   .bg-danger {
-    background-color: $d-red-color;
+    background-color: $d-red-color !important;
   }
 
   .sidenav {

@@ -93,19 +93,19 @@ input[type="number"] {
 }
 
 .bg-white {
-  background-color: $b-background-color;
+  background-color: $b-background-color !important;
 }
 
 .bg-warning {
-  background-color: $b-yellow-color;
+  background-color: $b-yellow-color !important;
 }
 
 .bg-success {
-  background-color: $b-green-color;
+  background-color: $b-green-color !important;
 }
 
 .bg-danger {
-  background-color: $b-red-color;
+  background-color: $b-red-color !important;
 }
 
 input[type="text"].form-control,
