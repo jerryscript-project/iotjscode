@@ -104,7 +104,6 @@ const config = {
     path: build_path,
     filename: 'js/[name].[chunkhash].bundle.js',
     chunkFilename: 'js/[name].bundle.js',
-    publicPath: './',
   },
   module: {
     rules,
@@ -113,6 +112,11 @@ const config = {
   resolve,
   node: {
     fs: 'empty',
+  },
+  devServer: {
+    compress: true,
+    inline: true,
+    port: 5005,
   },
 };
 
