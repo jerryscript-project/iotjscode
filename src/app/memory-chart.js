@@ -147,7 +147,7 @@ export default class MemoryChart {
           },
           y: {
             tick: {
-              format: function(d) {
+              format: d => {
                 return Math.round(d) + ' B';
               },
               count: 6,
@@ -164,7 +164,7 @@ export default class MemoryChart {
           },
         },
         tooltip: {
-          position: function() {
+          position: () => {
             return {
               top: global.tooltipRelativeYPosition,
               left: global.tooltipRelativeXPosition,
@@ -279,7 +279,7 @@ export default class MemoryChart {
     data[0][0] = 'Checked at:';
     let csv = '';
 
-    data.forEach(function(row) {
+    data.forEach(row => {
       csv += row.join(',');
       csv += '\n';
     });
@@ -354,35 +354,35 @@ export default class MemoryChart {
  *
  * @param {event} e Mouse scroll event.
  */
-function mouseWheelHandler(e) {
+const mouseWheelHandler = e => {
   e.originalEvent.wheelDelta > 0 ? scrollForward() : scrollBack();
-}
+};
 
 /**
  * Backwards scroll range handler. Decrease the minimum X axis range.
  */
-function scrollBack() {
+const scrollBack = () => {
   if (global.xAxisData.length >= global.maxDatapointNumber + 1 &&
       global.minimumXIndex > global.maxDatapointNumber + 1) {
     global.minimumXIndex--;
     updateScrolledChart();
   }
-}
+};
 
 /**
  * Forwards scroll range handler. Increase the minimum X axis range.
  */
-function scrollForward() {
+const scrollForward = () => {
   if (global.xAxisData.length > global.maxDatapointNumber + global.minimumXIndex) {
     global.minimumXIndex++;
     updateScrolledChart();
   }
-}
+};
 
 /**
  * Updates the chart by redrawing the dataset based on the new minimum X axis range.
  */
-function updateScrolledChart() {
+const updateScrolledChart = () => {
   global.chart.load({
     columns: [
       [global.xAxisData[0]].concat(
@@ -405,12 +405,12 @@ function updateScrolledChart() {
       ),
     ],
   });
-}
+};
 
 /**
  * Inits the chart related variables to their default start values.
  */
-function initVariables() {
+const initVariables = () => {
   global.minimumXIndex = 1;
   global.maxDatapointNumber = 40;
   global.xAxisData = ['x'];
@@ -432,7 +432,7 @@ function initVariables() {
     global.bytes.allocated.push(null);
     empty_space = empty_space.concat(' ');
   }
-}
+};
 
 /**
  * Calculates the time label for the dataset entries.
