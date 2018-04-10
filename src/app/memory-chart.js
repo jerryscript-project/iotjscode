@@ -176,11 +176,9 @@ export default class MemoryChart {
         },
       });
 
-      $('#chart').bind('mousewheel DOMMouseScroll', (e) => {
-        mouseWheelHandler(e);
-      });
+      $('#chart').bind('mousewheel DOMMouseScroll', e => mouseWheelHandler(e));
 
-      $('#chart').mousemove((e) => {
+      $('#chart').mousemove(e => {
         global.tooltipRelativeYPosition = e.clientY - $('#chart').offset().top + 10;
         global.tooltipRelativeXPosition = e.clientX - $('#chart').offset().left + 10;
       });

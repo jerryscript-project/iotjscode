@@ -60,7 +60,7 @@ export default class Settings {
   get CONTROLS() {
     return {
       global: {
-        theme: [CONTROL_TYPE.SELECT, (theme) => {
+        theme: [CONTROL_TYPE.SELECT, theme => {
           window.monaco.editor.setTheme(theme);
 
           if (theme === 'vs') {
@@ -71,99 +71,81 @@ export default class Settings {
         }, 'vs'],
       },
       editor: {
-        fontsize: [CONTROL_TYPE.SELECT, (size) => {
+        fontsize: [CONTROL_TYPE.SELECT, size => {
           this._editor.updateOptions({
             fontSize: size,
           });
         }, '14px'],
-        wrap: [CONTROL_TYPE.SELECT, (wrap) => {
+        wrap: [CONTROL_TYPE.SELECT, wrap => {
           this._editor.updateOptions({
             wordWrap: wrap,
           });
         }, 'off'],
-        wrapColumn: [CONTROL_TYPE.SELECT, (column) => {
+        wrapColumn: [CONTROL_TYPE.SELECT, column => {
           this._editor.updateOptions({
             wordWrapColumn: column,
           });
         }, '80'],
-        lineHighlight: [CONTROL_TYPE.SELECT, (highlght) => {
+        lineHighlight: [CONTROL_TYPE.SELECT, highlght => {
           this._editor.updateOptions({
             renderLineHighlight: highlght,
           });
         }, 'all'],
-        whitespace: [CONTROL_TYPE.SELECT, (ws) => {
+        whitespace: [CONTROL_TYPE.SELECT, ws => {
           this._editor.updateOptions({
             renderWhitespace: ws,
           });
         }, 'all'],
-        minimap: [CONTROL_TYPE.CHECKBOX, (enabled) => {
+        minimap: [CONTROL_TYPE.CHECKBOX, enabled => {
           this._editor.updateOptions({
             minimap: {
               enabled: enabled,
             },
           });
         }, true],
-        folding: [CONTROL_TYPE.CHECKBOX, (enabled) => {
+        folding: [CONTROL_TYPE.CHECKBOX, enabled => {
           this._editor.updateOptions({
             folding: enabled,
           });
         }, false],
-        autoClosingBrackets: [CONTROL_TYPE.CHECKBOX, (enabled) => {
+        autoClosingBrackets: [CONTROL_TYPE.CHECKBOX, enabled => {
           this._editor.updateOptions({
             autoClosingBrackets: enabled,
           });
         }, true],
-        matchBrackets: [CONTROL_TYPE.CHECKBOX, (enabled) => {
+        matchBrackets: [CONTROL_TYPE.CHECKBOX, enabled => {
           this._editor.updateOptions({
             matchBrackets: enabled,
           });
         }, true],
-        autoIndent: [CONTROL_TYPE.CHECKBOX, (enabled) => {
+        autoIndent: [CONTROL_TYPE.CHECKBOX, enabled => {
           this._editor.updateOptions({
             autoIndent: enabled,
           });
         }, true],
-        renderIndentGuides: [CONTROL_TYPE.CHECKBOX, (enabled) => {
+        renderIndentGuides: [CONTROL_TYPE.CHECKBOX, enabled => {
           this._editor.updateOptions({
             renderIndentGuides: enabled,
           });
         }, false],
-        mouseWheelZoom: [CONTROL_TYPE.CHECKBOX, (enabled) => {
+        mouseWheelZoom: [CONTROL_TYPE.CHECKBOX, enabled => {
           this._editor.updateOptions({
             mouseWheelZoom: enabled,
           });
         }, false],
       },
       debugger: {
-        backtraceDepth: [CONTROL_TYPE.NUMBER, (value) => {
-          this.modify('debugger.backtraceDepth', value);
-        }, 0],
-        transpileToES5: [CONTROL_TYPE.CHECKBOX, (value) => {
-          this.modify('debugger.transpileToES5', value);
-        }, false],
+        backtraceDepth: [CONTROL_TYPE.NUMBER, value => this.modify('debugger.backtraceDepth', value), 0],
+        transpileToES5: [CONTROL_TYPE.CHECKBOX, value => this.modify('debugger.transpileToES5', value), false],
       },
       panels: {
-        backtrace: [CONTROL_TYPE.SURFACE, () => {
-          this._surface.togglePanel('backtrace');
-        }, true],
-        breakpoints: [CONTROL_TYPE.SURFACE, () => {
-          this._surface.togglePanel('breakpoints');
-        }, true],
-        watch: [CONTROL_TYPE.SURFACE, () => {
-          this._surface.togglePanel('watch');
-        }, false],
-        chart: [CONTROL_TYPE.SURFACE, () => {
-          this._surface.togglePanel('chart');
-        }, false],
-        output: [CONTROL_TYPE.SURFACE, () => {
-          this._surface.togglePanel('output');
-        }, false],
-        run: [CONTROL_TYPE.SURFACE, () => {
-          this._surface.togglePanel('run');
-        }, false],
-        console: [CONTROL_TYPE.SURFACE, () => {
-          this._surface.togglePanel('console');
-        }, true],
+        backtrace: [CONTROL_TYPE.SURFACE, () => this._surface.togglePanel('backtrace'), true],
+        breakpoints: [CONTROL_TYPE.SURFACE, () => this._surface.togglePanel('breakpoints'), true],
+        watch: [CONTROL_TYPE.SURFACE, () => this._surface.togglePanel('watch'), false],
+        chart: [CONTROL_TYPE.SURFACE, () => this._surface.togglePanel('chart'), false],
+        output: [CONTROL_TYPE.SURFACE, () => this._surface.togglePanel('output'), false],
+        run: [CONTROL_TYPE.SURFACE, () => this._surface.togglePanel('run'), false],
+        console: [CONTROL_TYPE.SURFACE, () => this._surface.togglePanel('console'), true],
       },
     };
   }
@@ -195,7 +177,7 @@ export default class Settings {
    */
   initListeners() {
     // Prevent the click when the item is disabled.
-    $('.control-item select, .control-item input').on('click', (e) => {
+    $('.control-item select, .control-item input').on('click', e => {
       if (this._surface.settingItemIsDisabled(e.target.id)) {
         e.preventDefault();
         return false;
@@ -203,7 +185,7 @@ export default class Settings {
     });
 
     // Listen on change.
-    $('.control-item select, .control-item input').on('change', (e) => {
+    $('.control-item select, .control-item input').on('change', e => {
       const section = $(e.target).parent().parent().attr('id').split('-')[0];
       const id = e.target.id;
 
@@ -255,11 +237,9 @@ export default class Settings {
    * If they are not equals, then reinits the settings.
    */
   validityCheck() {
-    const same = Object.keys(this._settings).every((section) => {
+    const same = Object.keys(this._settings).every(section => {
       if (this.CONTROLS.hasOwnProperty(section)) {
-        return Object.keys(this._settings[section]).every((item) => {
-          return this.CONTROLS[section].hasOwnProperty(item);
-        });
+        return Object.keys(this._settings[section]).every(item => this.CONTROLS[section].hasOwnProperty(item));
       } else {
         return false;
       }

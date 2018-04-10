@@ -155,9 +155,7 @@ const createPopup = (type, strong, message, pre = false) => {
   );
 
   // Wait 30 sec then close the alert window.
-  setTimeout(() => {
-    lrt.alert('close');
-  }, 10000);
+  setTimeout(() => lrt.alert('close'), 10000);
 
   return lrt;
 };
@@ -189,6 +187,4 @@ const getTimestamp = () => {
 /**
  * Appends a zero before a time number if that is less than ten to keep the unified format.
  */
-const fixTime = (time) => {
-  return time < 10 ? `0${time}` : time;
-};
+const fixTime = time => time < 10 ? `0${time}` : time;

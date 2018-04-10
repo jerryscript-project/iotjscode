@@ -436,7 +436,7 @@ export default class Surface {
       $src.html('');
       $dest.html('');
 
-      session.getAllData().forEach((s) => {
+      session.getAllData().forEach(s => {
         if (!s.scheduled) {
           // Create a new list item.
           this.appendChooserLi($src, '', 'hidden', 'run-' + s.name, s.id, s.name);

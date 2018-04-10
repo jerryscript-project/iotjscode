@@ -755,9 +755,7 @@ export default class Session {
         const lines = this.getLinesFromRawData(debuggerObj.getBreakpointLines(), settings, transpiler);
 
         if (lines.length !== 0) {
-          lines.sort((a, b) => {
-            return a - b;
-          });
+          lines.sort((a, b) => a - b);
 
           // Clear the list.
           this._glyph.removeByFile(this._id.active);
@@ -873,13 +871,8 @@ export default class Session {
     // Update the editor height based on the new header height.
     this._environment.editor.layout(this._surface.getEditorContainerDimensions());
 
-    $(`#tab-${id}`).on('click', () => {
-      this.switchFile(id);
-    });
-
-    $(`#tab-${id} i`).on('click', () => {
-      this.closeTab(id);
-    });
+    $(`#tab-${id}`).on('click', () => this.switchFile(id));
+    $(`#tab-${id} i`).on('click', () => this.closeTab(id));
   }
 
   /**

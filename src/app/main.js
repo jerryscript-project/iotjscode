@@ -95,11 +95,7 @@ export default function App() {
   /**
    * Monaco related: the monaco loader function.
    */
-  const onGotAmdLoader = () => {
-    window.require(['vs/editor/editor.main'], () => {
-      initMonaco();
-    });
-  };
+  const onGotAmdLoader = () => window.require(['vs/editor/editor.main'], () => initMonaco());
 
 
   /**
@@ -151,7 +147,7 @@ export default function App() {
      *
      * @param {string} address The websocket connection address.
      */
-    const initDebuggerClient = (address) => {
+    const initDebuggerClient = address => {
       debuggerObj = new DebuggerClient(address);
 
       /**
@@ -180,9 +176,7 @@ export default function App() {
       /**
        * Listener for onabort event.
        */
-      debuggerObj.connection.on('abort', message => {
-        logger.error(`Connection aborted: ${message}`, true);
-      });
+      debuggerObj.connection.on('abort', message => logger.error(`Connection aborted: ${message}`, true));
 
       /**
        * Listener for onclose and onerror event.
@@ -221,9 +215,7 @@ export default function App() {
           session.contextReset = false;
 
           // Try to reconnect once.
-          setTimeout(() => {
-            $('#connect-to-button').trigger('click');
-          }, 1000);
+          setTimeout(() => $('#connect-to-button').trigger('click'), 1000);
         }
       });
 
@@ -460,9 +452,7 @@ export default function App() {
        * This will be called when the user dispatch new breakpoint set in the editor.
        */
       debuggerObj.on('setBreakpoint', messages => {
-        messages.forEach(message => {
-          logger.info(message);
-        });
+        messages.forEach(message => logger.info(message));
         surface.toggleButton(true, 'delete-all-button');
         surface.updateBreakpointsPanel(debuggerObj.breakpoints.activeBreakpoints, settings, transpiler);
       });
@@ -489,9 +479,7 @@ export default function App() {
        * Listener for the delete pending breakpoint event.
        * This will be called when the client deleted a pending breakpoint.
        */
-      debuggerObj.on('deletePendingBreakpoint', message => {
-        logger.info(message);
-      });
+      debuggerObj.on('deletePendingBreakpoint', message => logger.info(message));
     };
 
     /**
@@ -600,7 +588,7 @@ export default function App() {
       /**
        * Mosue click event.
        */
-      env.editor.onMouseDown((e) => {
+      env.editor.onMouseDown(e => {
         if (e.target.type === window.monaco.editor.MouseTargetType.GUTTER_GLYPH_MARGIN) {
           if (debuggerObj && debuggerObj.engineMode !== ENGINE_MODE.DISCONNECTED) {
             session.toggleBreakpoint(e.target.position.lineNumber, debuggerObj, settings, transpiler);
@@ -646,21 +634,17 @@ export default function App() {
       /**
        * Outside click of the sidenav extra.
        */
-      $('#sidenav-extra-modal').on('click', () => {
-        surface.toggleSidenavExtra(surface.lastOpenedSidenavExtra);
-      });
+      $('#sidenav-extra-modal').on('click', () => surface.toggleSidenavExtra(surface.lastOpenedSidenavExtra));
 
       /**
        * Extra panel toggles
        */
-      $('.extra-sidenav-toggle').on('click', (e) => {
-        surface.toggleSidenavExtra($(e.currentTarget).data('eid'));
-      });
+      $('.extra-sidenav-toggle').on('click', e => surface.toggleSidenavExtra($(e.currentTarget).data('eid')));
 
       /**
        * Panel swithcers.
        */
-      $('.sidenav-panel-toggle').on('click', (e) => {
+      $('.sidenav-panel-toggle').on('click', e => {
         surface.togglePanel($(e.currentTarget).data('pid'));
 
         settings.modify(
@@ -714,7 +698,7 @@ export default function App() {
       /**
        * Manage the file input change.
        */
-      $('#hidden-file-input').change((evt) => {
+      $('#hidden-file-input').change(evt => {
         // FileList object
         const files = evt.target.files;
 
@@ -724,10 +708,10 @@ export default function App() {
             continue;
           }
 
-          ((file) => {
+          (file => {
             const reader = new FileReader();
 
-            reader.onload = (evt) => {
+            reader.onload = evt => {
               session.createNewFile(file.name, evt.target.result, true);
 
               if (surface.getPanelProperty('run.active')) {
@@ -739,7 +723,7 @@ export default function App() {
               }
             },
 
-            reader.onerror = (evt) => {
+            reader.onerror = evt => {
               if (evt.target.name.error === 'NotReadableError') {
                 logger.error(file.name + ' file could not be read.', true);
               }
@@ -761,7 +745,7 @@ export default function App() {
       /**
        * New file name field toggle event.
        */
-      $('#new-file-button, #start-new-file-link').on('click', (e) => {
+      $('#new-file-button, #start-new-file-link').on('click', e => {
         // If the user clicked the placeholder button then open the sidenav first.
         if (e.target.id === 'start-new-file-link') {
           surface.toggleSidenavExtra('file-sidenav');
@@ -774,7 +758,7 @@ export default function App() {
       /**
        * New file name on-the-fly validation.
        */
-      $('#new-file-name').keyup((e) => {
+      $('#new-file-name').keyup(e => {
         const info = $('#hidden-new-file-info');
         const filename = $('#new-file-name').val().trim();
         const regex = /^([a-zA-Z0-9_-]{1,}.*)$/;
@@ -815,7 +799,7 @@ export default function App() {
       /**
        * New file name ok button events.
        */
-      $('#ok-file-name').on('click', (e) => {
+      $('#ok-file-name').on('click', e => {
         if (surface.buttonIsDisabled(e.target)) {
           return true;
         }
@@ -855,11 +839,10 @@ export default function App() {
     (() => {
       /**
        * Global.
+       *
+       * Call the settings init function with the reset = true parameter.
        */
-      $('#local-storage-reset-button').on('click', () => {
-        // Call the settings init function with the reset = true parameter.
-        settings.init(true);
-      });
+      $('#local-storage-reset-button').on('click', () => settings.init(true));
     })();
 
 
@@ -870,7 +853,7 @@ export default function App() {
       /**
        * Export chart button.
        */
-      $('#export-chart-button').on('click', (e) => {
+      $('#export-chart-button').on('click', e => {
         if (surface.buttonIsDisabled(e.target)) {
           return true;
         }
@@ -887,7 +870,7 @@ export default function App() {
       /**
        * Address port check.
        */
-      $('#host-port').keydown((e) => {
+      $('#host-port').keydown(e => {
         // Allow: backspace, delete, tab, escape, enter.
         if ($.inArray(e.keyCode, [keys.delete, keys.backspace, keys.tab, keys.esc, keys.enter, keys.decPoint]) !== -1 ||
             // Allow: Ctrl/cmd+A.
@@ -909,7 +892,7 @@ export default function App() {
         }
       });
 
-      $('#connect-to-button').on('click', (e) => {
+      $('#connect-to-button').on('click', e => {
         if (surface.buttonIsDisabled(e.target)) {
           return true;
         }
@@ -936,14 +919,14 @@ export default function App() {
 
       $('#delete-all-button').on('click', () => {
         if (debuggerObj && debuggerObj.engineMode !== ENGINE_MODE.DISCONNECTED) {
-          debuggerObj.breakpoints.activeBreakpoints.forEach((activeBreakpoint) => {
+          debuggerObj.breakpoints.activeBreakpoints.forEach(activeBreakpoint => {
             session.toggleBreakpoint(activeBreakpoint._line, debuggerObj, settings, transpiler);
           });
           surface.toggleButton(false, 'delete-all-button');
         }
       });
 
-      $('#continue-stop-button').on('click', (e) => {
+      $('#continue-stop-button').on('click', e => {
         if (surface.buttonIsDisabled(e.target)) {
           return true;
         }
@@ -967,7 +950,7 @@ export default function App() {
         }
       });
 
-      $('#step-button').on('click', (e) => {
+      $('#step-button').on('click', e => {
         if (surface.buttonIsDisabled(e.target)) {
           return true;
         }
@@ -981,7 +964,7 @@ export default function App() {
         surface.toggleButton(false, 'step-button');
       });
 
-      $('#finish-button').on('click', (e) => {
+      $('#finish-button').on('click', e => {
         if (surface.buttonIsDisabled(e.target)) {
           return true;
         }
@@ -995,7 +978,7 @@ export default function App() {
         surface.toggleButton(false, 'finish-button');
       });
 
-      $('#next-button').on('click', (e) => {
+      $('#next-button').on('click', e => {
         if (surface.buttonIsDisabled(e.target)) {
           return true;
         }
@@ -1009,7 +992,7 @@ export default function App() {
         surface.toggleButton(false, 'next-button');
       });
 
-      $('#disconnect-button').on('click', (e) => {
+      $('#disconnect-button').on('click', e => {
         if (surface.buttonIsDisabled(e.target)) {
           return true;
         }
@@ -1026,7 +1009,7 @@ export default function App() {
       /**
        * Add button in the panel head.
        */
-      $('#watch-add-button').on('click', (e) => {
+      $('#watch-add-button').on('click', e => {
         if (surface.buttonIsDisabled(e.target)) {
           return true;
         }
@@ -1038,7 +1021,7 @@ export default function App() {
       /**
        * Refresh button in the panel head.
        */
-      $('#watch-refresh-button').on('click', (e) => {
+      $('#watch-refresh-button').on('click', e => {
         if (surface.buttonIsDisabled(e.target)) {
           return true;
         }
@@ -1051,7 +1034,7 @@ export default function App() {
       /**
        * Clear button in the panel head.
        */
-      $('#watch-clear-button').on('click', (e) => {
+      $('#watch-clear-button').on('click', e => {
         if (surface.buttonIsDisabled(e.target)) {
           return true;
         }
@@ -1064,7 +1047,7 @@ export default function App() {
       /**
        * Listed item delete icons.
        */
-      $('#watch-list').on('click', '.watch-li-remove i', (e) => {
+      $('#watch-list').on('click', '.watch-li-remove i', e => {
         session.removeWatchExpression($(e.target).parent().data('rid'));
         $(e.target).parent().parent().remove();
         surface.updateWatchPanelButtons(debuggerObj);
@@ -1073,12 +1056,12 @@ export default function App() {
       /**
        * Input field behaviour.
        */
-      $('#watch-add-input').focusout((e) => {
+      $('#watch-add-input').focusout(e => {
         $(e.target).val('');
         $('#watch-add-wrapper').hide();
       });
 
-      $('#watch-add-input').on('keypress', (e) => {
+      $('#watch-add-input').on('keypress', e => {
         if (e.keyCode === keys.enter) {
           if ($(e.target).val() !== '') {
             session.addWatchExpression(debuggerObj, $(e.target).val());
@@ -1102,9 +1085,7 @@ export default function App() {
         autoReflow: true,
         position: 'fixed',
         zIndex: 800,
-        scrollContainer: ($table) => {
-          return $table.closest('.wrapper');
-        },
+        scrollContainer: $table => $table.closest('.wrapper'),
       });
     })();
 
@@ -1113,7 +1094,7 @@ export default function App() {
      * MemoryChart panel events.
      */
     (() => {
-      $('#chart-record-button').on('click', (e) => {
+      $('#chart-record-button').on('click', e => {
         if (surface.buttonIsDisabled(e.target)) {
           return true;
         }
@@ -1124,7 +1105,7 @@ export default function App() {
         }
       });
 
-      $('#chart-stop-button').on('click', (e) => {
+      $('#chart-stop-button').on('click', e => {
         if (surface.buttonIsDisabled(e.target)) {
           return true;
         }
@@ -1132,7 +1113,7 @@ export default function App() {
         chart.stopChartWithButton();
       });
 
-      $('#chart-reset-button').on('click', (e) => {
+      $('#chart-reset-button').on('click', e => {
         if (surface.buttonIsDisabled(e.target)) {
           return true;
         }
@@ -1149,9 +1130,7 @@ export default function App() {
       /**
        *Clear button click event.
        */
-      $('#output-clear-button').on('click', () => {
-        Util.clearElement($('#output-panel'));
-      });
+      $('#output-clear-button').on('click', () => Util.clearElement($('#output-panel')));
     })();
 
 
@@ -1189,7 +1168,7 @@ export default function App() {
       /**
        * Right arrow button in the source selecting panel.
        */
-      $('#run-right-button').on('click', (e) => {
+      $('#run-right-button').on('click', e => {
         if (surface.buttonIsDisabled(e.target)) {
           return true;
         }
@@ -1211,7 +1190,7 @@ export default function App() {
       /**
        * Left arrow button in the source selecting panel.
        */
-      $('#run-left-button').on('click', (e) => {
+      $('#run-left-button').on('click', e => {
         if (surface.buttonIsDisabled(e.target)) {
           return true;
         }
@@ -1233,7 +1212,7 @@ export default function App() {
       /**
        * Run button in the run panel head.
        */
-      $('#run-ok-button').on('click', (e) => {
+      $('#run-ok-button').on('click', e => {
         if (surface.buttonIsDisabled(e.target)) {
           return true;
         }
@@ -1260,12 +1239,12 @@ export default function App() {
       /**
        * Clear button in the run panel head.
        */
-      $('#run-clear-button').on('click', (e) => {
+      $('#run-clear-button').on('click', e => {
         if (surface.buttonIsDisabled(e.target)) {
           return true;
         }
 
-        session.getAllData().forEach((s) => {
+        session.getAllData().forEach(s => {
           if (s.scheduled) {
             session.removeFileFromUploadList(s.id);
           }
@@ -1277,7 +1256,7 @@ export default function App() {
       /**
        * Context reset button in the run panel head.
        */
-      $('#run-context-reset-button').on('click', (e) => {
+      $('#run-context-reset-button').on('click', e => {
         if (surface.buttonIsDisabled(e.target)) {
           return true;
         }
@@ -1324,7 +1303,7 @@ export default function App() {
       /**
        * Command line input field.
        */
-      $('#command-line-input').keydown((e) => {
+      $('#command-line-input').keydown(e => {
         if (e.keyCode === keys.upArrow) {
           if (session.commandCounter - 1 > -1) {
             session.commandCounter = session.commandCounter - 1;
@@ -1344,7 +1323,7 @@ export default function App() {
       /**
        * Command line input keypress event.
        */
-      $('#command-line-input').keypress((event) => {
+      $('#command-line-input').keypress(event => {
         if (event.keyCode !== keys.enter) {
           return true;
         }
@@ -1472,14 +1451,10 @@ export default function App() {
             }
           } break;
           case 'list':
-            debuggerObj.listBreakpoints().forEach(log => {
-              logger.info(log);
-            });
+            debuggerObj.listBreakpoints().forEach(log => logger.info(log));
             break;
           case 'dump':
-            debuggerObj.dump().forEach(log => {
-              logger.info(log);
-            });
+            debuggerObj.dump().forEach(log => logger.info(log));
             break;
           default:
             logger.error('Unknown command: ' + args[1]);
@@ -1581,7 +1556,7 @@ export default function App() {
       /**
        * Window resize event.
        */
-      $(window).resize((e) => {
+      $(window).resize(e => {
         if (e.target === window) {
 
           surface.resetPanelsPercentage();
