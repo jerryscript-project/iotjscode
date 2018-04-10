@@ -1353,7 +1353,7 @@ export default function App() {
         const command = commandInput.val().trim();
 
         session.addCommandToList(command);
-        session.commandCounter(session.commandList.length);
+        session.commandCounter = session.commandList.length;
         const args = /^([a-zA-Z]+)(?:\s+([^\s].*)|)$/.exec(command);
 
         if (!args) {
