@@ -951,7 +951,7 @@ export default class Session {
         this.createNewFile(this._jerrySource.name, this._jerrySource.source, true);
 
         if (this._surface.getPanelProperty('run.active')) {
-          this._surface.updateRunPanel(SURFACE_RUN_UPDATE_TYPE.ALL, this._debuggerObj, this._session);
+          this._surface.updateRunPanel(SURFACE_RUN_UPDATE_TYPE.ALL, undefined, this);
         }
         break;
       case SOURCE_SYNC_ACTION.RELOAD:
