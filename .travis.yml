@@ -6,6 +6,12 @@ install:
 cache:
   directories:
     - node_modules
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - libstdc++-4.9-dev
 jobs:
   include:
   - stage: Check
@@ -24,5 +30,7 @@ jobs:
       local_dir: dist
       on:
         branch: master
+        condition: $VERSION = 0
     script:
-    - "if ! test -d dist; then npm install && npm run build; fi"
+      - "if ! test -d dist; then npm install && npm run build; fi"
+      - npm run check-version && VERSION=$?
