@@ -600,7 +600,9 @@ export default class Surface {
   initChartPanel(chart) {
     this.chartPanelWidth = $('#chart-wrapper').width();
     this.chartPanelHeight = $('#chart-wrapper').height();
-    chart.initChart();
+    if (!chart.containsData()) {
+      chart.initChart();
+    }
     chart.resizeChart(this.getPanelProperty('chart.height'), this.getPanelProperty('chart.width'));
   }
 

@@ -94,7 +94,8 @@ export default class MemoryChart {
    * @return {boolean} True if there is any data, false otherwise.
    */
   containsData() {
-    return (global.chart.data('allocated_bytes')[0].values[global.maxDatapointNumber - 1].value == null) ? false : true;
+    return (global.chart !== null &&
+            global.chart.data('allocated_bytes')[0].values[global.maxDatapointNumber - 1].value !== null);
   }
 
   /**
