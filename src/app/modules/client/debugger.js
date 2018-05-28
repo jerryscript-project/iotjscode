@@ -960,10 +960,8 @@ export default class DebuggerClient {
 
     const length = string.length;
     let byteLength = length;
-
-    for (let i = 0; i < length; i++) {
-      const chr = string.charCodeAt(i);
-
+    for (let length of string) {
+      const chr = string.charCodeAt(length);
       if (chr >= 0x7ff) {
         byteLength ++;
       }
@@ -981,8 +979,8 @@ export default class DebuggerClient {
 
     let offset = 5;
 
-    for (let i = 0; i < length; i++) {
-      const chr = string.charCodeAt(i);
+    for (let length of string) {
+      const chr = string.charCodeAt(length);
 
       if (chr >= 0x7ff) {
         result[offset] = 0xe0 | (chr >> 12);
