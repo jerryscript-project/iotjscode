@@ -19,7 +19,7 @@
   "dependencies": {
     "bootstrap": "^3.3.7",
     "bootswatch": "^3.3.7",
-    "c3": "^0.4.18",
+    "c3": "^0.4.23",
     "d3": "^3.5.17",
     "file-saver": "^1.3.3",
     "floatthead": "^2.0.3",
@@ -27,8 +27,8 @@
     "jquery": "^3.3.1",
     "jquery-ui-dist": "^1.12.1",
     "monaco-editor": "^0.10.1",
-    "nodegit": "^0.22.0",
-    "perfect-scrollbar": "^1.2.0",
+    "nodegit": "^0.22.1",
+    "perfect-scrollbar": "^1.4.0",
     "store": "^2.0.12"
   },
   "devDependencies": {
@@ -48,11 +48,11 @@
     "node-sass": "^4.8.3",
     "rimraf": "^2.6.2",
     "sass-loader": "^6.0.7",
-    "source-map": "^0.7.2",
+    "source-map": "^0.7.3",
     "style-loader": "^0.20.3",
     "url-loader": "^1.0.1",
-    "webpack": "^4.2.0",
-    "webpack-cli": "^2.0.13",
+    "webpack": "^4.12.0",
+    "webpack-cli": "^2.1.5",
     "webpack-dev-server": "^3.1.1"
   }
 }

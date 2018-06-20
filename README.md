@@ -53,7 +53,7 @@ $ cd iotjscode
 $ npm install
 
 # Launch the developer liverload browser site.
-# (this will open your browser at localhost:8080)
+# (this will open your browser at localhost:5005)
 # Press `Ctrl + C` to kill **http-server** process.
 $ npm start
 
