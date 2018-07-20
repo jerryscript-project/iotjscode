@@ -145,12 +145,12 @@ export default class ParseSource {
         func.firstBreakpointLine = func.lines[0];
         func.firstBreakpointOffset = func.offsets[0];
 
-        func.lines.forEach(i => {
-          const breakpoint = { line: func.lines[i-1], offset: func.offsets[i-1], func: func, index: -1 };
+        for (let i = 0; i < func.lines.length; i++) {
+          const breakpoint = { line: func.lines[i], offset: func.offsets[i], func: func, index: -1 };
 
           lines[breakpoint.line] = breakpoint;
           offsets[breakpoint.offset] = breakpoint;
-        });
+        }
 
         func.lines = lines;
         func.offsets = offsets;

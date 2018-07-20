@@ -958,15 +958,14 @@ export default class DebuggerClient {
   stringToCesu8(string) {
     assert.ok(string != '');
 
-    const length = string.length;
-    let byteLength = length;
-    for (let length of string) {
-      const chr = string.charCodeAt(length);
-      if (chr >= 0x7ff) {
+    let byteLength = string.length;
+    for (let chr of string) {
+      const charcode = chr.charCodeAt(0);
+      if (charcode >= 0x7ff) {
         byteLength ++;
       }
 
-      if (chr >= 0x7f) {
+      if (charcode >= 0x7f) {
         byteLength++;
       }
     }
@@ -979,19 +978,19 @@ export default class DebuggerClient {
 
     let offset = 5;
 
-    for (let length of string) {
-      const chr = string.charCodeAt(length);
+    for (let chr of string) {
+      const charcode = chr.charCodeAt(0);
 
-      if (chr >= 0x7ff) {
-        result[offset] = 0xe0 | (chr >> 12);
-        result[offset + 1] = 0x80 | ((chr >> 6) & 0x3f);
-        result[offset + 2] = 0x80 | (chr & 0x3f);
+      if (charcode >= 0x7ff) {
+        result[offset] = 0xe0 | (charcode >> 12);
+        result[offset + 1] = 0x80 | ((charcode >> 6) & 0x3f);
+        result[offset + 2] = 0x80 | (charcode & 0x3f);
         offset += 3;
-      } else if (chr >= 0x7f) {
-        result[offset] = 0xc0 | (chr >> 6);
-        result[offset + 1] = 0x80 | (chr & 0x3f);
+      } else if (charcode >= 0x7f) {
+        result[offset] = 0xc0 | (charcode >> 6);
+        result[offset + 1] = 0x80 | (charcode & 0x3f);
       } else {
-        result[offset] = chr;
+        result[offset] = charcode;
         offset++;
       }
     }

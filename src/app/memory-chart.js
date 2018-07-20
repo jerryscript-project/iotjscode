@@ -226,7 +226,7 @@ export default class MemoryChart {
   disableChartButtons() {
     this._activeChart = false;
     const list = $('.chart-btn');
-    Object.keys(list).forEach(key => this._surface.toggleButton(false, $(list[key]).attr('id')));
+    Object.keys(list).forEach(key => this._surface.toggleButton(false, $(key).attr('id')));
     $('#chart-record-button').css('background-color', '');
   }
 
@@ -295,10 +295,10 @@ export default class MemoryChart {
     global.checkTime.push(breakpointInformation);
 
     if (breakpointInformation.includes('ln')) {
-
       const counter = global.xAxisData
-        .slice(0, global.maxDatapointNumber)
-        .filter(data => data.includes(breakpointInformation)).length;
+        .slice(global.maxDatapointNumber)
+        .filter(data => data.includes(breakpointInformation))
+        .length;
 
       if (counter == 1) {
         global.xAxisData.push(breakpointInformation);
