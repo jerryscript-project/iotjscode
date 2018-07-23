@@ -16,7 +16,7 @@ jobs:
   include:
   - stage: Check
     script:
-    - ./tools/check_signed_off.sh
+    - ./tools/check_signed_off.sh --travis
     - npm run travis-lint
   - stage: Build
     script:
