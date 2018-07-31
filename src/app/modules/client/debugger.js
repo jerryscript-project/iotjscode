@@ -22,7 +22,7 @@ import { EventEmitter } from 'events';
 /**
  * Expected Debugger Protocol version.
  */
-export const JERRY_DEBUGGER_VERSION = 2;
+export const JERRY_DEBUGGER_VERSION = 4;
 
 /**
  * Packages sent between the server and the client.
@@ -57,6 +57,11 @@ export const PROTOCOL = {
     JERRY_DEBUGGER_OUTPUT_RESULT_END: 26,
 
     // Subtypes of eval.
+    JERRY_DEBUGGER_EVAL_EVAL: '\u0000',
+    JERRY_DEBUGGER_EVAL_THROW: '\u0001',
+    JERRY_DEBUGGER_EVAL_ABORT: '\u0002',
+
+    // Subtypes of eval result.
     JERRY_DEBUGGER_EVAL_OK: 1,
     JERRY_DEBUGGER_EVAL_ERROR: 2,
 
@@ -745,17 +750,18 @@ export default class DebuggerClient {
    * and send it in pieces to the engine.
    * This request can be sended to the engine only in breakpoint mode.
    *
+   * @param {string} subtype The subtype of eval (eval, throw, abort).
    * @param {string} str The eval code string.
    * @return {DEBUGGER_RETURN_TYPE} COMMON.ARGUMENT_REQUIRED in case of missing argument,
    *                                COMMON.ALLOWED_IN_BREAKPOINT_MODE in case of invalid engine mode and
    *                                COMMON.SUCCESS in case of successful send.
    */
-  sendEval(str) {
+  sendEval(subtype, str) {
     if (this._mode.current === ENGINE_MODE.BREAKPOINT) {
       if (str === '') {
         return DEBUGGER_RETURN_TYPES.COMMON.ARGUMENT_REQUIRED;
       } else {
-        let array = this.stringToCesu8(str);
+        let array = this.stringToCesu8(subtype + str);
         const byteLength = array.byteLength;
 
         if (byteLength <= this._maxMessageSize) {

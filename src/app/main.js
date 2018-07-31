@@ -1357,6 +1357,9 @@ export default function App() {
             '  finish|f - step-out execution\n' +
             '  next|n - execution until the next breakpoint\n' +
             '  eval|e - evaluate expression\n' +
+            '  throw - evaluate expression and throw it as exception\n' +
+            '  abort - evaluate expression and abort the JS engine\n' +
+            '  restart - restart the JS engine\n' +
             '  exception <0|1> - turn on/off the exception handler\n' +
             '  dump - dump all breakpoint data');
           commandInput.val('');
@@ -1401,6 +1404,7 @@ export default function App() {
           return true;
         }
 
+        let result = null;
         switch (args[1]) {
           case 'pb':
           case 'pendingbreak':
@@ -1430,26 +1434,21 @@ export default function App() {
             $('#next-button').click();
             break;
           case 'e':
-          case 'eval': {
-            const result = debuggerObj.sendEval(args[2]);
-            if (result === DEBUGGER_RETURN_TYPES.COMMON.ARGUMENT_REQUIRED) {
-              logger.error('Argument required.');
-            } else if (result === DEBUGGER_RETURN_TYPES.COMMON.ALLOWED_IN_BREAKPOINT_MODE) {
-              logger.error('This command is allowed only if JavaScript execution is stopped at a breakpoint.');
-            }
-          } break;
-          case 'exception': {
-            const result = debuggerObj.sendExceptionConfig(parseInt(args[2]));
-            if (result === DEBUGGER_RETURN_TYPES.COMMON.ARGUMENT_REQUIRED) {
-              logger.error('Argument required.');
-            } else if (result === DEBUGGER_RETURN_TYPES.COMMON.ARGUMENT_INVALID) {
-              logger.error('Invalid argument. Usage: exception <0|1>');
-            } else if (result === DEBUGGER_RETURN_TYPES.EXCEPTION_CONFIG.ENABLED) {
-              logger.info('Stop at exception enabled.');
-            } else {
-              logger.info('Stop at exception disabled.');
-            }
-          } break;
+          case 'eval':
+            result = debuggerObj.sendEval(PROTOCOL.SERVER.JERRY_DEBUGGER_EVAL_EVAL, args[2]);
+            break;
+          case 'throw':
+            result = debuggerObj.sendEval(PROTOCOL.SERVER.JERRY_DEBUGGER_EVAL_THROW, args[2]);
+            break;
+          case 'abort':
+            result = debuggerObj.sendEval(PROTOCOL.SERVER.JERRY_DEBUGGER_EVAL_ABORT, args[2]);
+            break;
+          case 'restart':
+            result = debuggerObj.sendEval(PROTOCOL.SERVER.JERRY_DEBUGGER_EVAL_ABORT, '"r353t"');
+            break;
+          case 'exception':
+            result = debuggerObj.sendExceptionConfig(parseInt(args[2]));
+            break;
           case 'list':
             debuggerObj.listBreakpoints().forEach(log => logger.info(log));
             break;
@@ -1462,6 +1461,30 @@ export default function App() {
         }
 
         commandInput.val('');
+        if (result === null)
+          return true;
+
+        switch (result) {
+          case DEBUGGER_RETURN_TYPES.COMMON.ARGUMENT_REQUIRED:
+            logger.error('Argument required.');
+            break;
+          case DEBUGGER_RETURN_TYPES.COMMON.ALLOWED_IN_BREAKPOINT_MODE:
+            logger.error('This command is allowed only if JavaScript execution is stopped at a breakpoint.');
+            break;
+          case DEBUGGER_RETURN_TYPES.COMMON.ARGUMENT_INVALID:
+            logger.error('Invalid argument. Usage: exception <0|1>');
+            break;
+          case DEBUGGER_RETURN_TYPES.EXCEPTION_CONFIG.ENABLED:
+            logger.info('Stop at exception enabled.');
+            break;
+          case DEBUGGER_RETURN_TYPES.EXCEPTION_CONFIG.DISABLED:
+            logger.info('Stop at exception disabled.');
+            break;
+          default:
+            logger.log('Unknown error.');
+            break;
+        }
+
         return true;
       });
     })();
