@@ -729,6 +729,7 @@ export default class DebuggerClient {
   sendGetBacktrace(userDepth) {
     if (this._mode.current === ENGINE_MODE.BREAKPOINT) {
       let max_depth = 0;
+      let min_depth = 0;
 
       if (userDepth !== 0) {
         if (/[1-9][0-9]*/.test(userDepth)) {
@@ -736,8 +737,7 @@ export default class DebuggerClient {
         }
       }
 
-      this.encodeMessage('BI', [PROTOCOL.CLIENT.JERRY_DEBUGGER_GET_BACKTRACE, max_depth]);
-
+      this.encodeMessage('BII', [PROTOCOL.CLIENT.JERRY_DEBUGGER_GET_BACKTRACE, min_depth, max_depth]);
       return DEBUGGER_RETURN_TYPES.COMMON.SUCCESS;
     }
 
