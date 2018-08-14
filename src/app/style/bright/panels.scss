@@ -196,11 +196,11 @@
           overflow-y: auto;
 
           .ui-selecting {
-            background-color: $b-yellow-color;
+            background-color: $b-yellow-color !important;
           }
 
           .ui-selected {
-            background-color: $b-orange-color;
+            background-color: $b-orange-color !important;
             color: #fff;
           }
 
