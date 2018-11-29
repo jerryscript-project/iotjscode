@@ -169,6 +169,12 @@ export default function App() {
           surface.updateWatchPanelButtons(debuggerObj);
         }
 
+        if (surface.getPanelProperty('backtrace.active') && $('#backtraceRange').is(':checked')) {
+          surface.toggleButton(true, 'send-backtrace-button');
+          $('#backtrace-min-depth').show();
+          $('#backtrace-max-depth').show();
+        }
+
         surface.disableActionButtons(false);
         surface.toggleButton(false, 'connect-to-button');
       });
@@ -328,7 +334,7 @@ export default function App() {
 
         // Show the backtrace on the panel.
         if (surface.getPanelProperty('backtrace.active')) {
-          if (debuggerObj.sendGetBacktrace(settings.getValue('debugger.backtraceDepth')) ===
+          if (debuggerObj.sendGetBacktrace(0, 0, settings.getValue('debugger.backtraceRange')) ===
               DEBUGGER_RETURN_TYPES.COMMON.ALLOWED_IN_BREAKPOINT_MODE) {
             logger.error('This command is allowed only if JavaScript execution is stopped at a breakpoint.');
           }
@@ -923,6 +929,45 @@ export default function App() {
             session.toggleBreakpoint(activeBreakpoint._line, debuggerObj, settings, transpiler);
           });
           surface.toggleButton(false, 'delete-all-button');
+        }
+      });
+
+
+      $('#backtraceRange').on('click', () => {
+        if ($('#backtraceRange').is(':checked')) {
+
+          $('#backtrace-scroll').scrollTop(0);
+          surface.toggleButton(true, 'send-backtrace-button');
+          $('#backtrace-min-depth').show();
+          $('#backtrace-max-depth').show();
+        } else {
+          surface.toggleButton(false, 'send-backtrace-button');
+          $('#backtrace-min-depth').hide();
+          $('#backtrace-max-depth').hide();
+        }
+      });
+
+      $('#send-backtrace-button').on('click', () => {
+
+        let min_depth = $('#backtrace-min-depth').val();
+        let max_depth = $('#backtrace-max-depth').val();
+        let get_total = 1;
+        if ((min_depth | max_depth) > debuggerObj.connection.total_frame_counter) {
+          logger.error('Start or end can not exceed the total number of frames. Total: ' +
+                        debuggerObj.connection.total_frame_counter);
+
+          $('#backtrace-min-depth').val('');
+          $('#backtrace-max-depth').val('');
+        } else if (min_depth > max_depth) {
+          logger.error('Start can not be higher than end.');
+
+          $('#backtrace-min-depth').val('');
+          $('#backtrace-max-depth').val('');
+        } else {
+          Util.clearElement($('#backtrace-table-body'));
+          $('#backtrace-scroll').scrollTop(0);
+
+          debuggerObj.sendGetBacktrace(min_depth, max_depth, get_total);
         }
       });
 

@@ -22,7 +22,7 @@ import { EventEmitter } from 'events';
 /**
  * Expected Debugger Protocol version.
  */
-export const JERRY_DEBUGGER_VERSION = 4;
+export const JERRY_DEBUGGER_VERSION = 5;
 
 /**
  * Packages sent between the server and the client.
@@ -48,13 +48,14 @@ export const PROTOCOL = {
     JERRY_DEBUGGER_EXCEPTION_HIT: 17,
     JERRY_DEBUGGER_EXCEPTION_STR: 18,
     JERRY_DEBUGGER_EXCEPTION_STR_END: 19,
-    JERRY_DEBUGGER_BACKTRACE: 20,
-    JERRY_DEBUGGER_BACKTRACE_END: 21,
-    JERRY_DEBUGGER_EVAL_RESULT: 22,
-    JERRY_DEBUGGER_EVAL_RESULT_END: 23,
-    JERRY_DEBUGGER_WAIT_FOR_SOURCE: 24,
-    JERRY_DEBUGGER_OUTPUT_RESULT: 25,
-    JERRY_DEBUGGER_OUTPUT_RESULT_END: 26,
+    JERRY_DEBUGGER_BACKTRACE_TOTAL: 20,
+    JERRY_DEBUGGER_BACKTRACE: 21,
+    JERRY_DEBUGGER_BACKTRACE_END: 22,
+    JERRY_DEBUGGER_EVAL_RESULT: 23,
+    JERRY_DEBUGGER_EVAL_RESULT_END: 24,
+    JERRY_DEBUGGER_WAIT_FOR_SOURCE: 25,
+    JERRY_DEBUGGER_OUTPUT_RESULT: 26,
+    JERRY_DEBUGGER_OUTPUT_RESULT_END: 27,
 
     // Subtypes of eval.
     JERRY_DEBUGGER_EVAL_EVAL: '\u0000',
@@ -720,24 +721,23 @@ export default class DebuggerClient {
   }
 
   /**
-   * Gets the backtrace depth options from the settings page and send that to the debugger.
-   * This signal can be sended to the engine only in breakpoint mode.
+   * Gets the total backtrace count options from the settings page and send that to the debugger.
+   * This signal can be sent to the engine only in breakpoint mode.
    *
    * @return {DEBUGGER_RETURN_TYPES} COMMON.SUCCESS in case of successful signal send and
    *                                 COMMON.ALLOWED_IN_BREAKPOINT_MODE in case of invalid engine mode.
    */
-  sendGetBacktrace(userDepth) {
+  sendGetBacktrace(min_depth, max_depth, userTotal) {
     if (this._mode.current === ENGINE_MODE.BREAKPOINT) {
-      let max_depth = 0;
-      let min_depth = 0;
 
-      if (userDepth !== 0) {
-        if (/[1-9][0-9]*/.test(userDepth)) {
-          max_depth = parseInt(userDepth);
-        }
+      if (min_depth === undefined) min_depth = 0;
+      if (max_depth === undefined) max_depth = 0;
+      let get_total = 0;
+
+      if (userTotal !== undefined) {
+        get_total = 1;
       }
-
-      this.encodeMessage('BII', [PROTOCOL.CLIENT.JERRY_DEBUGGER_GET_BACKTRACE, min_depth, max_depth]);
+      this.encodeMessage('BIIB', [PROTOCOL.CLIENT.JERRY_DEBUGGER_GET_BACKTRACE, min_depth, max_depth, get_total]);
       return DEBUGGER_RETURN_TYPES.COMMON.SUCCESS;
     }
 

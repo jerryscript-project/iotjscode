@@ -713,6 +713,7 @@ export default class Surface {
    */
   updateBacktracePanel(backtrace, settings, transpiler) {
     const $table = $('#backtrace-table-body');
+    let frame = $('#backtrace-min-depth').val() || 0;
 
     backtrace.forEach(trace => {
       const sourceName = trace.data.func.sourceName || trace.data;
@@ -724,14 +725,18 @@ export default class Surface {
 
       $table.append(
         '<tr>' +
-          `<td>${trace.frame}</td>` +
+          `<td>${frame}</td>` +
           `<td>${sourceName}</td>` +
           `<td>${line}</td>` +
           `<td>${this.generateFunctionLog(trace.data, settings, transpiler)}</td>` +
         '</tr>'
       );
+      frame++;
 
       Util.scrollDown($table);
+
+      $('#backtrace-min-depth').val('');
+      $('#backtrace-max-depth').val('');
     });
   }
 

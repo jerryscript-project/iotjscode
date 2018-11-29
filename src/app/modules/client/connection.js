@@ -28,6 +28,7 @@ export default class Connection {
    * @param {object} address Connection host address and host port.
    */
   constructor(debuggerObject, address) {
+    this._total_frame_counter = null;
     this._backtrace = [];
     this._eventEmitter = new EventEmitter();
 
@@ -172,9 +173,13 @@ export default class Connection {
           return;
         }
 
+        case PROTOCOL.SERVER.JERRY_DEBUGGER_BACKTRACE_TOTAL: {
+          this._total_frame_counter = this._debuggerObj.decodeMessage('I', message, 1);
+          return;
+        }
+
         case PROTOCOL.SERVER.JERRY_DEBUGGER_BACKTRACE:
         case PROTOCOL.SERVER.JERRY_DEBUGGER_BACKTRACE_END: {
-
           for (let i = 1; i < message.byteLength; i += this._debuggerObj.cPointerSize + 4) {
             const breakpointData = this._debuggerObj.decodeMessage('CI', message, i);
             this._backtrace.push({
@@ -236,6 +241,9 @@ export default class Connection {
     };
   }
 
+  get total_frame_counter() {
+    return this._total_frame_counter;
+  }
   get exceptionData() {
     return this._exceptionData;
   }

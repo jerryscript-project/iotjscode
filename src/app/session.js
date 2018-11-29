@@ -967,6 +967,7 @@ export default class Session {
    */
   reset() {
     Util.clearElement($('#backtrace-table-body'));
+    $('#backtrace-scroll').scrollTop(0);
     this.unhighlightLine();
     this._glyph.removeAll();
     this._marker.remove();

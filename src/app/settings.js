@@ -135,7 +135,7 @@ export default class Settings {
         }, false],
       },
       debugger: {
-        backtraceDepth: [CONTROL_TYPE.NUMBER, value => this.modify('debugger.backtraceDepth', value), 0],
+        backtraceRange: [CONTROL_TYPE.CHECKBOX, value => this.modify('debugger.backtraceRange', value), true],
         transpileToES5: [CONTROL_TYPE.CHECKBOX, value => this.modify('debugger.transpileToES5', value), false],
       },
       panels: {

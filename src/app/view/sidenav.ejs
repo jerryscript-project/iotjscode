@@ -146,8 +146,9 @@
     <div class="control-block" id="debugger-control-block">
       <h4>Debugger</h4>
       <div class="control-item">
-        <label for="backtraceDepth">Backtrace depth</label>
-        <input type="number" name="backtraceDepth" id="backtraceDepth" class="form-control input-sm" title="Maximum depth of backtrace. 0 by default." min="0" value="0">
+        <input type="checkbox" id="backtraceRange">
+        <label for="backtraceRange">Total backtrace count</label>
+        <p>Enable this if you want to use [start, end] interval for backtrace.</p>
       </div>
       <div class="control-item">
         <input type="checkbox" id="transpileToES5">
