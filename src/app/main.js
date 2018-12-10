@@ -1379,6 +1379,10 @@ export default function App() {
         session.addCommandToList(command);
         session.commandCounter = session.commandList.length;
         const args = /^([a-zA-Z]+)(?:\s+([^\s].*)|)$/.exec(command);
+        /**
+         * TODO: Make the regex read the second item as well.
+         * Currently only supports 1 argument.
+         */
 
         if (!args) {
           logger.error('Invalid command.');
@@ -1480,7 +1484,8 @@ export default function App() {
             break;
           case 'e':
           case 'eval':
-            result = debuggerObj.sendEval(PROTOCOL.SERVER.JERRY_DEBUGGER_EVAL_EVAL, args[2]);
+            // TODO: args[3]
+            result = debuggerObj.sendEval(PROTOCOL.SERVER.JERRY_DEBUGGER_EVAL_EVAL, args[2], 0);
             break;
           case 'throw':
             result = debuggerObj.sendEval(PROTOCOL.SERVER.JERRY_DEBUGGER_EVAL_THROW, args[2]);
@@ -1525,8 +1530,10 @@ export default function App() {
           case DEBUGGER_RETURN_TYPES.EXCEPTION_CONFIG.DISABLED:
             logger.info('Stop at exception disabled.');
             break;
+          case DEBUGGER_RETURN_TYPES.COMMON.SUCCESS:
+            break;
           default:
-            logger.log('Unknown error.');
+            logger.error('Unknown error.');
             break;
         }
 

@@ -140,13 +140,13 @@ If you want to use the `IoT.js Code` only with the [JerryScript](https://github.
 
 ```
 # Build the JerryScript with the following switches.
-$ ./tools/build.py --jerry-debugger=on --jerry-libc=off
+$ ./tools/build.py --jerry-debugger=on
 
 # To build with memory statistics.
-$ ./tools/build.py --jerry-debugger=on --jerry-libc=off --mem-stats=on
+$ ./tools/build.py --jerry-debugger=on --mem-stats=on
 
 # To build without default port.
-$ ./tools/build.py --jerry-debugger=on --jerry-libc=off --jerry-port-default=off
+$ ./tools/build.py --jerry-debugger=on --jerry-port-default=off
 
 # Run the JerryScript with the following switches.
 # The --log-level 3 is strongly recommended to see what happening on server side.

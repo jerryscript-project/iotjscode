@@ -87,14 +87,14 @@ export default class Connection {
 
       if (this._debuggerObj.cPointerSize === 0) {
         if (message[0] !== PROTOCOL.SERVER.JERRY_DEBUGGER_CONFIGURATION ||
-            message.byteLength !== 5) {
+            message.byteLength !== 8) {
           this.abort('the first message must be configuration.');
         }
 
-        this._debuggerObj.maxMessageSize = message[1];
-        this._debuggerObj.cPointerSize = message[2];
-        this._debuggerObj.littleEndian = (message[3] != 0);
-        this._debuggerObj.version = message[4];
+        this._debuggerObj.maxMessageSize = message[6];
+        this._debuggerObj.cPointerSize = message[7];
+        this._debuggerObj.littleEndian = (message[1] != 0);
+        this._debuggerObj.version = this._debuggerObj.decodeMessage('I', message, 2)[0];
 
         if (this._debuggerObj.cPointerSize !== 2 && this._debuggerObj.cPointerSize !== 4) {
           this.abort('compressed pointer must be 2 or 4 bytes long.');

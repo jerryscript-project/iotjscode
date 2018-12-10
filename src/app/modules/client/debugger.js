@@ -22,7 +22,7 @@ import { EventEmitter } from 'events';
 /**
  * Expected Debugger Protocol version.
  */
-export const JERRY_DEBUGGER_VERSION = 5;
+export const JERRY_DEBUGGER_VERSION = 8;
 
 /**
  * Packages sent between the server and the client.
@@ -56,6 +56,10 @@ export const PROTOCOL = {
     JERRY_DEBUGGER_WAIT_FOR_SOURCE: 25,
     JERRY_DEBUGGER_OUTPUT_RESULT: 26,
     JERRY_DEBUGGER_OUTPUT_RESULT_END: 27,
+    JERRY_DEBUGGER_SCOPE_CHAIN: 28,
+    JERRY_DEBUGGER_SCOPE_CHAIN_END: 29,
+    JERRY_DEBUGGER_SCOPE_VARIABLES: 30,
+    JERRY_DEBUGGER_SCOPE_VARIABLES_END: 31,
 
     // Subtypes of eval.
     JERRY_DEBUGGER_EVAL_EVAL: '\u0000',
@@ -92,6 +96,8 @@ export const PROTOCOL = {
     JERRY_DEBUGGER_GET_BACKTRACE: 16,
     JERRY_DEBUGGER_EVAL: 17,
     JERRY_DEBUGGER_EVAL_PART: 18,
+    JERRY_DEBUGGER_GET_SCOPE_CHAIN: 19,
+    JERRY_DEBUGGER_GET_SCOPE_VARIABLES: 20,
   },
 };
 
@@ -139,7 +145,7 @@ export default class DebuggerClient {
   constructor(address) {
     this._eventEmitter = new EventEmitter();
 
-    this._verison = 0;
+    this._version = 0;
 
     this._maxMessageSize = 0;
     this._cpointerSize = 0;
@@ -172,11 +178,11 @@ export default class DebuggerClient {
   }
 
   get version() {
-    return this._verison;
+    return this._version;
   }
 
   set version(version) {
-    this._verison = version;
+    this._version = version;
   }
 
   get maxMessageSize() {
@@ -756,25 +762,46 @@ export default class DebuggerClient {
    *                                COMMON.ALLOWED_IN_BREAKPOINT_MODE in case of invalid engine mode and
    *                                COMMON.SUCCESS in case of successful send.
    */
-  sendEval(subtype, str) {
+  sendEval(subtype, str, scope) {
     if (this._mode.current === ENGINE_MODE.BREAKPOINT) {
       if (str === '') {
         return DEBUGGER_RETURN_TYPES.COMMON.ARGUMENT_REQUIRED;
       } else {
-        let array = this.stringToCesu8(subtype + str);
+        // Because of the args regexp it always evaluates on the 0th scope chain.
+        const strArray = this.stringToCesu8(str);
+
+        const typeSize = 1;
+        const scopeSize = 4;
+        const strSize = strArray.byteLength;
+        const messageSize = scopeSize + typeSize + strSize;
+        const messageSizeLength = 4;
+
+        const array = new Uint8Array(typeSize + messageSizeLength + messageSize);
         const byteLength = array.byteLength;
+
+        let offset = 0;
+        array[offset++] = PROTOCOL.CLIENT.JERRY_DEBUGGER_EVAL;
+        this.setUint32(array, offset, messageSize);
+        offset += 4;
+        this.setUint32(array, offset, scope);
+        offset += 4;
+        array[offset++] = subtype;
+
+        for (let i = 0; i < strArray.byteLength; i++) {
+          array[offset++] = strArray[i];
+        }
 
         if (byteLength <= this._maxMessageSize) {
           this._connection.send(array);
         } else {
           this._connection.send(array.slice(0, this._maxMessageSize));
 
-          let offset = this._maxMessageSize - 1;
+          let sendOffset = this._maxMessageSize - 1;
 
-          while (offset < byteLength) {
-            array[offset] = PROTOCOL.CLIENT.JERRY_DEBUGGER_EVAL_PART;
-            this._connection.send(array.slice(offset, offset + this._maxMessageSize));
-            offset += this._maxMessageSize - 1;
+          while (sendOffset < byteLength) {
+            array[sendOffset] = PROTOCOL.CLIENT.JERRY_DEBUGGER_EVAL_PART;
+            this._connection.send(array.slice(sendOffset, sendOffset + this._maxMessageSize));
+            sendOffset += this._maxMessageSize - 1;
           }
         }
 
@@ -811,10 +838,24 @@ export default class DebuggerClient {
       return DEBUGGER_RETURN_TYPES.SOURCE_SENDING.CONTEXT_RESET_SENDED;
     }
 
-    let array = this.stringToCesu8(`${fileName}\0${fileSource}`);
+    const strArray = this.stringToCesu8(`${fileName}\0${fileSource}`);
+
+    const strLength = strArray.byteLength;
+    const typeLength = 1;
+    const msgLengthSize = 4;
+    const msgLength = strLength;
+
+    const array = new Uint8Array(typeLength + msgLengthSize + msgLength);
     const byteLength = array.byteLength;
 
-    array[0] = PROTOCOL.CLIENT.JERRY_DEBUGGER_CLIENT_SOURCE;
+    let arrayOffset = 0;
+    array[arrayOffset++] = PROTOCOL.CLIENT.JERRY_DEBUGGER_CLIENT_SOURCE;
+    this.setUint32(array, arrayOffset, msgLength);
+    arrayOffset += 4;
+
+    for (let i = 0; i < strLength; i++) {
+      array[arrayOffset++] = strArray[i];
+    }
 
     if (byteLength <= this._maxMessageSize) {
       this._connection.send(array);
@@ -976,13 +1017,8 @@ export default class DebuggerClient {
       }
     }
 
-    const result = new Uint8Array(byteLength + 1 + 4);
-
-    result[0] = PROTOCOL.CLIENT.JERRY_DEBUGGER_EVAL;
-
-    this.setUint32(result, 1, byteLength);
-
-    let offset = 5;
+    const result = new Uint8Array(byteLength);
+    let offset = 0;
 
     for (let chr of string) {
       const charcode = chr.charCodeAt(0);
