@@ -110,7 +110,7 @@
       color: $b-red-color;
     }
 
-    #hidden-new-file {
+    #hidden-new-file, #hidden-open-github-file {
       display: none;
       margin: 10px;
 
@@ -120,7 +120,7 @@
         margin-bottom: 10px;
       }
 
-      #new-file-name {
+      #new-file-name, #open-github-file-name {
         cursor: text;
         width: 100%;
         margin-bottom: 10px;

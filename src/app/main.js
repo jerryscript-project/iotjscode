@@ -38,6 +38,7 @@ import FileSaver from 'file-saver';
 import 'jqueryui';
 import 'thead';
 import 'bootstrap';
+import tree from 'github-trees';
 
 export default function App() {
   console.log('IoT.JS Code');
@@ -762,6 +763,14 @@ export default function App() {
       });
 
       /**
+       * Open github file button event.
+       */
+      $('#open-github-file-button').on('click', () => {
+        surface.toggleSidenavGitHubFile();
+        $('#open-github-repo-name').focus();
+      });
+
+      /**
        * New file name on-the-fly validation.
        */
       $('#new-file-name').keyup(e => {
@@ -793,6 +802,24 @@ export default function App() {
       });
 
       /**
+       * Open github repo name on-the-fly validation.
+       */
+      $('#open-github-repo-name').keyup(e => {
+        const reponame = $('#open-github-repo-name').val().trim();
+        const regex = /^([a-zA-Z0-9_-]{1,}.*)\/{1}([a-zA-Z0-9_-]{1,}.*)$/;
+
+        if (!regex.test(reponame)) {
+          surface.toggleButton(false, 'ok-github-file-name');
+          return;
+        }
+        surface.toggleButton(true, 'ok-github-file-name');
+        // If the key was the enter, trigger the ok button.
+        if (e.keyCode === keys.enter) {
+          $('#ok-github-file-name').click();
+        }
+      });
+
+      /**
        * New file name cancel button events.
        */
       $('#cancel-file-name').on('click', () => {
@@ -800,6 +827,15 @@ export default function App() {
         $('#hidden-new-file-info').empty();
         surface.toggleButton(false, 'ok-file-name');
         surface.toggleSidenavNewFile();
+      });
+
+      /**
+       * Open github file name cancel button events.
+       */
+      $('#cancel-github-file-name').on('click', () => {
+        $('#open-github-repo-name').val('');
+        surface.toggleButton(false, 'ok-github-file-name');
+        surface.toggleSidenavGitHubFile();
       });
 
       /**
@@ -821,6 +857,51 @@ export default function App() {
         surface.toggleSidenavNewFile();
         surface.toggleSidenavExtra('file-sidenav');
       });
+
+      /**
+       * Open github file name ok button events.
+       */
+      $('#ok-github-file-name').on('click', e => {
+        if (surface.buttonIsDisabled(e.target)) {
+          return true;
+        }
+        let inputRepo = ($('#open-github-repo-name').val().trim()).split('/');
+        tree(inputRepo[0], inputRepo[1], {recursive: true})
+        .then(res => {
+          let list = document.createElement('ul');
+          res.tree.forEach(node => {
+            if (node.type === 'blob') {
+              let listItem = document.createElement('li');
+              listItem.innerHTML = node.path;
+              listItem.setAttribute('file', node.path);
+              listItem.setAttribute('repo', inputRepo.join('/'));
+              listItem.addEventListener('click', function() {
+               $.get('https://raw.githubusercontent.com/' + this.getAttribute('repo') + '/master/' + this.getAttribute('file')).done(e => {
+                  session.createNewFile(this.getAttribute('file').split('/').pop(), e);
+                  $('#container-content').empty();
+                  $('#container').removeClass('active');
+                });
+              }, false);
+              list.appendChild(listItem);
+            }
+          });
+          $('#container-content').append(list);
+        });
+        $('#container').addClass('active');
+        $('#container').on('click', () => {
+          $('#container-content').empty();
+          $('#container').removeClass('active');
+        });
+        if (surface.getPanelProperty('run.active')) {
+          surface.updateRunPanel(SURFACE_RUN_UPDATE_TYPE.ALL, debuggerObj, session);
+        }
+
+        $('#open-github-repo-name').val('');
+        surface.toggleButton(false, 'ok-github-file-name');
+        surface.toggleSidenavGitHubFile();
+        surface.toggleSidenavExtra('file-sidenav');
+      });
+
 
       /**
        * Save button event.

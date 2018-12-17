@@ -62,6 +62,9 @@ export default class Surface {
       newFile: {
         opened: false,
       },
+      githubFile: {
+        opened: false,
+      },
       run: {
         enabled: false,
       },
@@ -194,6 +197,9 @@ export default class Surface {
       if (this._sidenavExtra.newFile.opened) {
         this._sidenavExtra.newFile.opened = false;
         $('#hidden-new-file').hide();
+      } else if (this._sidenavExtra.githubFile.opened) {
+        this._sidenavExtra.githubFile.opened = false;
+        $('#hidden-open-github-file').hide();
       }
     } else {
       this._sidenavExtra.opened = true;
@@ -220,6 +226,18 @@ export default class Surface {
     } else {
       this._sidenavExtra.newFile.opened = true;
       $('#hidden-new-file').fadeIn('fast');
+    }
+  }
+
+  toggleSidenavGitHubFile() {
+    if (this._sidenavExtra.githubFile.opened) {
+      this._sidenavExtra.githubFile.opened = false;
+
+      $('#hidden-open-github-file').hide();
+      $('#open-github-repo-name').val('');
+    } else {
+      this._sidenavExtra.githubFile.opened = true;
+      $('#hidden-open-github-file').fadeIn('fast');
     }
   }
 
