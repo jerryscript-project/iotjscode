@@ -1,7 +1,7 @@
 # IoT.js Code <br> A browser based editor with devtools for IoT.js
 
 [![License](https://img.shields.io/badge/licence-Apache%202.0-brightgreen.svg?style=flat)](LICENSE)
-[![Build Status](https://travis-ci.org/Samsung/iotjscode.svg?branch=master)](https://travis-ci.org/Samsung/iotjscode)
+[![Build Status](https://travis-ci.org/pando-project/iotjscode.svg?branch=master)](https://travis-ci.org/pando-project/iotjscode)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FSamsung%2Fiotjscode.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FSamsung%2Fiotjscode?ref=badge_shield)
 
 - [Introduction](#introduction)
@@ -13,7 +13,7 @@
 - [License](#license)
 
 # Introduction
-`IoT.js Code` is an online editor with debugger tools for [IoT.js](https://github.com/Samsung/iotjs) that lets you debug the code which is running on a device and lets you upload your code to the device, directly from the browser, with the power of WebSocket.
+`IoT.js Code` is an online editor with debugger tools for [IoT.js](https://github.com/pando-project/iotjs) that lets you debug the code which is running on a device and lets you upload your code to the device, directly from the browser, with the power of WebSocket.
 
 # Features
 The `IoT.js Code` provides you the following features:
@@ -46,7 +46,7 @@ The `IoT.js Code` provides you the following features:
 To start the project, do the following:
 
 ```
-$ git clone https://github.com/Samsung/iotjscode.git
+$ git clone https://github.com/pando-project/iotjscode.git
 $ cd iotjscode
 
 # Install the project's dependencies.
@@ -70,7 +70,7 @@ $ npm run lint-autofix
 **Note:** This project requires [node.js](https://nodejs.org/en/) v8.x.x or higher and [npm](https://www.npmjs.com) 5.x.x or higher to be able to work properly.
 
 # Layout overview
-Live [Demo Page](https://samsung.github.io/iotjscode/).
+Live [Demo Page](https://pando-project.github.io/iotjscode/).
 
 There are four sections in the `IoT.js Code`:
 1. **Menu**
@@ -106,7 +106,7 @@ There are four sections in the `IoT.js Code`:
 
 # How to use with IoT.js
 
-If you want to use the `IoT.js Code` with the [IoT.js](https://github.com/Samsung/iotjs) do the following (assumes that you have a cloned IoT.js and you are in the root directory):
+If you want to use the `IoT.js Code` with the [IoT.js](https://github.com/pando-project/iotjs) do the following (assumes that you have a cloned IoT.js and you are in the root directory):
 
 ```
 # Build the IoT.js with the following switches.
